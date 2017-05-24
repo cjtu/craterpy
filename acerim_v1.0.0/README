@@ -1,2 +1,0 @@
-'ACERIM v1.0.0' 
-Automated Crater Ejecta Region of Interest Mapper (ACERIM)is a package used to automatically characterize the ejecta of specified craters in a given dataset. If supplied a maturity dataset, it can be used to classify craters as imature or mature.
