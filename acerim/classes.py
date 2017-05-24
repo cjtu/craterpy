@@ -231,10 +231,7 @@ class AceDataset(object):
         return abs(self.elon - self.wlon) == 360
     
     
-    def getROI(self, lat, lon, rad, PLOT=False):
-        """
-        Implements getROI function in functions.py.
-        """
+    def getROI(self, lat, lon, rad, wsize=1, excl_floor=False, plot=False):
         """
         Return square ROI centered on crater c which extends max_radius crater 
         radii from the crater center. 
@@ -255,28 +252,40 @@ class AceDataset(object):
         roi: 2Darray
             The specified window of data from dataset.
         """
-#        def wrap_lon(self):
-#            """
-#            Extract an roi that crosses the dataset lon boundary by concatenating
-#            the part on the left side of boundary with the part on the right side.
-#            """
+        def wrap_lon(ads, minlon, maxlon, topind, height):
+            """
+            Extract an roi that crosses the dataset lon boundary by concatenating
+            the part on the left side of boundary with the part on the right side.
+            """
+            if minlon < ads.wlon:
+                leftind = af.getInd(minlon, ads.lonarr - 360)
+                leftwidth = af.deg2pix(ads.wlon - minlon, ads.ppd)
+                rightind = af.getInd(ads.wlon, ads.lonarr)
+                rightwidth = af.deg2pix(maxlon - ads.wlon, ads.ppd)
+            elif maxlon > ads.elon:
+                leftind = af.getInd(minlon, ads.lonarr)
+                leftwidth = af.deg2pix(ads.elon - minlon, ads.ppd)
+                rightind = af.getInd(ads.elon, ads.lonarr + 360)
+                rightwidth = af.deg2pix(maxlon - ads.elon, ads.ppd)                
+            left_roi = ads.ReadAsArray(leftind, topind, leftwidth, height)
+            right_roi = ads.ReadAsArray(rightind, topind, rightwidth, height)
+            return np.concatenate((left_roi, right_roi), axis=11)
+            
+            # Old wrap_lon
 #            if minlon < self.wlon: 
 #                low_lonsize = self.wlon - minlon
 #                low_xind = hf.getInd(minlon,self.lonarr-360)
 #                low_xsize = hf.deg2pix(low_lonsize, self.ppd) 
-#                low_roi = self.ds.ReadAsArray(low_xind, yind, low_xsize, ysize)
-#                
+#                low_roi = self.ds.ReadAsArray(low_xind, yind, low_xsize, ysize)               
 #                high_lonsize = maxlon - self.wlon
 #                high_xind = hf.getInd(self.wlon,self.lonarr)
 #                high_xsize = hf.deg2pix(high_lonsize, self.ppd) 
-#                high_roi = self.ds.ReadAsArray(high_xind, yind, high_xsize, ysize)
-#                          
+#                high_roi = self.ds.ReadAsArray(high_xind, yind, high_xsize, ysize)                         
 #            elif maxlon > self.elon:
 #                low_lonsize = self.elon - minlon
 #                low_xind = hf.getInd(minlon,self.lonarr)
 #                low_xsize = hf.deg2pix(low_lonsize, self.ppd) 
-#                low_roi = self.ds.ReadAsArray(low_xind, yind, low_xsize, ysize)
-#                
+#                low_roi = self.ds.ReadAsArray(low_xind, yind, low_xsize, ysize)              
 #                high_lonsize = maxlon - self.elon
 #                high_xind = hf.getInd(self.elon,self.lonarr+360)
 #                high_xsize = hf.deg2pix(high_lonsize, self.ppd) 
@@ -284,38 +293,41 @@ class AceDataset(object):
 #            return np.concatenate((low_roi, high_roi), axis=1)  
 #                
         # If crater lon out of bounds, adjust to this ds [(0,360) <-> (-180,180)]
-        max_radius = 1 # TODO: Add extent argument
         if lon > self.elon: 
             lon -= 360
         if lon < self.wlon:
             lon += 360
             
-        latsize = 2*af.m2deg(max_radius*rad, self._calc_mpp(), self.ppd)
-        lonsize = latsize
-        minlat = lat-latsize/2
-        maxlat = lat+latsize/2
-        minlon = lon-lonsize/2
-        maxlon = lon+lonsize/2
+        dwsize = af.m2deg(wsize*rad, self._calc_mpp(), self.ppd)
+        minlat = lat-dwsize
+        maxlat = lat+dwsize
+        minlon = lon-dwsize
+        maxlon = lon+dwsize
         latarr = np.linspace(self.nlat, self.slat, self.RasterYSize)
         lonarr = np.linspace(self.wlon, self.elon, self.RasterXSize)
         extent = (minlon, maxlon, minlat, maxlat)
         # Throw error if window bounds are not in lat bounds.
         if minlat < self.slat or maxlat > self.nlat:
-            raise ImportError('Latitude ({0},{1}) out of bounds ({2},{3}) '.format(
+            raise ImportError('Latitude ({},{}) out of dataset bounds ({},{}) '.format(
                                        minlat, maxlat, self.slat, self.nlat))
 
-        yind = af.getInd(maxlat,latarr) # get top index of ROI
-        ysize = af.deg2pix(latsize, self.ppd) 
-#        if minlon < self.wlon or maxlon > self.elon:
-#            roi = wrap_lon(self,)  
-#        else: 
-        xind = af.getInd(minlon,lonarr) # get left index of ROI
-        xsize = af.deg2pix(lonsize, self.ppd)
-        roi = self.ReadAsArray(xind, yind, xsize, ysize) # read ROI subarray
+        topind = af.getInd(maxlat, latarr) 
+        height = af.deg2pix(2*dwsize, self.ppd)
+        if minlon < self.wlon or maxlon > self.elon:
+            roi = wrap_lon(self, minlon, maxlon, topind, height)  
+        else: 
+            leftind = af.getInd(minlon,lonarr) 
+            width = af.deg2pix(2*dwsize, self.ppd)
+            roi = self.ReadAsArray(leftind, topind, width, height) # gdal subarray
         if roi is None:
             raise ImportError('GDAL could not read dataset into array')
-#        if PLOT:
-#            self.plot_roi(roi, extent, name, diam)    
+        if excl_floor:
+            latind, lonind =  roi.shape[1]//2, roi.shape[0]//2
+            roi_nofloor = ~af.getCmask(latind, lonind, rad, roi)*roi
+        rmax = shell_radii[-1]
+        
+        if PLOT:
+            self.plot_roi(roi, extent, name, diam)    
         return roi 
 
     
