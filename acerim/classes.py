@@ -323,11 +323,10 @@ class AceDataset(object):
             raise ImportError('GDAL could not read dataset into array')
         if excl_floor:
             latind, lonind =  roi.shape[1]//2, roi.shape[0]//2
-            roi_nofloor = ~af.getCmask(latind, lonind, rad, roi)*roi
-        rmax = shell_radii[-1]
-        
+            no_floor = ~af.getCmask(latind, lonind, rad, roi)
+            roi = roi * no_floor
         if PLOT:
-            self.plot_roi(roi, extent, name, diam)    
+            self.plot_roi(roi, extent, name, rad)    
         return roi 
 
     

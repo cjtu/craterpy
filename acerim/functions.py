@@ -85,6 +85,23 @@ def deg2rad(theta):
     """
     return theta * (np.pi / 180)
 
+def cropROI(roi, mask):
+    """Crop the roi with the provided shape"""
+    return roi * mask
+
+def circleMask(roi, r, cx=None, cy = None, encl=False):
+    """
+    Return boolean array the same size as roi with soecified circle of radius r (in pixels), centered at 
+    cx, cy. If no cx, cy are provided, the circle is drawn at the centre. 
+    """
+    pass
+
+def getCmask(xind, yind, radius, array):
+    """Retun circular mask array of True iff array index is in circle."""
+    nx, ny = array.shape
+    y, x = np.ogrid[-xind:nx-xind, -yind:ny-yind]
+    cmask = x*x + y*y <= radius*radius
+    return cmask
 
 def greatcircdist(lat1, lon1, lat2, lon2, radius):
     """
