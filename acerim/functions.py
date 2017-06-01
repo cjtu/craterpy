@@ -5,7 +5,7 @@ Created on Tue May 16 08:15:23 2017
 @author: Christian
 """
 import numpy as np
-import acerim.acestats as acestats
+#import acerim.acestats as acestats
 
 
 ######################## ACERIM FUNCTIONS ##############################
@@ -59,11 +59,103 @@ def computeStats(cdf, ads, stats=None, craters=None):
             retdf.loc[cid, stat] = function(roi)
     return retdf
 
+######################### ROI manipulation ################3
+def mask_where(ndarray, condition):
+    """
+    Return copy of ndarray with nan entries where condition is True.
+    
+    >>> arr = np.array([1.,2.,3.,4.,5.])
+    >>> masked = mask_where(arr, arr > 3) 
+    >>> np.isnan(masked[3:]).all()
+    True
+    """
+    mask = np.array(np.ones(ndarray.shape)) # Same shape array of ones
+    mask[np.where(condition)] = np.nan 
+    return ndarray * mask
 
-########################### IMAGE CALCULATIONS ###############################
-def m2deg(distance,mpp,ppd):
+
+def circle_mask(roi, radius, center=(None,None)):
+    """
+    Return boolean array of True inside circle of radius at center.
+    
+    >>> roi = np.ones((3,3))
+    >>> masked = circle_mask(roi, 1)
+    >>> masked[1,1]
+    True
+    >>> masked[0,0]
+    False
+    """
+    if not center[0]: # Center circle on center of roi
+        center = np.array(roi.shape)/2 - 0.5
+    cx, cy = center
+    width, height = roi.shape
+    x = np.arange(width) - cx
+    y = np.arange(height).reshape(-1,1) - cy
+    if radius > 0:
+        return x*x + y*y <= radius*radius
+    else: 
+        return np.zeros(roi.shape, dtype=bool)
+
+
+def ellipse_mask(roi, a, b, center=(None, None)):
+    """
+    Return boolean array of True inside ellipse with horizontal major axis a 
+    and vertical minor axis b centered at center.
+    
+    >>> roi = np.ones((9,9))
+    >>> masked = ellipse_mask(roi, 3, 2)
+    >>> masked[4,1]
+    True
+    >>> masked[4,0]
+    False
+    """
+    if not center[0]: # Center circle on center of roi
+        center = np.array(roi.shape)//2
+    cx, cy = center    
+    width, height = roi.shape
+    y, x = np.ogrid[-cx:width-cx, -cy:height-cy]
+    return (x*x)/(a*a) + (y*y)/(b*b) <= 1
+
+
+def crater_mask(aceds, roi, lat, lon, rad):
+    degwidth = m2deg(rad, aceds._calc_mpp(lat), aceds.ppd)
+    degheight = m2deg(rad, aceds._calc_mpp(0), aceds.ppd)
+    return ellipse_mask(roi, degwidth, degheight)
+
+
+def ring_mask(roi, rmin, rmax, center=(None,None)):
+    """
+    Return boolean array of True in a ring from rmin to rmax radius around 
+    center. Returned array is same shape as roi.
+    
+
+    """
+    inner = circle_mask(roi, rmin, center)
+    outer = circle_mask(roi, rmax, center)
+    return outer*~inner
+    
+########################### Geo CALCULATIONS ###############################
+def inbounds(lat, lon, mode='std'):
+    """True if lat and lon on a globe.
+    Standard: mode='std' for lat in (-90, 90) and lon in (-180, 180).
+    Positive: mode='pos' for lat in (0, 180) and lon in (0, 360)
+    
+    >>> lat = -10
+    >>> lon = -10
+    >>> inbounds(lat, lon)
+    True
+    >>> inbounds(lat, lon, 'pos')
+    False
+    """
+    if mode == 'std':
+        return (-90 <= lat <= 90) and (-180 <= lon <= 180)
+    elif mode == 'pos':
+        return (0 <= lat <= 180) and (0 <= lon <= 360)
+    
+def m2deg(distance, mpp, ppd):
     """Return distance converted from meters to degrees."""
     return distance/(mpp*ppd)
+
 
 def deg2pix(dist,ppd):
     """Return distance converted from degrees to pixels."""
@@ -81,27 +173,10 @@ def deg2rad(theta):
     Convert degrees to radians.
     
     >>> deg2rad(180)
-    >>> 3.141592653589793
+    3.141592653589793
     """
     return theta * (np.pi / 180)
 
-def cropROI(roi, mask):
-    """Crop the roi with the provided shape"""
-    return roi * mask
-
-def circleMask(roi, r, cx=None, cy = None, encl=False):
-    """
-    Return boolean array the same size as roi with soecified circle of radius r (in pixels), centered at 
-    cx, cy. If no cx, cy are provided, the circle is drawn at the centre. 
-    """
-    pass
-
-def getCmask(xind, yind, radius, array):
-    """Retun circular mask array of True iff array index is in circle."""
-    nx, ny = array.shape
-    y, x = np.ogrid[-xind:nx-xind, -yind:ny-yind]
-    cmask = x*x + y*y <= radius*radius
-    return cmask
 
 def greatcircdist(lat1, lon1, lat2, lon2, radius):
     """
@@ -111,6 +186,8 @@ def greatcircdist(lat1, lon1, lat2, lon2, radius):
     >>> greatcircdist(36.12, -86.67, 33.94, -118.40, 6372.8)
     2887.259950607111
     """
+    if not inbounds(lat1, lon1) or not inbounds(lat2, lon2):
+        raise ValueError("Latitude or longitude out of bounds.")
     # Convert degrees to radians
     lat1, lon1, lat2, lon2 = map(deg2rad, [lat1, lon1, lat2, lon2])
     # Haversine
@@ -127,24 +204,6 @@ def greatcircdist(lat1, lon1, lat2, lon2, radius):
 #import scipy.optimize as opt
 #import helper_functions as hf
 
-#def computeStats(radius, roi, stats):
-#    """Return dict of computed statistics on current roi."""
-#    roi = roi[(roi > 0) & (roi < 1)]
-#    if roi.any(): # if roi is not empty, compute stats
-#        median = np.median(roi)
-#        pct95 = np.percentile(roi, 95)
-#        # Append results 
-#        if 'radii' in stats:
-#            stats['radii'].append(radius)
-#            stats['median'].append(median)
-#            stats['pct95'].append(pct95)
-#        else: # Initialize if this is the first set of stats computed
-#            stats['radii'] = [radius]
-#            stats['median'] = [median]
-#            stats['pct95'] = [pct95]
-#    return stats
-
-    
 def fitExp(x,y,PLOT_EXP=False):
     """
     Return an exponential that has been fit to data using scipy.curvefit(). 
@@ -165,9 +224,6 @@ def fitExp(x,y,PLOT_EXP=False):
         hf.plot_exp(x,y,expEval(x,*p_opt))
     return p_opt
 
-    
- 
-    
 
 def fitGauss(data,PLOT_GAUSS=False):
     """

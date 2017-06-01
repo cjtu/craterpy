@@ -172,9 +172,9 @@ class AceDataset(object):
         >>> '{:.3f}'.format(a._calc_mpp(50))
         '1.370'
         """
-        dist = af.greatcircdist(lat, lat, 0, 1, self.radius)
-        pix = self.RasterXSize
-        return dist/pix
+        pixwidth = 1/self.ppd
+        dist = af.greatcircdist(lat, 0, lat, pixwidth, self.radius)
+        return dist
               
     def _getDSinfo(self):
         """
@@ -231,7 +231,7 @@ class AceDataset(object):
         return abs(self.elon - self.wlon) == 360
     
     
-    def getROI(self, lat, lon, rad, wsize=1, excl_floor=False, plot=False):
+    def getROI(self, lat, lon, rad, wsize=1, mask_crater=False, plot=False):
         """
         Return square ROI centered on crater c which extends max_radius crater 
         radii from the crater center. 
@@ -270,28 +270,7 @@ class AceDataset(object):
             left_roi = ads.ReadAsArray(leftind, topind, leftwidth, height)
             right_roi = ads.ReadAsArray(rightind, topind, rightwidth, height)
             return np.concatenate((left_roi, right_roi), axis=11)
-            
-            # Old wrap_lon
-#            if minlon < self.wlon: 
-#                low_lonsize = self.wlon - minlon
-#                low_xind = hf.getInd(minlon,self.lonarr-360)
-#                low_xsize = hf.deg2pix(low_lonsize, self.ppd) 
-#                low_roi = self.ds.ReadAsArray(low_xind, yind, low_xsize, ysize)               
-#                high_lonsize = maxlon - self.wlon
-#                high_xind = hf.getInd(self.wlon,self.lonarr)
-#                high_xsize = hf.deg2pix(high_lonsize, self.ppd) 
-#                high_roi = self.ds.ReadAsArray(high_xind, yind, high_xsize, ysize)                         
-#            elif maxlon > self.elon:
-#                low_lonsize = self.elon - minlon
-#                low_xind = hf.getInd(minlon,self.lonarr)
-#                low_xsize = hf.deg2pix(low_lonsize, self.ppd) 
-#                low_roi = self.ds.ReadAsArray(low_xind, yind, low_xsize, ysize)              
-#                high_lonsize = maxlon - self.elon
-#                high_xind = hf.getInd(self.elon,self.lonarr+360)
-#                high_xsize = hf.deg2pix(high_lonsize, self.ppd) 
-#                high_roi = self.ds.ReadAsArray(high_xind, yind, high_xsize, ysize)               
-#            return np.concatenate((low_roi, high_roi), axis=1)  
-#                
+                      
         # If crater lon out of bounds, adjust to this ds [(0,360) <-> (-180,180)]
         if lon > self.elon: 
             lon -= 360
@@ -321,12 +300,11 @@ class AceDataset(object):
             roi = self.ReadAsArray(leftind, topind, width, height) # gdal subarray
         if roi is None:
             raise ImportError('GDAL could not read dataset into array')
-        if excl_floor:
-            latind, lonind =  roi.shape[1]//2, roi.shape[0]//2
-            no_floor = ~af.getCmask(latind, lonind, rad, roi)
-            roi = roi * no_floor
-        if PLOT:
-            self.plot_roi(roi, extent, name, rad)    
+        if mask_crater:
+            cmask = af.crater_mask(roi, rad)
+            roi = af.mask_where(roi, cmask)
+        if plot:
+            self.plot_roi(roi, extent, rad)    
         return roi 
 
     
