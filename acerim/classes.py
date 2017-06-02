@@ -9,7 +9,7 @@ import gdal
 import pandas as pd
 import numpy as np
 import acerim.functions as af
-
+#%%
 class CraterDataFrame(pd.DataFrame):
     """
     Class for representing and manipulating crater data. Extends the pandas 
@@ -132,7 +132,7 @@ class AceDataset(object):
             raise ImportError('Invalid input dataset')
         args = [nlat, slat, wlon, elon, radius, ppd]
         attrs = ['nlat','slat','wlon','elon','radius','ppd']
-        dsinfo = self._getDSinfo()
+        dsinfo = self.get_info()
         for i,arg in enumerate(args):
             if arg is None: # If optional argument missing, fill from dsinfo
                 setattr(self, attrs[i], dsinfo[i])
@@ -154,7 +154,7 @@ class AceDataset(object):
             else: # Return attribute
                 return func
 
-    def _calc_mpp(self, lat=0):
+    def calc_mpp(self, lat=0):
         """
         Return the ground resolution in meters/pixel at the given latitude. 
         
@@ -167,16 +167,16 @@ class AceDataset(object):
         --------
         >>> f = os.path.dirname(os.path.abspath('__file__'))+'/tests/moon.tif'
         >>> a = AceDataset(f, radius = 1737)
-        >>> '{:.3f}'.format(a._calc_mpp())
-        '0.021'
-        >>> '{:.3f}'.format(a._calc_mpp(50))
+        >>> '{:.3f}'.format(a.calc_mpp())
+        '7.579'
+        >>> '{:.3f}'.format(a.calc_mpp(50))
         '1.370'
         """
         pixwidth = 1/self.ppd
         dist = af.greatcircdist(lat, 0, lat, pixwidth, self.radius)
         return dist
               
-    def _getDSinfo(self):
+    def get_info(self):
         """
         Return list of georeferencing and projection information from the input
         data file if available. See help(gdal.Dataset) for compatible files.
@@ -200,7 +200,7 @@ class AceDataset(object):
         --------
         >>> f = os.path.dirname(os.path.abspath('__file__'))+'/tests/moon.tif'
         >>> a = AceDataset(f)
-        >>> a._getDSinfo()
+        >>> a.get_info()
         (90.0, -90.0, -180.0, 180.0, 6378.137, 4.0)
         """
         xsize, ysize = self.RasterXSize, self.RasterYSize

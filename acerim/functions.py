@@ -110,33 +110,41 @@ def ellipse_mask(roi, a, b, center=(None, None)):
     False
     """
     if not center[0]: # Center circle on center of roi
-        center = np.array(roi.shape)//2
+        center = np.array(roi.shape)/2 - 0.5
     cx, cy = center    
     width, height = roi.shape
     y, x = np.ogrid[-cx:width-cx, -cy:height-cy]
     return (x*x)/(a*a) + (y*y)/(b*b) <= 1
 
+def ring_mask(roi, rmin, rmax, center=(None,None)):
+    """
+    Return boolean array of True in a ring from rmin to rmax radius around 
+    center. Returned array is same shape as roi.
+    """
+    inner = circle_mask(roi, rmin, center)
+    outer = circle_mask(roi, rmax, center)
+    return outer*~inner
 
-def crater_mask(aceds, roi, lat, lon, rad):
+
+def crater_floor_mask(aceds, roi, lat, lon, rad):
+    """
+    """
     degwidth = m2deg(rad, aceds._calc_mpp(lat), aceds.ppd)
     degheight = m2deg(rad, aceds._calc_mpp(0), aceds.ppd)
     return ellipse_mask(roi, degwidth, degheight)
 
 
-def ring_mask(roi, rmin, rmax, center=(None,None)):
+def crater_ring_mask(roi, aceds, lat, lon, rmin, rmax):
     """
-    Return boolean array of True in a ring from rmin to rmax radius around 
-    center. Returned array is same shape as roi.
-    
+    """
+    rmax = m2deg(rad, aceds._calc_mpp(lat), aceds.ppd)
+    degheight = m2deg(rad, aceds._calc_mpp(0), aceds.ppd)
+    return ellipse_mask(roi, degwidth, degheight)    
 
-    """
-    inner = circle_mask(roi, rmin, center)
-    outer = circle_mask(roi, rmax, center)
-    return outer*~inner
     
 ########################### Geo CALCULATIONS ###############################
 def inbounds(lat, lon, mode='std'):
-    """True if lat and lon on a globe.
+    """True if lat and lon within global coordinates.
     Standard: mode='std' for lat in (-90, 90) and lon in (-180, 180).
     Positive: mode='pos' for lat in (0, 180) and lon in (0, 360)
     
@@ -186,7 +194,7 @@ def greatcircdist(lat1, lon1, lat2, lon2, radius):
     >>> greatcircdist(36.12, -86.67, 33.94, -118.40, 6372.8)
     2887.259950607111
     """
-    if not inbounds(lat1, lon1) or not inbounds(lat2, lon2):
+    if not all(map(inbounds,(lat1,lon1),(lat2,lon2))) or abs(lat1)==90 or abs(lat2)==90:
         raise ValueError("Latitude or longitude out of bounds.")
     # Convert degrees to radians
     lat1, lon1, lat2, lon2 = map(deg2rad, [lat1, lon1, lat2, lon2])

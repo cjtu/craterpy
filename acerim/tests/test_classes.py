@@ -10,6 +10,7 @@ import pandas as pd
 import acerim
 import acerim.classes as ac
 import unittest
+import numpy as np
 
 test_path = os.path.join(acerim.__path__[0], 'tests')
 
@@ -75,20 +76,43 @@ class TestAceDataset(unittest.TestCase):
         self.assertIsNotNone(self.ads)
         
     def test_geotiff_info(self):
-        """Test getDSinfo method for reading geotiff info"""
+        """Test .get_info method for reading geotiff info"""
         ads = self.ads
-        actual = ads._getDSinfo()
+        actual = ads.get_info()
         expected = (90.0, -90.0, -180.0, 180.0, 6378.137, 4.0)
         self.assertEqual(actual, expected)
         
     def test_isGlobal(self):
-        """Test isGlobal method for checking if dataset has 360 degrees of lon"""
+        """Test .isGlobal method for checking if dataset has 360 degrees of lon"""
         
         is_global = ac.AceDataset(self.test_data, wlon=0, elon=360).isGlobal()
         self.assertTrue(is_global)
         
         not_global = ac.AceDataset(self.test_data, wlon=0, elon=180).isGlobal()
         self.assertFalse(not_global)
+        
+    def test_calc_mpp0(self):
+        """Test .calc_mpp method at equator"""
+        ads = self.ads
+        circum = 2*np.pi*ads.radius # [m] circumference at lat=0
+        xpix = ads.RasterXSize # [pix]
+        expected = circum/xpix # [m/pix]
+        actual = ads.calc_mpp()
+        self.assertAlmostEqual(actual, expected, 5)
+        
+    def test_calc_mpp50(self):
+        """Test .calc_mpp method at 50 degrees latitude"""
+        ads = self.ads
+        circum = 2*np.pi*np.cos(50*(np.pi/180))*ads.radius
+        xpix = ads.RasterXSize
+        expected = circum/xpix
+        actual = ads.calc_mpp(50)
+        self.assertAlmostEqual(actual, expected, 5)
+        
+    def test_calc_mpp90(self):
+        """Test .calc_mpp method fails at 90 degrees latitude"""
+        ads = self.ads
+        self.assertRaises(ValueError, ads.calc_mpp, 90)
         
         
         
