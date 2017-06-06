@@ -25,17 +25,22 @@ The first 5 lines of data can be printed with:
 
 >>> print(cdf[0:5])
        Name    Rad    Lat   Lon
-0  Patricia  10.08  24.91  0.50
-1   Ukert R  18.26   7.93  0.69
-2   Chladni  13.07   3.99  1.12
-3   Ukert N  17.13   7.58  2.01
-4      Bela  10.07  24.67  2.27
+0  Patricia  5.040  24.91  0.50
+1   Ukert R  9.130   7.93  0.69
+2   Chladni  6.535   3.99  1.12
+3   Ukert N  8.565   7.58  2.01
+4      Bela  5.035  24.67  2.27
 
 The CraterDataFrame requires that latitude, longitude, and radius (or diameter) columns are defined in the header row of the imported data. To manually set the column names or if a header is not included in the data, use the columns argument as follows:
 
 >>> cdf = ace.CraterDataFrame(crater_csv, columns=['Name', 'Diam', 'Lat', 'Lon'])
 >>> print(cdf[0:5])
-
+       Name    Rad    Lat   Lon   _Rad
+0  Patricia  5.040  24.91  0.50  2.520
+1   Ukert R  9.130   7.93  0.69  4.565
+2   Chladni  6.535   3.99  1.12  3.268
+3   Ukert N  8.565   7.58  2.01  4.283
+4      Bela  5.035  24.67  2.27  2.518
 
 This will assign the given column names to the columns in the order that they appear in the sheet.
 
