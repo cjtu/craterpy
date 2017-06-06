@@ -8,7 +8,7 @@ Created on Wed Jul 13 16:24:07 2016
 import gdal
 import pandas as pd
 import numpy as np
-import acerim.functions as af
+#import acerim.functions as af
 #%%
 class CraterDataFrame(pd.DataFrame):
     """
@@ -51,7 +51,7 @@ class CraterDataFrame(pd.DataFrame):
         
         """
         if isinstance(data, str):
-            data = pd.read_csv(data)
+            data = pd.read_csv(data, names=columns) #TODO: fix import with column names
         super(CraterDataFrame, self).__init__(data,index,columns)
         
         # If no lat-, lon-, or rad- col provided, try to find them in columns
@@ -277,7 +277,7 @@ class AceDataset(object):
         if lon < self.wlon:
             lon += 360
             
-        dwsize = af.m2deg(wsize*rad, self._calc_mpp(), self.ppd)
+        dwsize = af.m2deg(wsize*rad, self.calc_mpp(), self.ppd)
         minlat = lat-dwsize
         maxlat = lat+dwsize
         minlon = lon-dwsize

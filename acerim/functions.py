@@ -116,6 +116,7 @@ def ellipse_mask(roi, a, b, center=(None, None)):
     y, x = np.ogrid[-cx:width-cx, -cy:height-cy]
     return (x*x)/(a*a) + (y*y)/(b*b) <= 1
 
+
 def ring_mask(roi, rmin, rmax, center=(None,None)):
     """
     Return boolean array of True in a ring from rmin to rmax radius around 
@@ -129,17 +130,21 @@ def ring_mask(roi, rmin, rmax, center=(None,None)):
 def crater_floor_mask(aceds, roi, lat, lon, rad):
     """
     """
-    degwidth = m2deg(rad, aceds._calc_mpp(lat), aceds.ppd)
-    degheight = m2deg(rad, aceds._calc_mpp(0), aceds.ppd)
+    degwidth = m2deg(rad, aceds.calc_mpp(lat), aceds.ppd)
+    degheight = m2deg(rad, aceds.calc_mpp(), aceds.ppd)
     return ellipse_mask(roi, degwidth, degheight)
 
 
 def crater_ring_mask(roi, aceds, lat, lon, rmin, rmax):
     """
-    """
-    rmax = m2deg(rad, aceds._calc_mpp(lat), aceds.ppd)
-    degheight = m2deg(rad, aceds._calc_mpp(0), aceds.ppd)
-    return ellipse_mask(roi, degwidth, degheight)    
+    """ 
+    rmax_degheight = m2deg(rmax, aceds.calc_mpp(), aceds.ppd)
+    rmax_degwidth = m2deg(rmax, aceds.calc_mpp(lat), aceds.ppd)
+    rmin_degheight = m2deg(rmin, aceds.calc_mpp(), aceds.ppd)
+    rmin_degwidth = m2deg(rmin, aceds.calc_mpp(lat), aceds.ppd)
+    outer = ellipse_mask(roi, rmax_degwidth, rmax_degheight) 
+    inner = ellipse_mask(roi, rmin_degwidth, rmin_degheight)
+    return outer*~inner
 
     
 ########################### Geo CALCULATIONS ###############################
