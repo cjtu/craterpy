@@ -44,7 +44,6 @@ The CraterDataFrame requires that latitude, longitude, and radius (or diameter) 
 
 This will assign the given column names to the columns in the order that they appear in the sheet.
 
-Now the 
 
 2) Importing Image Data
 
