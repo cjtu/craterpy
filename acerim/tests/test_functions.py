@@ -8,11 +8,20 @@ import os
 import unittest
 import acerim
 import acerim.functions as f
+import acerim.classes as ac
 import numpy as np
 
 test_path = os.path.join(acerim.__path__[0], 'tests')
 
-# ROI manipulation functions
+#%% Test Compute Stats
+class Test_computeStats(unittest.TestCase):
+    """Test computeStats function"""
+    crater_csv = os.path.join(test_path,'craters.csv')
+    cdf = ac.CraterDataFrame(self.crater_csv)
+    test_dataset = os.path.join(test_path, 'moon.tif')
+    ads = ac.AceDataset(test_dataset, radius=1737)
+
+#%% Test ROI manipulation functions
 class Test_circle_mask(unittest.TestCase):
     """Test ring_mask function"""
     def test_trivial(self):
@@ -91,10 +100,9 @@ class Test_ring_mask(unittest.TestCase):
         self.assertIsNone(np.testing.assert_array_equal(actual, expected))
          
 
-# Image Helper Functions
+#%% Image Helper Functions
 class Test_m2deg(unittest.TestCase):
     """Test m2deg functions"""
-    
     def test_m2deg(self):
         """Test simple"""
         actual = f.m2deg(400, 10, 20)

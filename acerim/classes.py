@@ -8,7 +8,7 @@ Created on Wed Jul 13 16:24:07 2016
 import gdal
 import pandas as pd
 import numpy as np
-#import acerim.functions as af
+import functions as af
 #%%
 class CraterDataFrame(pd.DataFrame):
     """
@@ -22,37 +22,37 @@ class CraterDataFrame(pd.DataFrame):
     data : str or pandas.DataFrame
         Str will assume a filename ending in '.csv' with data to be read. It is 
         recommended to pass a pandas.DataFrame object if complicated import 
-        options are required
-    index : array-like
-        Index labels to use (generally crater name or other unique ID). When
-        importing a csv, index labels will be inferred from the header row of
-        the file.
-    columns : array-like
-        Column labels to use. Will default to np.arange(n) if no column labels 
-        are provided       
+        options are required.
+    **kwargs : 
+        All optional arguments from pandas.DataFrame can be appended as keyword 
+        arguments.
+                
         
     Examples
     --------
-    >>> import os
-    >>> f = os.path.dirname(os.path.abspath('__file__'))+'/tests/craters.csv' 
-    >>> cdf = CraterDataFrame(f)
+    >>> cdict = {'Lat' : [10, -20., 80.0],'Lon' : [14, -40.1, 317.2],'Diam' : [2, 12., 23.7]}
+    >>> cdf = CraterDataFrame(cdict)
+    >>> cdf['Diam'][0]
+    2.0
     >>> index = ['Crater A', 'Crater B', 'Crater C']
-    >>> cdf2 = CraterDataFrame(f, index)
+    >>> cdf2 = CraterDataFrame(cdict, index=index)
+    >>> cdf2.loc['Crater A']['Lat']
+    10.0
     >>> cols = ['Lat', 'Lon', 'Diam']
-    >>> cdf3 = CraterDataFrame(f, index, columns=cols)
-    >>> df = pd.read_csv(f)
-    >>> cdf4 = CraterDataFrame(df, index=index, columns=cols)
+    >>> cdf3 = CraterDataFrame(cdict, index=index, columns=cols)
+    >>> cdf3.keys()[0]
+    'Lat'
     """
-    def __init__(self, data=None, index=None, columns=None, latcol=None, 
-    			 loncol=None, radcol=None):
+    def __init__(self, data=None, latcol=None, 
+    			 loncol=None, radcol=None, **kwargs):
         """
         Initialize a CraterDataFrame object. See help(CraterDataFrame)
         for correct usage.
         
         """
         if isinstance(data, str):
-            data = pd.read_csv(data, names=columns) #TODO: fix import with column names
-        super(CraterDataFrame, self).__init__(data,index,columns)
+            data = pd.read_csv(data) 
+        super(CraterDataFrame, self).__init__(data, **kwargs)
         
         # If no lat-, lon-, or rad- col provided, try to find them in columns
         if not latcol:
@@ -112,7 +112,8 @@ class AceDataset(object):
     *kwargs : ...
         Additional attributes to include in this instance of AceDataset, 
         accessible by the supplied keyword.
-        
+    
+    >>> import os
     >>> f=os.path.dirname(os.path.abspath('__file__'))+'/tests/moon.tif'
     >>> ads = AceDataset(f, radius=1737)
     """
@@ -165,12 +166,13 @@ class AceDataset(object):
         
         Examples
         --------
+        >>> import os
         >>> f = os.path.dirname(os.path.abspath('__file__'))+'/tests/moon.tif'
         >>> a = AceDataset(f, radius = 1737)
         >>> '{:.3f}'.format(a.calc_mpp())
         '7.579'
         >>> '{:.3f}'.format(a.calc_mpp(50))
-        '1.370'
+        '4.872'
         """
         pixwidth = 1/self.ppd
         dist = af.greatcircdist(lat, 0, lat, pixwidth, self.radius)
@@ -198,6 +200,7 @@ class AceDataset(object):
             
         Examples
         --------
+        >>> import os
         >>> f = os.path.dirname(os.path.abspath('__file__'))+'/tests/moon.tif'
         >>> a = AceDataset(f)
         >>> a.get_info()
@@ -223,6 +226,7 @@ class AceDataset(object):
         
         Examples
         --------
+        >>> import os
         >>> f = os.path.dirname(os.path.abspath('__file__'))+'/tests/moon.tif'
         >>> a = AceDataset(f, 90, -90, 0, 360, 1737)
         >>> a.isGlobal()

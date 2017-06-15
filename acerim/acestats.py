@@ -14,19 +14,19 @@ def mean(roi):
     return np.mean(roi)
 
 def q1(roi):
-    """Return the first quartile value of roi"""
+    """Return the first quartile value (25/75) of roi"""
     return np.percentile(roi, 25)
 
 def median(roi):
-    """Return the median of roi"""
+    """Return the median (50/50) of roi"""
     return np.median(roi)
 
 def q3(roi):
-    """Return the third quartile value of roi"""
+    """Return the third quartile (75/25) value of roi"""
     return np.percentile(roi, 75)
 
 def pct95(roi):
-    """Return the 95th percentile value of roi"""
+    """Return the 95th percentile (95/5) value of roi"""
     return np.percentile(roi, 95)
 
 

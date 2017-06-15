@@ -68,8 +68,8 @@ class TestCraterDataFrame(unittest.TestCase):
         
 class TestAceDataset(unittest.TestCase):
     """Test AceDataset object"""
-    test_data = os.path.join(test_path, 'moon.tif')
-    ads = ac.AceDataset(test_data, radius=1737)
+    test_dataset = os.path.join(test_path, 'moon.tif')
+    ads = ac.AceDataset(test_dataset, radius=1737)
     
     def test_file_import(self):
         """Import test tif '/tests/moon.tif'"""

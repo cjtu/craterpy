@@ -5,7 +5,7 @@ Created on Tue May 16 08:15:23 2017
 @author: Christian
 """
 import numpy as np
-#import acerim.acestats as acestats
+import acestats as acs
 
 
 ######################## ACERIM FUNCTIONS ##############################
@@ -35,14 +35,14 @@ def computeStats(cdf, ads, stats=None, craters=None):
     """
     # Get stat functions to compute from acestats
     if not stats:
-        stats = acestats._listStats()
-    elif not all(stats in acestats._listStats):
+        stats = acs._listStats()
+    elif not all(stats in acs._listStats):
         raise ValueError('One or more of stats not in acestats.py')
-    stat_functions = acestats._getFunctions(stats)
+    stat_functions = acs._getFunctions(stats)
     if not craters:
         craters = cdf.index
     elif not all(cdf.isin(craters)):
-        raise ValueError('One or more of craters is not in cdf')
+        raise ValueError('The following craters is not in cdf')
     retdf = cdf.loc[craters] # Initialize return Dataframe
     for stat in stats:
         retdf[stat] = retdf.index # Add stat columns to retdf
