@@ -114,6 +114,9 @@ class TestAceDataset(unittest.TestCase):
         ads = self.ads
         self.assertRaises(ValueError, ads.calc_mpp, 90)
         
+    def test_getROI(self):
+        """Test getROI"""
+        pass
         
         
         

@@ -6,7 +6,7 @@ Created on Tue May 16 08:15:23 2017
 """
 import numpy as np
 import acestats as acs
-
+import matplotlib.pyplot as plt
 
 ######################## ACERIM FUNCTIONS ##############################
 def computeStats(cdf, ads, stats=None, craters=None):
@@ -36,7 +36,7 @@ def computeStats(cdf, ads, stats=None, craters=None):
     # Get stat functions to compute from acestats
     if not stats:
         stats = acs._listStats()
-    elif not all(stats in acs._listStats):
+    elif not all([stat in acs._listStats() for stat in stats]):
         raise ValueError('One or more of stats not in acestats.py')
     stat_functions = acs._getFunctions(stats)
     if not craters:
@@ -59,7 +59,51 @@ def computeStats(cdf, ads, stats=None, craters=None):
             retdf.loc[cid, stat] = function(roi)
     return retdf
 
-######################### ROI manipulation ################3
+
+######################### PLOTTING #########################
+def plot_roi(ads, roi, figsize=(8,8), extent=[], title='ROI', vmin=None,
+             vmax=None, cmap='gray', **kwargs):
+    """
+    Plot roi 2D array. 
+    
+    If extent, cname and cdiam are supplied, the axes will display the 
+    lats and lons specified and title will inclue cname and cdiam.
+    
+    Parameters
+    ----------
+    ads : AceDataset object
+        The parent dataset of roi.
+    roi : 2D array
+        The roi from ads to plot.
+    figsize : tuple
+        The (length,width) of plot in inches.
+    extent : array-like
+        The [top,left,bottom,right] extents of the roi in degrees.
+    title : str
+        Title of the roi.
+    vmin : int, float
+        Minimum pixel data value for plotting.
+    vmax : int, float
+        Maximum pixel data value for plotting.
+    cmap : str
+        Color map name for plotting. Must be a valid colorbar in
+        matplotlib.cm.cmap_d. See help(matplotlib.cm) for full list.
+        
+    Other parameters
+    ----------------
+    **kwargs : object
+        Additional keyword arguments to be passed to the imshow function. See 
+        help(matplotlib.pyplot.imshow) for more info.
+    """
+    plt.figure("ROI",figsize=figsize)
+    plt.imshow(roi, extent=extent, cmap=ads.cmap, vmin=ads.pltmin, vmax=ads.pltmax)
+    plt.title(title)
+    plt.xlabel('Longitude (degrees)')
+    plt.ylabel('Latitude (degrees)')
+    plt.show()
+
+
+######################### ROI manipulation #################
 def mask_where(ndarray, condition):
     """
     Return copy of ndarray with nan entries where condition is True.

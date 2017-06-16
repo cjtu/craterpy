@@ -102,13 +102,6 @@ class AceDataset(object):
         East latitude of dataset in (decimal) degrees.
     r : int, float
         Radius of planeary body in km.
-    vmin : int, float
-        Minimum pixel data value for plotting.
-    vmax : int, float
-        Maximum pixel data value for plotting.
-    cmap : str
-        Color map name for plotting. Must be a valid colorbar in
-        matplotlib.cm.cmap_d. See help(matplotlib.cm) for full list.
     *kwargs : ...
         Additional attributes to include in this instance of AceDataset, 
         accessible by the supplied keyword.
@@ -262,18 +255,18 @@ class AceDataset(object):
             the part on the left side of boundary with the part on the right side.
             """
             if minlon < ads.wlon:
-                leftind = af.getInd(minlon, ads.lonarr - 360)
+                leftind = af.getInd(minlon, lonarr - 360)
                 leftwidth = af.deg2pix(ads.wlon - minlon, ads.ppd)
-                rightind = af.getInd(ads.wlon, ads.lonarr)
+                rightind = af.getInd(ads.wlon, lonarr)
                 rightwidth = af.deg2pix(maxlon - ads.wlon, ads.ppd)
             elif maxlon > ads.elon:
-                leftind = af.getInd(minlon, ads.lonarr)
+                leftind = af.getInd(minlon, lonarr)
                 leftwidth = af.deg2pix(ads.elon - minlon, ads.ppd)
-                rightind = af.getInd(ads.elon, ads.lonarr + 360)
+                rightind = af.getInd(ads.elon, lonarr + 360)
                 rightwidth = af.deg2pix(maxlon - ads.elon, ads.ppd)                
             left_roi = ads.ReadAsArray(leftind, topind, leftwidth, height)
             right_roi = ads.ReadAsArray(rightind, topind, rightwidth, height)
-            return np.concatenate((left_roi, right_roi), axis=11)
+            return np.concatenate((left_roi, right_roi), axis=1)
                       
         # If crater lon out of bounds, adjust to this ds [(0,360) <-> (-180,180)]
         if lon > self.elon: 
@@ -308,7 +301,7 @@ class AceDataset(object):
             cmask = af.crater_mask(roi, rad)
             roi = af.mask_where(roi, cmask)
         if plot:
-            self.plot_roi(roi, extent, rad)    
+            self.plotROI(roi, extent)    
         return roi 
 
     
@@ -316,7 +309,6 @@ class AceDataset(object):
         """
         Implements plotROI function in functions.py. 
         """
-        af.plotROI(roi, extent=extent)
 
 
 if __name__ == "__main__":
