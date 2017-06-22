@@ -61,7 +61,7 @@ def computeStats(cdf, ads, stats=None, craters=None):
 
 
 ######################### PLOTTING #########################
-def plot_roi(ads, roi, figsize=(8,8), extent=[], title='ROI', vmin=None,
+def plot_roi(ads, roi, figsize=(8,8), extent=None, title='ROI', vmin=None,
              vmax=None, cmap='gray', **kwargs):
     """
     Plot roi 2D array. 
@@ -78,7 +78,7 @@ def plot_roi(ads, roi, figsize=(8,8), extent=[], title='ROI', vmin=None,
     figsize : tuple
         The (length,width) of plot in inches.
     extent : array-like
-        The [top,left,bottom,right] extents of the roi in degrees.
+        The [minlon, maxlon, minlat, maxlat] extents of the roi in degrees.
     title : str
         Title of the roi.
     vmin : int, float
@@ -96,7 +96,7 @@ def plot_roi(ads, roi, figsize=(8,8), extent=[], title='ROI', vmin=None,
         help(matplotlib.pyplot.imshow) for more info.
     """
     plt.figure("ROI",figsize=figsize)
-    plt.imshow(roi, extent=extent, cmap=ads.cmap, vmin=ads.pltmin, vmax=ads.pltmax)
+    plt.imshow(roi, extent=extent, cmap=cmap, vmin=vmin, vmax=vmax)
     plt.title(title)
     plt.xlabel('Longitude (degrees)')
     plt.ylabel('Latitude (degrees)')

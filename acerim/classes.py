@@ -43,7 +43,7 @@ class CraterDataFrame(pd.DataFrame):
     >>> cdf3.keys()[0]
     'Lat'
     """
-    def __init__(self, data=None, latcol=None, 
+    def __init__(self, data=None, index_col=None, latcol=None, 
     			 loncol=None, radcol=None, **kwargs):
         """
         Initialize a CraterDataFrame object. See help(CraterDataFrame)
@@ -51,7 +51,7 @@ class CraterDataFrame(pd.DataFrame):
         
         """
         if isinstance(data, str):
-            data = pd.read_csv(data) 
+            data = pd.read_csv(data, index_col=index_col) 
         super(CraterDataFrame, self).__init__(data, **kwargs)
         
         # If no lat-, lon-, or rad- col provided, try to find them in columns
@@ -145,7 +145,7 @@ class AceDataset(object):
                 def gdalDataset_wrapper(*args, **kwargs):
                     return func(*args, **kwargs)
                 return gdalDataset_wrapper
-            else: # Return attribute
+            else: # Not callable so must be attribute
                 return func
 
     def calc_mpp(self, lat=0):
@@ -230,20 +230,16 @@ class AceDataset(object):
     
     def getROI(self, lat, lon, rad, wsize=1, mask_crater=False, plot=False):
         """
-        Return square ROI centered on crater c which extends max_radius crater 
+        Return square ROI centered on (lat,lon) which extends wsize crater 
         radii from the crater center. 
         
-        If the the lon extent of the dataset is crossed, use wrap_lon(). 
-        If the lat extent is crossed, raise error.
+        If the the lon extent of a global dataset is crossed, use wrap_lon(). 
+        If the lon extent of a non global dataset of the lat extent is crossed, 
+        raise error.
     
         Arguments:
         ----------
-        c: Crater
-            Current crater containing lat, lon, radius.
-        max_radius: float
-            max radial extent of the ROI from center of crater. Amounts to half
-            of the length/width of returned ROI
-            
+
         Returns:
         --------
         roi: 2Darray
@@ -274,6 +270,7 @@ class AceDataset(object):
         if lon < self.wlon:
             lon += 360
             
+        # Get window extent in degrees
         dwsize = af.m2deg(wsize*rad, self.calc_mpp(), self.ppd)
         minlat = lat-dwsize
         maxlat = lat+dwsize
@@ -305,11 +302,11 @@ class AceDataset(object):
         return roi 
 
     
-    def plotROI(self, roi, extent=None):
+    def plotROI(self, roi, *args, **kwargs):
         """
         Implements plotROI function in functions.py. 
         """
-
+        af.plot_roi(self, roi, *args, **kwargs)
 
 if __name__ == "__main__":
     import doctest
