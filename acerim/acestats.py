@@ -47,7 +47,7 @@ def _listStats():
 
 def _getFunctions(stats):
     """
-    Get functions from this module according to stats_list. If stats_list is
+    Get functions from this module according to stats. If stats_list is
     undefined, gets all functions from this module, excluding protected 
     functions.
     

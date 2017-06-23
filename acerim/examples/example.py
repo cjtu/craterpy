@@ -8,6 +8,7 @@ import sys
 import os.path
 d = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, d)
+import numpy.random as rnd
 
 #%% Import acerim modules
 import classes as ac
@@ -57,6 +58,8 @@ cdf[cdf['Rad'] > 9]
 # Or to get all craters with longitude between 0 and 10 degrees
 cdf[(cdf['Lon'] > 0) & (cdf['Lon'] < 10)]
 
+# Conditions ca be strung together to subset or "clean" the data
+cdf = cdf[(cdf['Lat'] > -80) & (cdf['Lat'] < 80)]
 #-----------------------------------------------------------------------------
 # To get an ROI from the AceDataset, the crater lat, lon and rad is required
 lat, lon, rad = cdf.cloc('Copernicus')
@@ -67,13 +70,23 @@ roi = ads.getROI(lat, lon, rad, wsize=5)
 ads.plotROI(roi)
 
 
-# Lets get a few lines from cdf and plot their rois
-sample = cdf[(cdf['Lon'] > 170) & (cdf['Lat'] < 80)]#cdf.head()#cdf.sample(5)
-lats = sample['Lat']
-lons = sample['Lon']
-rads = sample['_Rad']
+# Lets get a few random lines from cdf. Setting the seed produces the same 
+# random numbers on each run
+rnd.seed(5)
+sample = rnd.randint(0, len(cdf), 5)
 
-
-for name in sample.index:
-    roi = ads.getROI(lats[name], lons[name], rads[name], wsize=5)
+# Loop through the names in the cdf index then extract the lat, lon, radius 
+# then get and plot the rois
+for name in cdf.index[sample]:
+    lat = cdf.at[name, 'Lat']
+    lon = cdf.at[name, 'Lon']
+    rad = cdf.at[name, '_Rad']
+    roi = ads.getROI(lat, lon, rad, wsize=4)
     ads.plotROI(roi, figsize=(4,4))
+    
+    
+#----------------------------------------------------------------------------
+# Statistics can be performed on an roi using the acestats module
+
+    
+    
