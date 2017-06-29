@@ -1,0 +1,9 @@
+ENVI
+samples = 1440
+lines   = 720
+bands   = 3
+data type = 1
+interleave = bsq
+file type = TIFF
+map info = {Geographic Lat/Lon, 1.0000, 1.0000, -180.00000000, 90.00000000, 1.688576e+00, 1.688576e+00, D_Moon_2000, units=Degrees}
+coordinate system string = {GEOGCS["GCS_Moon_2000",DATUM["D_Moon_2000",SPHEROID["Moon_2000_IAU_IAG",1737400.0,0.0]],PRIMEM["Reference_Meridian",0.0],UNIT["Degree",0.0174532925199433]]}
