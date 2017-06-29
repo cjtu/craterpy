@@ -6,6 +6,8 @@ Created on Mon May 22 09:29:08 2017
 """
 
 from __future__ import absolute_import, division, print_function
+from .version import __version__
+from .acerim import *
 
 if __name__ == '__main__':
     import gdal
