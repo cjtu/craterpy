@@ -5,8 +5,7 @@ from os.path import join as pjoin
 _version_major = 0
 _version_minor = 2
 _version_micro = ''  # use '' for first of series, number for 1 and above
-_version_extra = 'dev'
-# _version_extra = ''  # Uncomment this for full releases
+_version_extra = 'dev' # make it '' for full release
 
 # Construct full version string from these.
 _ver = [_version_major, _version_minor]
@@ -27,18 +26,22 @@ CLASSIFIERS = ["Development Status :: 2 - Pre-Alpha",
                "Topic :: Scientific/Engineering"]
 
 # Description should be a one-liner:
-description = "acerim: a package for classifying impact crater ejecta"
+description = "acerim: a package for analyzing impact crater ejecta"
 # Long description will go up on the pypi page
 long_description = """
 
 Acerim
-========
-Acerim is a package for identifying and classifying impact crater ejecta.
+=======
+The Automated Crater Ejecta Region of Interest Mapper (ACERIM) is a python 
+package for analyzing impact crater ejecta.
 
-It contains functions and classes useful for loading image data and crater 
-databases to classify, display and analyze impact crater ejecta quantitatively. 
-This package was written with lunar maturity data in mind, but is general 
-enough to be applicable to craters on any spherical body.
+This package provides a variety of tools for:
+- loading crater data
+- loading image data
+- locating craters in an image
+- extracting a Region of Interest (ROI) around a crater from an image
+- analyzing ROIs using the included or user-defined statistical methods
+
 
 To get started using this software, please go to the repository README_.
 

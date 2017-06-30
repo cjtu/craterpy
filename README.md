@@ -67,7 +67,7 @@ workflow is given in /acerim/example.py. Some sample data and test cases are
 included in /acerim/tests
 
 
-### Testing
+### Testing acerim
 
 A suite of unittests and sample data are located in the /acerim/tests 
 directory. Unittesting can be used to ensure that acerim is properly installed
@@ -82,7 +82,7 @@ run all unittests automatically is by using pytest in the shell:
 A summary of test results will appear in the shell.
 
 
-### Citing this project
+### Citing acerim
 
 For convenience, this project uses an MIT open liscence and duecredit for ease
 of use and citation. Make sure duecredit is installed and then simply run your 
