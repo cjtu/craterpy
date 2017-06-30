@@ -16,14 +16,16 @@ For a worked example of how to use acerim in a research workflow, see
 Note: This package was written with the Moon in mind, but is applicable to any 
 cratered planetary body, as long as the image data is in a simple cylindrical
 projection. For assistance reading and reprojecting images in other projections
-see GDAL <link>. 
+see [GDAL](<gdallink>). 
 
 
 ### Dependencies
 
 This project uses the Anaconda platform developed by continuum.io. The easiest
-way to install this package is to install anaconda and use "conda install acerim".
-This will automatically fetch and build the necessary dependencies.
+way to install this package is to install anaconda [here](anacondalink)
+and use the command "conda install acerim". This will automatically fetch and 
+build the necessary dependencies (NOTE: package not yet hosted on PIP so this
+won't work yet).
 
 For non-anaconda installations, ensure the folllowing depencdencies are 
 installed and up to date:
@@ -32,6 +34,10 @@ installed and up to date:
     gdal
     pandas
     matplotlib
+    
+Other useful (but non-essential) packages:
+    duecredit
+    pytest
 
 
 ### Organization
@@ -89,4 +95,4 @@ following command:
 	duecredit summary --format=bibtex
     
 Alternatively, the associated thesis for this project can be viewed and cited 
-here <thesislink> and its DOI is <DOIlink>.
+[here](<thesislink>) and its DOI is [here](<DOIlink>).
