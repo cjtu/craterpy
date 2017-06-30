@@ -3,16 +3,20 @@
 The Automated Crater Ejecta Region of Interest Mapper (ACERIM) is a python 
 package for analyzing impact crater ejecta.
 
-It provide a variety of tools for:
-- loading crater data into CraterDataFrames 
-- loading image data into CraterDatasets
-- locating craters in a CraterDataset given their locations in a CraterDataFrame
-- reading image data in a Region of Interest (ROI) around a crater
-- analyzing ROIs using included or user-defined statistical methods
+This package provides a variety of tools for:
+- loading crater data
+- loading image data
+- locating craters in an image
+- extracting a Region of Interest (ROI) around a crater from an image
+- analyzing ROIs using the included or user-defined statistical methods
 
-This package was written with the Moon in mind, but is applicable to any 
+For a worked example of how to use acerim in a research workflow, see
+    /acerim/examples/example.py
+
+Note: This package was written with the Moon in mind, but is applicable to any 
 cratered planetary body, as long as the image data is in a simple cylindrical
-projection. 
+projection. For assistance reading and reprojecting images in other projections
+see GDAL <link>. 
 
 
 ### Dependencies
@@ -22,12 +26,12 @@ way to install this package is to install anaconda and use "conda install acerim
 This will automatically fetch and build the necessary dependencies.
 
 For non-anaconda installations, ensure the folllowing depencdencies are 
-installed and updated:
-	numpy
-	scipy
-	gdal
-	pandas
-   matplotlib
+installed and up to date:
+    numpy
+    scipy
+    gdal
+    pandas
+    matplotlib
 
 
 ### Organization
@@ -52,30 +56,37 @@ The project has the following structure:
       |- setup.py
       |- LICENSE
 
-The core of this project is located in /acerim and a 
+The core of this project is located in /acerim. A worked example of a research
+workflow is given in /acerim/example.py. Some sample data and test cases are 
+included in /acerim/tests
+
+
 ### Testing
 
-A suite of unittests and sample data are located in the /tests directory. These
-can be used to ensure acerim is working correctly on your system, or that any 
-changes you have made did not interfere with the back-end code. To automatically
-run all tests from the shell:
+A suite of unittests and sample data are located in the /acerim/tests 
+directory. Unittesting can be used to ensure that acerim is properly installed
+and working correctly on your system. It is also useful to ensure that any 
+changes to the source code does not break the back-end code. The easiest way to
+run all unittests automatically is by using pytest in the shell:
 
-1) navigate to the parent acerim directory (e.g.'/Users/cjtu/code/acerim')
-2) run the command:	py.test acerim
+1) open a terminal/shell/cmd window
+2) navigate to the parent acerim directory (e.g.'/Users/cjtu/code/acerim')
+3) run the command:	py.test acerim
 
-A summary of test results will appear in the shell
+A summary of test results will appear in the shell.
 
 
 ### Citing this project
 
-For convenience, this project uses a MIT open liscence and duecredit for ease
-of use and citation. Simply run your code with the duecredit flag:
+For convenience, this project uses an MIT open liscence and duecredit for ease
+of use and citation. Make sure duecredit is installed and then simply run your 
+code with the duecredit flag:
 	python -m duecredit your_acerim_branch/your_analysis.py
 
-All invoked modules and functions will be stored by the duecredit.p file.
-To output a Latex summary of the used files and functions, use the following 
-command:
+All modules and functions invoked by you_analysis.py will be stored in the 
+duecredit.p log file. To output a Latex summary of this logfile, type the 
+following command:
 	duecredit summary --format=bibtex
     
 Alternatively, the associated thesis for this project can be viewed and cited 
-<here> and its DOI is <DOI>.
+here <thesislink> and its DOI is <DOIlink>.
