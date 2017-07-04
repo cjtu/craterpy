@@ -88,9 +88,7 @@ run all unittests automatically is by using pytest in the shell:
 1) open a terminal/shell/cmd window
 2) navigate to the parent acerim directory (e.g.'/Users/cjtu/code/acerim')
 3) run the command
-
-::
-        py.test acerim
+    | py.test acerim
 
 A summary of test results will appear in the shell.
 
