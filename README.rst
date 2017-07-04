@@ -1,4 +1,6 @@
-## ACERIM
+======
+ACERIM
+======
 
 The Automated Crater Ejecta Region of Interest Mapper (ACERIM) is a python 
 package for analyzing impact crater ejecta.
@@ -10,7 +12,7 @@ This package provides a variety of tools for:
 - extracting a Region of Interest (ROI) around a crater from an image
 - analyzing ROIs using the included or user-defined statistical methods
 
-For a worked example of how to use acerim in a research workflow, see
+For a worked example of how to use acerim in a research workflow, see:
     /acerim/examples/example.py
 
 Note: This package was written with the Moon in mind, but is applicable to any 
@@ -19,7 +21,8 @@ projection. For assistance reading and reprojecting images in other projections
 see [GDAL](<gdallink>). 
 
 
-### Dependencies
+Dependencies
+------------
 
 This project uses the Anaconda platform developed by continuum.io. The easiest
 way to install this package is to install anaconda [here](anacondalink)
@@ -29,18 +32,19 @@ won't work yet).
 
 For non-anaconda installations, ensure the folllowing depencdencies are 
 installed and up to date:
-    numpy
-    scipy
-    gdal
-    pandas
-    matplotlib
+- numpy
+- scipy
+- gdal
+- pandas
+- matplotlib
     
 Other useful (but non-essential) packages:
-    duecredit
-    pytest
+- duecredit
+- pytest
 
 
-### Organization
+Organization
+------------
 
 The project has the following structure:
 
@@ -67,7 +71,8 @@ workflow is given in /acerim/example.py. Some sample data and test cases are
 included in /acerim/tests
 
 
-### Testing acerim
+Testing acerim
+--------------
 
 A suite of unittests and sample data are located in the /acerim/tests 
 directory. Unittesting can be used to ensure that acerim is properly installed
@@ -77,21 +82,23 @@ run all unittests automatically is by using pytest in the shell:
 
 1) open a terminal/shell/cmd window
 2) navigate to the parent acerim directory (e.g.'/Users/cjtu/code/acerim')
-3) run the command:	py.test acerim
+3) run the command::
+	py.test acerim
 
 A summary of test results will appear in the shell.
 
 
-### Citing acerim
+Citing acerim
+-------------
 
 For convenience, this project uses an MIT open liscence and duecredit for ease
 of use and citation. Make sure duecredit is installed and then simply run your 
-code with the duecredit flag:
+code with the duecredit flag::
 	python -m duecredit your_acerim_branch/your_analysis.py
 
 All modules and functions invoked by you_analysis.py will be stored in the 
 duecredit.p log file. To output a Latex summary of this logfile, type the 
-following command:
+following command::
 	duecredit summary --format=bibtex
     
 Alternatively, the associated thesis for this project can be viewed and cited 
