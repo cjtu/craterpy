@@ -6,6 +6,7 @@ The Automated Crater Ejecta Region of Interest Mapper (ACERIM) is a python
 package for analyzing impact crater ejecta.
 
 This package provides a variety of tools for:
+
 - loading crater data
 - loading image data
 - locating craters in an image
@@ -18,7 +19,9 @@ For a worked example of how to use acerim in a research workflow, see:
 Note: This package was written with the Moon in mind, but is applicable to any 
 cratered planetary body, as long as the image data is in a simple cylindrical
 projection. For assistance reading and reprojecting images in other projections
-see [GDAL](<gdallink>). 
+see GDAL_.
+
+.. _GDAL: http://www.gdal.org/
 
 
 Dependencies
@@ -32,6 +35,7 @@ won't work yet).
 
 For non-anaconda installations, ensure the folllowing depencdencies are 
 installed and up to date:
+
 - numpy
 - scipy
 - gdal
@@ -39,6 +43,7 @@ installed and up to date:
 - matplotlib
     
 Other useful (but non-essential) packages:
+
 - duecredit
 - pytest
 
@@ -46,7 +51,7 @@ Other useful (but non-essential) packages:
 Organization
 ------------
 
-The project has the following structure:
+The project has the following structure::
 
     acerim/
       |- README.md
@@ -82,8 +87,9 @@ run all unittests automatically is by using pytest in the shell:
 
 1) open a terminal/shell/cmd window
 2) navigate to the parent acerim directory (e.g.'/Users/cjtu/code/acerim')
-3) run the command::
-	py.test acerim
+3) run the command
+::
+    py.test acerim
 
 A summary of test results will appear in the shell.
 
@@ -101,5 +107,7 @@ duecredit.p log file. To output a Latex summary of this logfile, type the
 following command::
 	duecredit summary --format=bibtex
     
-Alternatively, the associated thesis for this project can be viewed and cited 
-[here](<thesislink>) and its DOI is [here](<DOIlink>).
+Alternatively, the associated thesis_ for this project can be cited at DOI_.
+
+.. _thesis: https://thesislink.com
+.. _DOI: https://doi.com
