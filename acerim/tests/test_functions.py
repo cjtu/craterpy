@@ -11,14 +11,14 @@ import acerim.functions as af
 import acerim.classes as ac
 import numpy as np
 
-test_path = os.path.join(acerim.__path__[0], 'tests')
+data_path = os.path.join(acerim.__path__[0], 'examples')
 
 #%% Test Compute Stats
 class Test_computeStats(unittest.TestCase):
     """Test computeStats function"""
-    crater_csv = os.path.join(test_path,'crater_data.csv')
+    crater_csv = os.path.join(data_path,'craters.csv')
     cdf = ac.CraterDataFrame(crater_csv)
-    test_dataset = os.path.join(test_path, 'moon.tif')
+    test_dataset = os.path.join(data_path, 'moon.tif')
     ads = ac.AceDataset(test_dataset, radius=1737)
 
     def test_first_mean(self):

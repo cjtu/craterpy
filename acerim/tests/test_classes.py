@@ -12,11 +12,11 @@ import acerim.classes as ac
 import unittest
 import numpy as np
 
-test_path = os.path.join(acerim.__path__[0], 'tests')
+data_path = os.path.join(acerim.__path__[0], 'examples')
 
 class TestCraterDataFrame(unittest.TestCase):
     """Test CraterDataFrame object"""
-    crater_csv = os.path.join(test_path,'craters.csv')
+    crater_csv = os.path.join(data_path,'craters.csv')
     cdict = {'Lat' : [10, -20., 80.0],
              'Lon' : [14, -40.1, 317.2],
              'Diam' : [2, 12., 23.7]}
@@ -68,7 +68,7 @@ class TestCraterDataFrame(unittest.TestCase):
         
 class TestAceDataset(unittest.TestCase):
     """Test AceDataset object"""
-    test_dataset = os.path.join(test_path, 'moon.tif')
+    test_dataset = os.path.join(data_path, 'moon.tif')
     ads = ac.AceDataset(test_dataset, radius=1737)
     
     def test_file_import(self):
