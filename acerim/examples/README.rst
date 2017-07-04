@@ -1,17 +1,19 @@
-### acerim examples
-
+===============
+Worked Examples
+===============
 
 This README will provide step by step examples of how to use acerim to analyze crater ejecta and plot the results. Acerim provides a suite of functions to:
 
-- Import crater data
-- Import image data
-- Extract regions of interest (ROIs) from the image data around selected craters from crater data
-- Conduct basic statistics on the ROIs and tabulate the results
-- Plot crater statistics and ROIs
-- Export tabulated statistics, plots, and ROI images
+1) Import crater data
+2) Import image data
+3) Extract regions of interest (ROIs) from the image data around selected craters from crater data
+4) Conduct basic statistics on the ROIs and tabulate the results
+5) Plot crater statistics and ROIs
+6) Export tabulated statistics, plots, and ROI images
 
 
 1) Importing Crater Data
+========================
 
 Acerim uses pandas, a spreadsheet handling library, to read and store crater data. Pandas supports a variety of spreadsheet types, including plain text tab-delimited (.txt), comma separated values (.csv), and excel (.xls) spreadsheets. The pandas dataset is centered on the pandas.DataFrame object which conveniently stores tabular data in a matrix-like, dictionary-like object which allows the use of column names as keys, but can also be indexed similarly to a 2D array. Acerim extends the basic DataFrame with the acerim.CraterDataFrame object. This object includes all of the functionality of the pandas DataFrame with a few extra features implemented for convenience.
 
@@ -46,15 +48,20 @@ This will assign the given column names to the columns in the order that they ap
 
 
 2) Importing Image Data
+=======================
 
 
 3) Extracting ROIs
+==================
 
 
 4) ROI Statistics
+=================
 
 
 5) Plotting Statistics and ROIs
+===============================
 
 
 6) Exporting Statistics and Saving Plots
+========================================
