@@ -6,7 +6,7 @@ Created on Fri Jun 16 11:20:20 2017
 """
 import sys
 import os.path
-d = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+d = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, d)
 import numpy.random as rnd
 
@@ -16,11 +16,11 @@ import functions as af
 import acestats as acs
 
 # Import dataset from tests
-ds_path = os.path.join(d, 'tests', 'moon.tif')
+ds_path = os.path.join(d, 'moon.tif')
 ads = ac.AceDataset(ds_path, radius=1737)
 
 # Import crater csv from tests
-csv_path = os.path.join(d, 'tests', 'craters.csv')
+csv_path = os.path.join(d, 'craters.csv')
 cdf = ac.CraterDataFrame(csv_path)
 
 # Check crater data
@@ -30,26 +30,26 @@ cdf.head()
 cdf = ac.CraterDataFrame(csv_path, index_col=0)
 cdf.head()
 
-# Find Aratus. Note the use of square brackets.
-cdf.loc['Aratus']
+# Find Humboldt. Note the use of square brackets.
+cdf.loc['Humboldt']
 
-# Get only the radius of Aratus
-cdf['Rad'].loc['Aratus']
+# Get only the radius of Humboldt
+cdf['Rad'].loc['Humboldt']
 
 # Or
-cdf.loc['Aratus']['Rad']
+cdf.loc['Humboldt']['Rad']
 
 # The difference is that cdf['Rad'] takes the radius series out of the
-# dataframe and then searches through it for 'Aratus' 
+# dataframe and then searches through it for 'Humboldt' 
 len(cdf['Rad'])
 
-# Alternatively, the cdf.loc['Aratus'] find aratus first and needs to only
+# Alternatively, the cdf.loc['Humboldt'] find Humboldt first and needs to only
 # search this row to find the radius. 
-len(cdf.loc['Aratus'])
+len(cdf.loc['Humboldt'])
 
 # The second indexing is usually more efficient but the most efficient way to
 # return a single cell is using the at method.
-cdf.at['Aratus', 'Rad']
+cdf.at['Humboldt', 'Rad']
 
 # DataFrames also support fancy (boolean) indexing. To get all crater larger 
 # than 9 km
