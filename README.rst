@@ -1,4 +1,4 @@
-## acerim
+## ACERIM
 
 The Automated Crater Ejecta Region of Interest Mapper (ACERIM) is a python 
 package for analyzing impact crater ejecta.
