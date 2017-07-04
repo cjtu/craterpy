@@ -5,8 +5,8 @@ Created on Tue May 16 08:15:23 2017
 @author: Christian
 """
 import numpy as np
-import classes as ac
-import acestats as acs
+import acerim.classes as ac
+import acerim.acestats as acs
 import matplotlib.pyplot as plt
 
 ######################## ACERIM FUNCTIONS ##############################
