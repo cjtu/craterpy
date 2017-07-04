@@ -5,11 +5,12 @@ Created on Tue May 16 08:15:23 2017
 @author: Christian
 """
 import numpy as np
+import classes as ac
 import acestats as acs
 import matplotlib.pyplot as plt
 
 ######################## ACERIM FUNCTIONS ##############################
-def computeStats(cdf, ads, stats=None, craters=None):
+def computeStats(cdf, ads, stats=None, index=None):
     """Return a CraterDataFrame object with chosen statistics from stats on 
     craters in cdf using data in ads.
     
@@ -33,31 +34,25 @@ def computeStats(cdf, ads, stats=None, craters=None):
         Includes craters which stats were computed on, with stats included
         as new columns.
     """
-    # Get stat functions to compute from acestats
-    if not stats:
+    # If stats and index not provided, assume use all stats and all rows in cdf
+    if stats is None:
         stats = acs._listStats()
-    elif not all([stat in acs._listStats() for stat in stats]):
-        raise ValueError('One or more of stats not in acestats.py')
-    stat_functions = acs._getFunctions(stats)
-    if not craters:
-        craters = cdf.index
-    elif not all(cdf.isin(craters)):
-        raise ValueError('The following craters is not in cdf')
-    retdf = cdf.loc[craters] # Initialize return Dataframe
+    if index is None:
+        index = cdf.index
+    # Initialize return CraterDataframe with stats as individual columns
+    ret_cdf = ac.CraterDataFrame(cdf.loc[index]) 
     for stat in stats:
-        retdf[stat] = retdf.index # Add stat columns to retdf
-    for cid in craters:
+        ret_cdf[stat] = ret_cdf.index
+    # Main computation loop
+    for i in index:
         # Get lat, lon, rad and compute roi for current crater
-        lat = cdf.loc[cid, cdf.latcol]
-        lon = cdf.loc[cid, cdf.loncol]
-        rad = cdf.loc[cid, cdf.radcol]
+        lat = cdf.loc[i, cdf.latcol]
+        lon = cdf.loc[i, cdf.loncol]
+        rad = cdf.loc[i, cdf.radcol]
         roi = ads.getROI(lat, lon, rad)
-        if roi is None:
-            raise RuntimeError('Unable to open roi at ({}N, {}E)'.format(lat,lon))
-#        roi = roi[(roi > ads.dmin) & (roi < ads.dmax)]
-        for stat, function in stat_functions:
-            retdf.loc[cid, stat] = function(roi)
-    return retdf
+        for stat, function in acs._getFunctions(stats):
+            ret_cdf.loc[i, stat] = function(roi)
+    return ret_cdf
 
 
 ######################### PLOTTING #########################

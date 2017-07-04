@@ -9,25 +9,36 @@ import scipy as sp
 import inspect
 
 # Statistical Functions
+def maximum(roi):
+    """Return maximum pixel value in roi"""
+    return np.max(roi)
+
 def mean(roi):
     """Return the mean of roi"""
     return np.mean(roi)
-
-def q1(roi):
-    """Return the first quartile value (25/75) of roi"""
-    return np.percentile(roi, 25)
 
 def median(roi):
     """Return the median (50/50) of roi"""
     return np.median(roi)
 
-def q3(roi):
-    """Return the third quartile (75/25) value of roi"""
-    return np.percentile(roi, 75)
+def minimum(roi):
+    """Return minimum pixel value in roi"""
+    return np.min(roi)
 
 def pct95(roi):
     """Return the 95th percentile (95/5) value of roi"""
     return np.percentile(roi, 95)
+
+def q1(roi):
+    """Return the first quartile value (25/75) of roi"""
+    return np.percentile(roi, 25)
+
+def q3(roi):
+    """Return the third quartile (75/25) value of roi"""
+    return np.percentile(roi, 75)
+
+
+
 
 
 # Protected Functions
@@ -57,9 +68,10 @@ def _getFunctions(stats):
         E.g. array( ['function name', <function>], ['func2 name'], <func2>)    
     """
     import acestats
-    valid_stats = _listStats()
-    if not all([stat in valid_stats for stat in stats]):
-        raise ValueError('Not all supplied stats are defined in acestats')
+    invalid_stats = [stat for stat in stats if stat not in _listStats()]
+    if invalid_stats:
+        raise ValueError('The following stats are not defined in acestats.py: '
+                         + str(invalid_stats))
     all_func = inspect.getmembers(acestats, inspect.isfunction)
     stat_func = []
     for i, func in enumerate(all_func):
