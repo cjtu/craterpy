@@ -51,7 +51,7 @@ def _listStats():
     -------
     List of string of names of functions in this module.
     """
-    import acestats
+    from acerim import acestats
     all_func = np.array(inspect.getmembers(acestats, inspect.isfunction))
     stat_func = all_func[np.where([a[0][0]  != '_' for a in all_func])]
     return stat_func[:,0]
@@ -67,7 +67,9 @@ def _getFunctions(stats):
     Array containing 2 element lists of function names and corresponding functions. 
         E.g. array( ['function name', <function>], ['func2 name'], <func2>)    
     """
-    import acestats
+    from acerim import acestats
+    if isinstance(stats, str):
+        stats = [stats]
     invalid_stats = [stat for stat in stats if stat not in _listStats()]
     if invalid_stats:
         raise ValueError('The following stats are not defined in acestats.py: '

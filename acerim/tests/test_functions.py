@@ -6,24 +6,24 @@ Created on Fri May 26 07:33:17 2017
 """
 import os
 import unittest
-import acerim
-import acerim.functions as af
-import acerim.classes as ac
 import numpy as np
+import acerim
+from acerim import functions as af
+from acerim import classes as ac
 
-data_path = os.path.join(acerim.__path__[0], 'examples')
+DATA_PATH = os.path.join(acerim.__path__[0], 'examples')
 
 #%% Test Compute Stats
 class Test_computeStats(unittest.TestCase):
     """Test computeStats function"""
-    crater_csv = os.path.join(data_path,'craters.csv')
+    crater_csv = os.path.join(DATA_PATH,'craters.csv')
     cdf = ac.CraterDataFrame(crater_csv)
-    test_dataset = os.path.join(data_path, 'moon.tif')
+    test_dataset = os.path.join(DATA_PATH, 'moon.tif')
     ads = ac.AceDataset(test_dataset, radius=1737)
 
     def test_first_mean(self):
         """Test mean on first crater in cdf"""
-        af.computeStats(self.cdf, self.ads, 'mean', self.cdf.index[0])
+        af.computeStats(self.cdf, self.ads, 'mean', self.cdf.index[0:5])
 
 #%% Test ROI manipulation functions
 class Test_circle_mask(unittest.TestCase):

@@ -8,7 +8,7 @@ Created on Wed Jul 13 16:24:07 2016
 import gdal
 import pandas as pd
 import numpy as np
-import acerim.functions as af
+from acerim import functions as af
 #%%
 class CraterDataFrame(pd.DataFrame):
     """

@@ -11,9 +11,9 @@ sys.path.insert(0, d)
 import numpy.random as rnd
 
 #%% Import acerim modules
-import classes as ac
-import functions as af
-import acestats as acs
+from acerim import classes as ac
+from acerim import functions as af
+from acerim import acestats as acs
 
 # Import dataset from tests
 ds_path = os.path.join(d, 'moon.tif')

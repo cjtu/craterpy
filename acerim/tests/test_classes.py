@@ -7,16 +7,16 @@ Created on Mon May 22 09:17:06 2017
 
 import os
 import pandas as pd
-import acerim
-import acerim.classes as ac
 import unittest
 import numpy as np
+import acerim
+from acerim import classes as ac
 
-data_path = os.path.join(acerim.__path__[0], 'examples')
+DATA_PATH = os.path.join(acerim.__path__[0], 'examples')
 
 class TestCraterDataFrame(unittest.TestCase):
     """Test CraterDataFrame object"""
-    crater_csv = os.path.join(data_path,'craters.csv')
+    crater_csv = os.path.join(DATA_PATH,'craters.csv')
     cdict = {'Lat' : [10, -20., 80.0],
              'Lon' : [14, -40.1, 317.2],
              'Diam' : [2, 12., 23.7]}
@@ -68,7 +68,7 @@ class TestCraterDataFrame(unittest.TestCase):
         
 class TestAceDataset(unittest.TestCase):
     """Test AceDataset object"""
-    test_dataset = os.path.join(data_path, 'moon.tif')
+    test_dataset = os.path.join(DATA_PATH, 'moon.tif')
     ads = ac.AceDataset(test_dataset, radius=1737)
     
     def test_file_import(self):
@@ -85,10 +85,10 @@ class TestAceDataset(unittest.TestCase):
     def test_isGlobal(self):
         """Test .isGlobal method for checking if dataset has 360 degrees of lon"""
         
-        is_global = ac.AceDataset(self.test_data, wlon=0, elon=360).isGlobal()
+        is_global = ac.AceDataset(self.test_dataset, wlon=0, elon=360).isGlobal()
         self.assertTrue(is_global)
         
-        not_global = ac.AceDataset(self.test_data, wlon=0, elon=180).isGlobal()
+        not_global = ac.AceDataset(self.test_dataset, wlon=0, elon=180).isGlobal()
         self.assertFalse(not_global)
         
     def test_calc_mpp0(self):

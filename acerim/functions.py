@@ -4,11 +4,9 @@ Created on Tue May 16 08:15:23 2017
 
 @author: Christian
 """
+from acerim import acestats as acs
 import numpy as np
-import acerim.classes as ac
-import acerim.acestats as acs
 import matplotlib.pyplot as plt
-
 ######################## ACERIM FUNCTIONS ##############################
 def computeStats(cdf, ads, stats=None, index=None):
     """Return a CraterDataFrame object with chosen statistics from stats on 
@@ -40,6 +38,7 @@ def computeStats(cdf, ads, stats=None, index=None):
     if index is None:
         index = cdf.index
     # Initialize return CraterDataframe with stats as individual columns
+    from acerim import classes as ac
     ret_cdf = ac.CraterDataFrame(cdf.loc[index]) 
     for stat in stats:
         ret_cdf[stat] = ret_cdf.index
