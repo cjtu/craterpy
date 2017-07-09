@@ -2,7 +2,7 @@
 Worked Examples
 ===============
 
-This README will provide step by step examples of how to use acerim to analyze crater ejecta and plot the results. Acerim provides a suite of functions to:
+This README will provide a breakdown of acerim's functionality as well as basic examples of how to use acerim to so the following:
 
 1) Import crater data
 2) Import image data
@@ -10,6 +10,8 @@ This README will provide step by step examples of how to use acerim to analyze c
 4) Conduct basic statistics on the ROIs and tabulate the results
 5) Plot crater statistics and ROIs
 6) Export tabulated statistics, plots, and ROI images
+
+For a step-by-step walkthrough of an example acerim workflow using lunar data, see example.py. 
 
 
 1) Importing Crater Data
@@ -49,19 +51,24 @@ This will assign the given column names to the columns in the order that they ap
 
 2) Importing Image Data
 =======================
+TODO
 
 
 3) Extracting ROIs
 ==================
+TODO
 
 
 4) ROI Statistics
 =================
+TODO
 
 
 5) Plotting Statistics and ROIs
 ===============================
+TODO
 
 
 6) Exporting Statistics and Saving Plots
 ========================================
+TODO
