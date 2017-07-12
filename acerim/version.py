@@ -6,7 +6,7 @@ _version_extra = '' # dev for in development (NEVER push with dev), '' for full 
 
 # Construct full version string from these.
 _ver = [_version_major, _version_minor]
-if _version_micro:
+if _version_maintenance:
     _ver.append(_version_maintenance)
 if _version_extra:
     _ver.append(_version_extra)

@@ -69,6 +69,6 @@ setup(
     install_requires=['numpy', 'scipy', 'matplotlib', 'gdal', 'pandas'],
     extras_require={'testing': ['pytest'],
         'citation': ['duecredit'],
-    }
+    },
     python_requires='>=2.7'
 )
