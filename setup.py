@@ -47,8 +47,7 @@ setup(
     maintainer_email='cj.taiudovicic@gmail.com',     
     url='http://github.com/cjtu/acerim',
     license='MIT',
-    classifiers=[
-        'Development Status :: 2 - Pre-Alpha',
+    classifiers=['Development Status :: 2 - Pre-Alpha',
         'Intended Audience :: Science/Research',
         'License :: OSI Approved :: MIT License',
         'Natural Language :: English',
@@ -61,17 +60,15 @@ setup(
         'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
     ],
-    keywords='planetary-science craters moon data-analysis',
+    keywords='planetary-science craters ejecta data-analysis',
     author='Christian Tai Udovicic',
     author_email='cj.taiudovicic@gmail.com',
     platforms='OS Independent',     
     packages=PACKAGES,
-    package_data={
-        'examples': ['craters.csv', 'moon.tif'],
-    },
+    package_data={'examples': ['craters.csv', 'moon.tif']},
     install_requires=['numpy', 'scipy', 'matplotlib', 'gdal', 'pandas'],
-    extras_require={
-        'testing': ['pytest'],
+    extras_require={'testing': ['pytest'],
         'citation': ['duecredit'],
     }
+    python_requires='>=2.7'
 )
