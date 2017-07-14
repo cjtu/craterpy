@@ -99,12 +99,12 @@ Citing acerim
 For convenience, this project uses an MIT open liscence and duecredit for ease
 of use and citation. Make sure duecredit is installed and then simply run your 
 code with the duecredit flag::
-	python -m duecredit your_acerim_branch/your_analysis.py
+|	python -m duecredit your_acerim_branch/your_analysis.py
 
 All modules and functions invoked by you_analysis.py will be stored in the 
 duecredit.p log file. To output a Latex summary of this logfile, type the 
 following command::
-	duecredit summary --format=bibtex
+|	duecredit summary --format=bibtex
     
 Alternatively, the associated thesis_ for this project can be cited at DOI_.
 
