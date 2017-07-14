@@ -230,7 +230,8 @@ class AceDataset(object):
         return abs(self.elon - self.wlon) == 360
     
     
-    def getROI(self, lat, lon, rad, wsize=1, mask_crater=False, plot=False):
+    def getROI(self, lat, lon, rad, wsize=1, mask_crater=False, plot=False, 
+               get_extent=False):
         """
         Return square ROI centered on (lat,lon) which extends wsize crater 
         radii from the crater center. 
@@ -320,7 +321,10 @@ class AceDataset(object):
             roi = af.mask_where(roi, cmask)
         if plot:
             self.plotROI(roi, extent=extent)    
-        return roi 
+        if get_extent:
+            return roi, extent
+        else:
+            return roi 
 
     
     def plotROI(self, roi, *args, **kwargs):

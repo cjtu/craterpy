@@ -47,7 +47,8 @@ def computeStats(cdf, ads, stats=None, index=None):
         # Get lat, lon, rad and compute roi for current crater
         lat = cdf.loc[i, cdf.latcol]
         lon = cdf.loc[i, cdf.loncol]
-        rad = cdf.loc[i, cdf.radcol]
+        #rad = cdf.loc[i, cdf.radcol]
+        rad = cdf.loc[i, 'Diam']/2 #TODO Fix this!!
         roi = ads.getROI(lat, lon, rad)
         for stat, function in acs._getFunctions(stats):
             ret_cdf.loc[i, stat] = function(roi)
