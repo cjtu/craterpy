@@ -55,7 +55,7 @@ def computeStats(cdf, ads, stats=None, index=None):
 
 
 ######################### PLOTTING #########################
-def plot_roi(ads, roi, figsize=(8,8), extent=None, title='ROI', vmin=None,
+def plot_roi(ads, roi, figsize=((8,8)), extent=None, title='ROI', vmin=None,
              vmax=None, cmap='gray', **kwargs):
     """
     Plot roi 2D array. 
@@ -89,7 +89,7 @@ def plot_roi(ads, roi, figsize=(8,8), extent=None, title='ROI', vmin=None,
         Additional keyword arguments to be passed to the imshow function. See 
         help(matplotlib.pyplot.imshow) for more info.
     """
-    plt.figure("ROI",figsize=figsize)
+    plt.figure("ROI", figsize=figsize)
     plt.imshow(roi, extent=extent, cmap=cmap, vmin=vmin, vmax=vmax)
     plt.title(title)
     plt.xlabel('Longitude (degrees)')
@@ -147,7 +147,7 @@ def ellipse_mask(roi, a, b, center=(None, None)):
     >>> masked[4,0]
     False
     """
-    if not center[0]: # Center circle on center of roi
+    if not center[0]: # Center ellipse on center of roi
         center = np.array(roi.shape)/2 - 0.5
     cx, cy = center    
     width, height = roi.shape
@@ -168,20 +168,20 @@ def ring_mask(roi, rmin, rmax, center=(None,None)):
 def crater_floor_mask(aceds, roi, lat, lon, rad):
     """
     """
-    degwidth = m2deg(rad, aceds.calc_mpp(lat), aceds.ppd)
-    degheight = m2deg(rad, aceds.calc_mpp(), aceds.ppd)
-    return ellipse_mask(roi, degwidth, degheight)
+    pixwidth = m2pix(rad, aceds.calc_mpp(lat))
+    pixheight = m2pix(rad, aceds.calc_mpp())
+    return ellipse_mask(roi, pixwidth, pixheight)
 
 
 def crater_ring_mask(aceds, roi, lat, lon, rmin, rmax):
     """
     """ 
-    rmax_degheight = m2deg(rmax, aceds.calc_mpp(), aceds.ppd)
-    rmax_degwidth = m2deg(rmax, aceds.calc_mpp(lat), aceds.ppd)
-    rmin_degheight = m2deg(rmin, aceds.calc_mpp(), aceds.ppd)
-    rmin_degwidth = m2deg(rmin, aceds.calc_mpp(lat), aceds.ppd)
-    outer = ellipse_mask(roi, rmax_degwidth, rmax_degheight) 
-    inner = ellipse_mask(roi, rmin_degwidth, rmin_degheight)
+    rmax_pixheight = m2pix(rmax, aceds.calc_mpp())
+    rmax_pixwidth = m2pix(rmax, aceds.calc_mpp(lat))
+    rmin_pixheight = m2pix(rmin, aceds.calc_mpp())
+    rmin_pixwidth = m2pix(rmin, aceds.calc_mpp(lat))
+    outer = ellipse_mask(roi, rmax_pixwidth, rmax_pixheight) 
+    inner = ellipse_mask(roi, rmin_pixwidth, rmin_pixheight)
     return outer*~inner
 
     
@@ -203,13 +203,16 @@ def inbounds(lat, lon, mode='std'):
     elif mode == 'pos':
         return (0 <= lat <= 180) and (0 <= lon <= 360)
     
-def m2deg(distance, mpp, ppd):
-    """Return distance converted from meters to degrees."""
-    return distance/(mpp*ppd)
+def m2deg(dist, mpp, ppd):
+    """Return dist converted from meters to degrees."""
+    return dist/(mpp*ppd)
 
+def m2pix(dist, mpp):
+    """Return dist converted from meters to pixels"""
+    return int(dist/mpp)
 
-def deg2pix(dist,ppd):
-    """Return distance converted from degrees to pixels."""
+def deg2pix(dist, ppd):
+    """Return dist converted from degrees to pixels."""
     return int(dist*ppd)  
 
 
@@ -333,7 +336,7 @@ def fitPowLin(xdata,ydata,p0,plot=False,cid=''):
     return powEval(xdata,pfinal[0],pfinal[1])
     
 #%%
-if __name__ == "__main__":
-    import doctest
-    doctest.testmod()
+#if __name__ == "__main__":
+#    import doctest
+#    doctest.testmod()
     

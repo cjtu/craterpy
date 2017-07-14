@@ -314,11 +314,12 @@ class AceDataset(object):
             roi = self.ReadAsArray(leftind, topind, width, height) # gdal Dataset method
         if roi is None:
             raise ImportError('GDAL could not read dataset into array')
+            return
         if mask_crater:
             cmask = af.crater_floor_mask(self, roi, lat, lon, rad)
             roi = af.mask_where(roi, cmask)
         if plot:
-            self.plotROI(roi, extent)    
+            self.plotROI(roi, extent=extent)    
         return roi 
 
     
