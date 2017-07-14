@@ -75,7 +75,7 @@ class TestAceDataset(unittest.TestCase):
         """Import test tif '/tests/moon.tif'"""
         self.assertIsNotNone(self.ads)
         
-    def test_geotiff_info(self):
+    def test_get_info(self):
         """Test .get_info method for reading geotiff info"""
         ads = self.ads
         actual = ads.get_info()
@@ -83,8 +83,7 @@ class TestAceDataset(unittest.TestCase):
         self.assertEqual(actual, expected)
         
     def test_isGlobal(self):
-        """Test .isGlobal method for checking if dataset has 360 degrees of lon"""
-        
+        """Test .isGlobal method for checking if dataset has 360 degrees of lon""" 
         is_global = ac.AceDataset(self.test_dataset, wlon=0, elon=360).isGlobal()
         self.assertTrue(is_global)
         
