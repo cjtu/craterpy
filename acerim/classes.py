@@ -148,6 +148,7 @@ class AceDataset(object):
             else: # Not callable so must be attribute
                 return func
 
+
     def calc_mpp(self, lat=0):
         """
         Return the ground resolution in meters/pixel at the given latitude. 
@@ -171,6 +172,7 @@ class AceDataset(object):
         dist = af.greatcircdist(lat, 0, lat, pixwidth, self.radius)
         return dist
               
+
     def get_info(self):
         """
         Return list of georeferencing and projection information from the input
@@ -239,16 +241,32 @@ class AceDataset(object):
     
         Arguments:
         ----------
+        lat : int, float
+            Crater latitude, centre latitude of ROI.
+        lon : int, float
+            Crater longitude, centre longitude of ROI.
+        rad : int, float
+            Crater radius.
+        wsize : int, float
+            Window size in crater radii. Side length of ROI around crater is 
+            2*wsize*rad (E.g., ROI with wsize=1 gives smallest square around
+            crater, making the side lengths 1 diam).
+        mask_crater : bool
+            Masks the crater floor from the resulting ROI by replacing the 
+            crater with an ellipse of NaN.
+        plot : bool
+            Plots the returned ROI.
 
         Returns:
         --------
         roi: 2Darray
-            The specified window of data from dataset.
+            Numpy 2D array of data centered on the specified crater and 
+            extending wsize*rad distance from the crater centre.
         """
         def wrap_lon(ads, minlon, maxlon, topind, height):
             """
-            Extract an roi that crosses the dataset lon boundary by concatenating
-            the part on the left side of boundary with the part on the right side.
+            Return ROI that extends past the right edge of a global dataset by 
+            wrapping and concatenating the right and left sides of the ROI.
             """
             if minlon < ads.wlon:
                 leftind = af.getInd(minlon, lonarr - 360)
@@ -264,34 +282,36 @@ class AceDataset(object):
             right_roi = ads.ReadAsArray(rightind, topind, rightwidth, height)
             return np.concatenate((left_roi, right_roi), axis=1)
                       
-        # If crater lon out of bounds, adjust to this ds [(0,360) <-> (-180,180)]
+        # If crater lon out of bounds, switch lon convention [(0,360) <-> (-180,180)]
         if lon > self.elon: 
             lon -= 360
         if lon < self.wlon:
             lon += 360
-            
         # Get window extent in degrees
-        dwsize = af.m2deg(wsize*rad, self.calc_mpp(), self.ppd)
+        dwsize = af.m2deg(wsize*rad, self.calc_mpp(lat), self.ppd)
         minlat = lat-dwsize
         maxlat = lat+dwsize
         minlon = lon-dwsize
         maxlon = lon+dwsize
-        latarr = np.linspace(self.nlat, self.slat, self.RasterYSize)
-        lonarr = np.linspace(self.wlon, self.elon, self.RasterXSize)
         extent = (minlon, maxlon, minlat, maxlat)
         # Throw error if window bounds are not in lat bounds.
         if minlat < self.slat or maxlat > self.nlat:
             raise ImportError('Latitude ({},{}) out of dataset bounds ({},{}) '.format(
                                        minlat, maxlat, self.slat, self.nlat))
-
+        # Make dataset pixel arrays
+        latarr = np.linspace(self.nlat, self.slat, self.RasterYSize)
+        lonarr = np.linspace(self.wlon, self.elon, self.RasterXSize)
+        # Get top index and height of ROI
         topind = af.getInd(maxlat, latarr) 
         height = af.deg2pix(2*dwsize, self.ppd)
-        if minlon < self.wlon or maxlon > self.elon:
+        # Check if ROI crosses lon extent of global ROI and needs to be wrapped
+        if self.isGlobal() and (minlon < self.wlon or maxlon > self.elon):
             roi = wrap_lon(self, minlon, maxlon, topind, height)  
         else: 
+            # Get left index and width of ROI and read data from dataset
             leftind = af.getInd(minlon,lonarr) 
             width = af.deg2pix(2*dwsize, self.ppd)
-            roi = self.ReadAsArray(leftind, topind, width, height) # gdal subarray
+            roi = self.ReadAsArray(leftind, topind, width, height) # gdal Dataset method
         if roi is None:
             raise ImportError('GDAL could not read dataset into array')
         if mask_crater:
@@ -307,6 +327,7 @@ class AceDataset(object):
         Implements plotROI function in functions.py. 
         """
         af.plot_roi(self, roi, *args, **kwargs)
+        
 
 if __name__ == "__main__":
     import doctest
