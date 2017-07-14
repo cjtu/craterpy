@@ -268,7 +268,7 @@ class AceDataset(object):
             Return ROI that extends past the right edge of a global dataset by 
             wrapping and concatenating the right and left sides of the ROI.
             """
-            if minlon < ads.wlon:
+            if minlon < ads.wlon: 
                 leftind = af.getInd(minlon, lonarr - 360)
                 leftwidth = af.deg2pix(ads.wlon - minlon, ads.ppd)
                 rightind = af.getInd(ads.wlon, lonarr)
@@ -315,7 +315,7 @@ class AceDataset(object):
         if roi is None:
             raise ImportError('GDAL could not read dataset into array')
         if mask_crater:
-            cmask = af.crater_mask(roi, rad)
+            cmask = af.crater_floor_mask(self, roi, lat, lon, rad)
             roi = af.mask_where(roi, cmask)
         if plot:
             self.plotROI(roi, extent)    
@@ -327,7 +327,7 @@ class AceDataset(object):
         Implements plotROI function in functions.py. 
         """
         af.plot_roi(self, roi, *args, **kwargs)
-        
+
 
 if __name__ == "__main__":
     import doctest

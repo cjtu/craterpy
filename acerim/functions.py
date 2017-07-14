@@ -173,7 +173,7 @@ def crater_floor_mask(aceds, roi, lat, lon, rad):
     return ellipse_mask(roi, degwidth, degheight)
 
 
-def crater_ring_mask(roi, aceds, lat, lon, rmin, rmax):
+def crater_ring_mask(aceds, roi, lat, lon, rmin, rmax):
     """
     """ 
     rmax_degheight = m2deg(rmax, aceds.calc_mpp(), aceds.ppd)
