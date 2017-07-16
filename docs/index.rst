@@ -10,6 +10,10 @@ Welcome to acerim's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+.. automodule:: classes.py
+
+.. autoclass:: CraterDataFrame
+	:members:
 
 
 Indices and tables
