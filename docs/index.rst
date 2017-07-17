@@ -3,22 +3,12 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to acerim's documentation!
-==================================
+Contents:
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
 
-.. automodule:: classes.py
-
-.. autoclass:: CraterDataFrame
-	:members:
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+   api.rst
+   acerim.rst
+   acerim.tests.rst
+   modules.rst
