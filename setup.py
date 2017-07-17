@@ -34,7 +34,7 @@ setup(
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.2',
-        'Programming Language :: Python :: 3.3',
+        'Programming Language :: Python :: 3.3'
     ],
     keywords='planetary science crater ejecta data analysis',
     author='Christian Tai Udovicic',
@@ -43,9 +43,8 @@ setup(
     packages=PACKAGES,
     package_data={'': ['*.csv', '*.tif']},
     install_requires=['numpy', 'scipy', 'matplotlib', 'gdal', 'pandas'],
-    extras_require={'test': ['pytest'],
-        'cite': ['duecredit'],
-    },
+    #extras_require={#'test': ['pytest'],
+        #'cite': ['duecredit'],},
     python_requires='>=2.7, <=3.3',
     long_description=LONG_DESCRIPTION, 
 )
