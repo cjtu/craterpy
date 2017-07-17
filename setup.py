@@ -20,7 +20,6 @@ setup(
     name='acerim',
     version=VERSION, # From /acerim/version.py
     description='A package for analyzing impact crater ejecta',
-    long_description=LONG_DESCRIPTION,    
     maintainer='Christian Tai Udovicic',
     maintainer_email='cj.taiudovicic@gmail.com',     
     url='http://github.com/cjtu/acerim',
@@ -36,9 +35,8 @@ setup(
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.2',
         'Programming Language :: Python :: 3.3',
-        'Programming Language :: Python :: 3.4',
     ],
-    keywords='planetary-science craters ejecta data-analysis',
+    keywords='planetary science crater ejecta data analysis',
     author='Christian Tai Udovicic',
     author_email='cj.taiudovicic@gmail.com',
     platforms='OS Independent',     
@@ -48,5 +46,6 @@ setup(
     extras_require={'test': ['pytest'],
         'cite': ['duecredit'],
     },
-    python_requires='>=2.7'
+    python_requires='>=2.7, <=3.3',
+    long_description=LONG_DESCRIPTION, 
 )
