@@ -4,6 +4,9 @@
 *.egg-info/
 *.egg
 __pycache__
+_build/
+_templates
+_static
 build/
 dist/
 
