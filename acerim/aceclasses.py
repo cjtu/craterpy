@@ -325,7 +325,7 @@ class AceDataset(object):
         if mask_crater:
             cmask = af.crater_floor_mask(self, roi, lat, lon, rad)
             roi = af.mask_where(roi, cmask)
-        if plot:
+        if plot_roi:
             self.plot_roi(roi, extent=extent)    
         if get_extent:
             return roi, extent
