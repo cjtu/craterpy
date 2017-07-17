@@ -10,7 +10,7 @@ import pandas as pd
 import unittest
 import numpy as np
 import acerim
-from acerim import classes as ac
+from acerim import aceclasses as ac
 
 DATA_PATH = os.path.join(acerim.__path__[0], 'examples')
 

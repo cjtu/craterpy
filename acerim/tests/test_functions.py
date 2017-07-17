@@ -8,8 +8,8 @@ import os
 import unittest
 import numpy as np
 import acerim
-from acerim import functions as af
-from acerim import classes as ac
+from acerim import acefunctions as af
+from acerim import aceclasses as ac
 
 DATA_PATH = os.path.join(acerim.__path__[0], 'examples')
 
