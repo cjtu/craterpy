@@ -30,7 +30,9 @@ class CraterDataFrame(pd.DataFrame):
         
     Examples
     --------
-    >>> cdict = {'Lat' : [10, -20., 80.0],'Lon' : [14, -40.1, 317.2],'Diam' : [2, 12., 23.7]}
+    >>> cdict = {'Lat' : [10, -20., 80.0], 
+                 'Lon' : [14, -40.1, 317.2],
+                 'Diam' : [2, 12., 23.7]}
     >>> cdf = CraterDataFrame(cdict)
     >>> cdf['Diam'][0]
     2.0
@@ -100,8 +102,10 @@ class AceDataset(object):
         West latitude of dataset in (decimal) degrees.
     elon : int, float
         East latitude of dataset in (decimal) degrees.
-    r : int, float
+    radius : int, float
         Radius of planeary body in km.
+    ppd : int, float
+        Resolution of dataset in pixels/degree.
     *kwargs : ...
         Additional attributes to include in this instance of AceDataset, 
         accessible by the supplied keyword.
@@ -126,29 +130,40 @@ class AceDataset(object):
             raise ImportError('Invalid input dataset')
         args = [nlat, slat, wlon, elon, radius, ppd]
         attrs = ['nlat','slat','wlon','elon','radius','ppd']
+        # Attempt to read geospatial information with get_info
         dsinfo = self.get_info()
         for i,arg in enumerate(args):
-            if arg is None: # If optional argument missing, fill from dsinfo
+            if arg is None: # Attempt to fill geospatial info automatically
                 setattr(self, attrs[i], dsinfo[i])
-            else:
+            else: # If argument is supplied, override automatic get_info
                 setattr(self, attrs[i], arg)
-
+        # Add key-value attributes to object
         for key, value in kwargs.items():
             setattr(self, key, value)
 
 
     def __getattr__(self, name):
-        """Points method and attribute calls to self.gdalDataset."""
-        if name not in self.__dict__: # If not implemented in AceWrapper
-            func = getattr(self.__dict__['gdalDataset'], name)
-            if callable(func): # Call method
-                def gdalDataset_wrapper(*args, **kwargs):
-                    return func(*args, **kwargs)
-                return gdalDataset_wrapper
-            else: # Not callable so must be attribute
-                return func
+        """Point method and attribute calls to self.gdalDataset."""
+        if name not in self.__dict__: # If not implemented in AceDataset
+            try:
+                func = getattr(self.__dict__['gdalDataset'], name)
+                if callable(func): # Call method
+                    def gdalDataset_wrapper(*args, **kwargs):
+                        return func(*args, **kwargs)
+                    return gdalDataset_wrapper
+                else: # Not callable so must be attribute
+                    return func
+            except AttributeError as e:
+                raise AttributeError('Object has no attribute {}'.format(name))
 
-
+    def __repr__(self):
+        """Return string representation of AceDataset"""
+        attrs = self.nlat, self.slat, self.wlon, self.elon, self.radius, self.ppd
+        rep = 'AceDataset object with bounds '
+        rep += '({}N, {}S), ({}E, {}E), radius {} km, and {} ppd resolution'.format(*attrs)
+        return rep
+    
+    
     def calc_mpp(self, lat=0):
         """
         Return the ground resolution in meters/pixel at the given latitude. 
