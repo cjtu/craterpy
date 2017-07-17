@@ -1,25 +1,21 @@
-======
 ACERIM
 ======
 
 The Automated Crater Ejecta Region of Interest Mapper (ACERIM) is a python 
-package for analyzing impact crater ejecta.
+package that simplifies impact crater ejecta analysis workflows. It provides functions for loading crater data into easily queried pandas DataFrames and uses crater locations to automatically pull data from gdal Datasets. 
 
-This package provides a variety of tools for:
+The major features of acerim are:
 
-- loading crater data
+- loading, storing, and querying crater data
 - loading image data
 - locating craters in an image
 - extracting a Region of Interest (ROI) around a crater from an image
 - analyzing ROIs using the included or user-defined statistical methods
 
-For a worked example of how to use acerim in a research workflow, see:
-    /acerim/examples/example.py
+See ./examples/example.py for a worked example of how to use acerim in a research workflow.
 
 Note: This package was written with the Moon in mind, but is applicable to any 
-cratered planetary body, as long as the image data is in a simple cylindrical
-projection. For assistance reading and reprojecting images in other projections
-see GDAL_.
+cratered planetary body. Currently acerim only supports image data in simple cylindrical projection. For assistance reading and reprojecting images in python, see GDAL_.
 
 .. _GDAL: http://www.gdal.org/
 
@@ -27,25 +23,54 @@ see GDAL_.
 Dependencies
 ------------
 
-This project uses the Anaconda platform developed by continuum.io. The easiest
-way to install this package is to install anaconda [here](anacondalink)
-and use the command "conda install acerim". This will automatically fetch and 
-build the necessary dependencies (NOTE: package not yet hosted on PIP so this
-won't work yet).
+- gdal
+- numpy
+- scipy
+- pandas
 
-For non-anaconda installations, ensure the folllowing depencdencies are 
-installed and up to date:
+
+Installation
+------------
+
+PLEASE NOTE: Acerim depends on the GDAL (Geospatial Data Abstraction Library) python package. Since GDAL in turn depends on C++ classes, it is highly recommended that you follow the instructions here_ to properly install gdal on your python environment before you install acerim.
+
+.. _here: https://pypi.python.org/pypi/GDAL
+
+
+Using Anaconda
+^^^^^^^^^^^^^^
+
+The recommended way to install acerim is using the anaconda_ platform which can be downloaded here_.  Anaconda is useful because it will automatically solve package dependency conflicts and allows you to create virtual environments to separate packages with finicky dependencies from your main python installation. To create and activate a conda virtual environment, see `Managing Environments <https://conda.io/docs/using/envs>`_. 
+
+.. _Anaconda: https://www.continuum.io/Anaconda-Overview
+
+.. _here: https://www.continuum.io/downloads
+
+With anaconda and gdal installed, open a terminal/command line window and create a new conda environment. Listing gdal and the other dependencies outright forces conda to resolve dependency conflicts outright. Note that python must be <= 3.3 for gdal to function correctly::
+
+  conda create --name env_name python=3.3 gdal numpy scipy pandas matplotlib
+
+You can activate the environment with::
+
+  source activate env_name
+
+And then install acerim from PyPI using pip::
+
+  pip install acerim
+
+
+Manual installation
+^^^^^^^^^^^^^^^^^^^
+First ensure that GDAL is installed. Running python <= 3.3, install the following dependencies::
 
 - numpy
 - scipy
-- gdal
 - pandas
 - matplotlib
-    
-Other useful (but non-essential) packages:
 
-- duecredit
-- pytest
+Download the most recent distribution from `PyPI <https://pypi.python.org/simple/acerim>`_ and in the main project directory run
+
+  python setup.py install
 
 
 Organization
@@ -71,42 +96,57 @@ The project has the following structure::
       |- setup.py
       |- LICENSE
 
-The core of this project is located in /acerim. A worked example of a research
-workflow is given in /acerim/example.py. Some sample data and test cases are 
-included in /acerim/tests
+The core of this project is located in ./acerim. To get started using acerim, see example.py in ./acerim/examples. Documentation is listed in ./docs and is also available at `readthedocs <https://readthedocs.org/projects/acerim/>`_. A suite of tests is located in ./acerim/tests.
 
 
 Testing acerim
 --------------
 
-A suite of unittests and sample data are located in the /acerim/tests 
-directory. Unittesting can be used to ensure that acerim is properly installed
-and working correctly on your system. It is also useful to ensure that any 
-changes to the source code does not break the back-end code. The easiest way to
-run all unittests automatically is by using pytest in the shell:
+A suite of unittests are located in the ./acerim/tests. They use the sample data included in ./acerim/examples to test all acerim classes and functions. To test if acerim is working as it should on your machine, install the pytest module (using conda or pip) and follow the following steps:
 
 1) open a terminal/shell/cmd window
 2) navigate to the parent acerim directory (e.g.'/Users/cjtu/code/acerim')
 3) run the command
     | py.test acerim
 
-A summary of test results will appear in the shell.
+A summary of test results will appear in the shell. 
+
+
+Support and Bug Reporting
+-------------------------
+
+Any bugs or errors can be reported to Christian at cj.taiudovicic@gmail.com. Please include your operating system and printout of your python environment (e.g. using conda list).
 
 
 Citing acerim
 -------------
 
-For convenience, this project uses an MIT open liscence and duecredit for ease
-of use and citation. Make sure duecredit is installed and then simply run your 
-code with the duecredit flag::
-|	python -m duecredit your_acerim_branch/your_analysis.py
-
-All modules and functions invoked by you_analysis.py will be stored in the 
-duecredit.p log file. To output a Latex summary of this logfile, type the 
-following command::
-|	duecredit summary --format=bibtex
-    
-Alternatively, the associated thesis_ for this project can be cited at DOI_.
+For convenience, this project uses the OSI-certified MIT open liscence for ease of use and distribution. The author simply asks that you cite the associated thesis_ for this project which can be found at DOI_. 
 
 .. _thesis: https://thesislink.com
 .. _DOI: https://doi.com
+
+
+LICENSE
+-------
+
+The MIT License (MIT)
+
+Copyright (c) 2017 Christian Tai Udovicic
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
