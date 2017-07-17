@@ -121,10 +121,10 @@ Any bugs or errors can be reported to Christian at cj.taiudovicic@gmail.com. Ple
 Citing acerim
 -------------
 
-For convenience, this project uses the OSI-certified MIT open liscence for ease of use and distribution. The author simply asks that you cite the associated thesis_ for this project which can be found at DOI_. 
+For convenience, this project uses the OSI-certified MIT open liscence for ease of use and distribution. The author simply asks that you cite the project which can be found at: 
 
-.. _thesis: https://thesislink.com
-.. _DOI: https://doi.com
+.. image:: https://zenodo.org/badge/88457986.svg
+   :target: https://zenodo.org/badge/latestdoi/88457986
 
 
 LICENSE
