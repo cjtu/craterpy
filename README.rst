@@ -6,20 +6,21 @@ Overview
 
 Welcome to ACERIM!
 
-The Automated Crater Ejecta Region of Interest Mapper (ACERIM) is a python 
-package for planetary scientists that simplifies crater analytics. More specifically, ACERIM simplifies the process of selecting regions of interest given known crater locations, and conducting analytics using supplied image data.
+The Automated Crater Ejecta Region of Interest Mapper (ACERIM) is a python package for planetary scientists that simplifies crater analytics. More specifically, if you have image data and a list of crater locations, ACERIM will help you extract data from those locations and analyze that data with statistics of your choosing.
 
-The major features of ACERIM are::
+*Use ACERIM if you want to one or more of the following*::
 
-  - importing crater databases and image datasets into easily queried objects,
-  - extracting image data from regions around craters given their latitude, longitude, radius, and the desired window size,
-  - masking parts of the region of interest (ROI) to isolate data within the crater rim, on the ejecta blanket, or within a user-provided shapefile,
-  - computing statistics on the extracted crater and/or ejecta data.
+  - import crater databases and image datasets into easily queried python objects,
+  - extract image data from regions around craters given their latitude, longitude, 
+    radius, and the desired ROI window size,
+  - mask your data arays to isolate pixels within the crater, on the ejecta blanket, 
+    or within a user-provided shapefile,
+  - compute statistics on the extracted crater/ejecta data,
+  - save and plot your ROIs and statistics.
 
-New users can head to .acerim/sample/tutorial.py for a step-by-step walkthrough (with sample data) of how to use ACERIM in a research workflow.
+New users can head to acerim/sample/tutorial.py for a step-by-step walkthrough (with sample data) of how to use ACERIM in a research workflow.
 
-Note: This package was written with the Moon in mind, but is applicable to any 
-cratered planetary body. However, ACERIM only supports image data in simple cylindrical projection. For assistance reading and reprojecting images in python, see GDAL_.
+Note: This package was written with the Moon in mind, but is applicable to any cratered planetary body. However, ACERIM currently only supports image data in the simple cylindrical projection. For assistance reprojecting images in python, see GDAL_.
 
 .. _GDAL: http://www.gdal.org/
 
@@ -70,7 +71,7 @@ If the installer completes without any errors, a simple import statement can ver
 
   python -c "import acerim"
 
-Now that you have ACERIM installed, head over to ./acerim/sample/tutorial.py to get started with your crater analytics!
+Now that you have ACERIM installed, head over to /acerim/sample/tutorial.py to get started with your crater analytics!
 
 
 Manual installation
@@ -100,10 +101,10 @@ The project has the following structure::
          |- acefunctions.py
          |- acestats.py
          |- sample
-            |- tutorial.rst
-            |- tutorial.py
             |- craters.csv
             |- moon.tif
+            |- tutorial.rst
+            |- tutorial.py
          |- tests
             |- test_classes.py
             |- test_functions.py
@@ -113,16 +114,16 @@ The project has the following structure::
       |- setup.cfg
       |- LICENSE.txt
 
-The core of this project is located in ./acerim. To get started using ACERIM, see tutorial.py in ./acerim/sample. API documentation is listed in ./docs and is also available at `readthedocs <https://readthedocs.org/projects/acerim/>`_. A suite of unittests is located in ./acerim/tests.
+The core of this project is located in /acerim. To get started using ACERIM, see tutorial.py in /acerim/sample. API documentation is listed in /docs and is also available at `readthedocs <https://readthedocs.org/projects/acerim/>`_. A suite of unittests is located in /acerim/tests.
 
 
 Testing ACERIM
 --------------
 
-A suite of unittests are located in the ./acerim/tests. They use the sample data included in ./acerim/sample to test all ACERIM classes and functions. To test if ACERIM is working as it should on your machine, install the pytest module (using conda or pip) and follow the following steps::
+A suite of unittests are located in the ./acerim/tests. They use the sample data included in /acerim/sample to test all ACERIM classes and functions. To test if ACERIM is working as it should on your machine, install the pytest module (using conda or pip) and follow the following steps::
 
   1) open a terminal/shell/cmd window
-  2) navigate to the parent ACERIM directory (e.g.'/Users/cjtu/code/acerim')
+  2) navigate to the parent ACERIM directory (e.g.'/Users/cjtu/Desktop/acerim')
   3) run the following command:
 
 ::
@@ -141,7 +142,7 @@ Any bugs or errors can be reported to Christian at cj.taiudovicic@gmail.com. Ple
 Citing ACERIM
 -------------
 
-For convenience, this project uses the OSI-certified MIT open liscence for ease of use and distribution. The author simply asks that you cite the project which can be found at: 
+For convenience, this project uses the OSI-certified MIT open access liscence for ease of use and distribution. The author simply asks that you cite the project, which can be found at: 
 
 .. image:: https://zenodo.org/badge/88457986.svg
    :target: https://zenodo.org/badge/latestdoi/88457986
