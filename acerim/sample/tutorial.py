@@ -11,8 +11,8 @@ sys.path.insert(0, d)
 import numpy.random as rnd
 
 #%% Import acerim modules
-from acerim import classes as ac
-from acerim import functions as af
+from acerim import aceclasses as ac
+from acerim import acefunctions as af
 from acerim import acestats as acs
 
 # Import dataset from tests
@@ -64,10 +64,10 @@ cdf = cdf[(cdf['Lat'] > -80) & (cdf['Lat'] < 80)]
 # To get an ROI from the AceDataset, the crater lat, lon and rad is required
 lat, lon, rad = cdf.cloc('Copernicus')
 lat, lon, rad = [9.62, 20.08, 93]
-roi = ads.getROI(lat, lon, rad, wsize=5)
+roi = ads.get_roi(lat, lon, rad, wsize=5)
 
 # To plot the roi
-ads.plotROI(roi)
+ads.plot_roi(roi)
 
 
 # Lets get a few random lines from cdf. Setting the seed produces the same 
@@ -81,8 +81,8 @@ for name in cdf.index[sample]:
     lat = cdf.at[name, 'Lat']
     lon = cdf.at[name, 'Lon']
     rad = cdf.at[name, '_Rad']
-    roi = ads.getROI(lat, lon, rad, wsize=4)
-    ads.plotROI(roi, figsize=(4,4))
+    roi = ads.get_roi(lat, lon, rad, wsize=4)
+    ads.plot_roi(roi, figsize=(4,4))
     
     
 #----------------------------------------------------------------------------

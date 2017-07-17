@@ -213,7 +213,7 @@ class AceDataset(object):
         slat = nlat - ysize*dpp
         ppd = 1/dpp
         return nlat, slat, wlon, elon, radius, ppd
-#%%        
+       
         
     def is_global(self):
         """
@@ -230,7 +230,7 @@ class AceDataset(object):
         return abs(self.elon - self.wlon) == 360
     
     
-    def get_roi(self, lat, lon, rad, wsize=1, mask_crater=False, plot=False, 
+    def get_roi(self, lat, lon, rad, wsize=1, mask_crater=False, plot_roi=False, 
                get_extent=False):
         """
         Return square ROI centered on (lat,lon) which extends wsize crater 
@@ -255,14 +255,20 @@ class AceDataset(object):
         mask_crater : bool
             Masks the crater floor from the resulting ROI by replacing the 
             crater with an ellipse of NaN.
-        plot : bool
+        plot_roi : bool
             Plots the returned ROI.
-
+        get_extent : bool
+            Reuturns the ROI window extent as (minlon, maxlon, minlat, maxlat)
+        
         Returns:
         --------
         roi: 2Darray
             Numpy 2D array of data centered on the specified crater and 
             extending wsize*rad distance from the crater centre.
+            
+        roi, extent : (2Darray, tuple)
+            If get_extent flag is True, return both the 2D roi and the extent
+            tuple.
         """
         def wrap_lon(ads, minlon, maxlon, topind, height):
             """
