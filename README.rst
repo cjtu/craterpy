@@ -40,7 +40,7 @@ ACERIM is compatible with python versions 2.7-3.3. Additionally, the following p
 Installation
 ------------
 
-**PLEASE NOTE**: Acerim depends on the GDAL (Geospatial Data Abstraction Library) python package. Since GDAL in turn depends on C++, it is highly recommended that you follow the installation instructions for `GDAL on PyPI <https://pypi.python.org/pypi/GDAL>`_ to properly install gdal and its dependencies before you install ACERIM.
+**PLEASE NOTE**: Acerim depends on the GDAL (Geospatial Data Abstraction Library) python package. Since GDAL in turn depends on C++, it is highly recommended that you follow the installation instructions for `gdal <https://pypi.python.org/pypi/GDAL>`_ on PyPI to properly install gdal and its dependencies before you install ACERIM.
 
 
 Using Anaconda
@@ -82,7 +82,7 @@ First ensure that GDAL is installed, then install the following dependencies::
 - matplotlib
 - setuptools (to build the package)
 
-Download the most recent distribution of `acerim on PyPI <https://pypi.python.org/simple/acerim>`_ and unzip it in the desired directory. From the root project directory run:
+Download the most recent distribution of `acerim <https://pypi.python.org/simple/acerim>`_ from PyPI and unzip it in the desired directory. From the root project directory run:
 
 ::
 
