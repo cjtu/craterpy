@@ -215,7 +215,7 @@ class AceDataset(object):
         return nlat, slat, wlon, elon, radius, ppd
 #%%        
         
-    def isGlobal(self):
+    def is_global(self):
         """
         Check if self has 360 degrees of longitude.
         
@@ -224,13 +224,13 @@ class AceDataset(object):
         >>> import os
         >>> f = os.path.dirname(os.path.abspath('__file__'))+'/tests/moon.tif'
         >>> a = AceDataset(f, 90, -90, 0, 360, 1737)
-        >>> a.isGlobal()
+        >>> a.is_global()
         True
         """
         return abs(self.elon - self.wlon) == 360
     
     
-    def getROI(self, lat, lon, rad, wsize=1, mask_crater=False, plot=False, 
+    def get_roi(self, lat, lon, rad, wsize=1, mask_crater=False, plot=False, 
                get_extent=False):
         """
         Return square ROI centered on (lat,lon) which extends wsize crater 
@@ -270,14 +270,14 @@ class AceDataset(object):
             wrapping and concatenating the right and left sides of the ROI.
             """
             if minlon < ads.wlon: 
-                leftind = af.getInd(minlon, lonarr - 360)
+                leftind = af.get_ind(minlon, lonarr - 360)
                 leftwidth = af.deg2pix(ads.wlon - minlon, ads.ppd)
-                rightind = af.getInd(ads.wlon, lonarr)
+                rightind = af.get_ind(ads.wlon, lonarr)
                 rightwidth = af.deg2pix(maxlon - ads.wlon, ads.ppd)
             elif maxlon > ads.elon:
-                leftind = af.getInd(minlon, lonarr)
+                leftind = af.get_ind(minlon, lonarr)
                 leftwidth = af.deg2pix(ads.elon - minlon, ads.ppd)
-                rightind = af.getInd(ads.elon, lonarr + 360)
+                rightind = af.get_ind(ads.elon, lonarr + 360)
                 rightwidth = af.deg2pix(maxlon - ads.elon, ads.ppd)                
             left_roi = ads.ReadAsArray(leftind, topind, leftwidth, height)
             right_roi = ads.ReadAsArray(rightind, topind, rightwidth, height)
@@ -303,14 +303,14 @@ class AceDataset(object):
         latarr = np.linspace(self.nlat, self.slat, self.RasterYSize)
         lonarr = np.linspace(self.wlon, self.elon, self.RasterXSize)
         # Get top index and height of ROI
-        topind = af.getInd(maxlat, latarr) 
+        topind = af.get_ind(maxlat, latarr) 
         height = af.deg2pix(2*dwsize, self.ppd)
         # Check if ROI crosses lon extent of global ROI and needs to be wrapped
-        if self.isGlobal() and (minlon < self.wlon or maxlon > self.elon):
+        if self.is_global() and (minlon < self.wlon or maxlon > self.elon):
             roi = wrap_lon(self, minlon, maxlon, topind, height)  
         else: 
             # Get left index and width of ROI and read data from dataset
-            leftind = af.getInd(minlon,lonarr) 
+            leftind = af.get_ind(minlon,lonarr) 
             width = af.deg2pix(2*dwsize, self.ppd)
             roi = self.ReadAsArray(leftind, topind, width, height) # gdal Dataset method
         if roi is None:
@@ -320,16 +320,16 @@ class AceDataset(object):
             cmask = af.crater_floor_mask(self, roi, lat, lon, rad)
             roi = af.mask_where(roi, cmask)
         if plot:
-            self.plotROI(roi, extent=extent)    
+            self.plot_roi(roi, extent=extent)    
         if get_extent:
             return roi, extent
         else:
             return roi 
 
     
-    def plotROI(self, roi, *args, **kwargs):
+    def plot_roi(self, roi, *args, **kwargs):
         """
-        Implements plotROI function in functions.py. 
+        Implements plot_roi function in functions.py. 
         """
         af.plot_roi(self, roi, *args, **kwargs)
 

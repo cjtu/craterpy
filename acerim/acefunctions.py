@@ -8,7 +8,7 @@ from acerim import acestats as acs
 import numpy as np
 import matplotlib.pyplot as plt
 ######################## ACERIM FUNCTIONS ##############################
-def computeStats(cdf, ads, stats=None, index=None):
+def compute_stats(cdf, ads, stats=None, index=None):
     """Return a CraterDataFrame object with chosen statistics from stats on 
     craters in cdf using data in ads.
     
@@ -49,7 +49,7 @@ def computeStats(cdf, ads, stats=None, index=None):
         lon = cdf.loc[i, cdf.loncol]
         #rad = cdf.loc[i, cdf.radcol]
         rad = cdf.loc[i, 'Diam']/2 #TODO Fix this!!
-        roi = ads.getROI(lat, lon, rad)
+        roi = ads.get_roi(lat, lon, rad)
         for stat, function in acs._getFunctions(stats):
             ret_cdf.loc[i, stat] = function(roi)
     return ret_cdf
@@ -217,7 +217,7 @@ def deg2pix(dist, ppd):
     return int(dist*ppd)  
 
 
-def getInd(value, array):
+def get_ind(value, array):
     """Return closest index (rounded down) of a value from sorted array."""
     ind = np.abs(array-value).argmin() 
     return int(ind)   
@@ -259,28 +259,28 @@ def greatcircdist(lat1, lon1, lat2, lon2, radius):
 #import scipy.optimize as opt
 #import helper_functions as hf
 
-def fitExp(x,y,PLOT_EXP=False):
+def fit_exp(x, y, PLOT_EXP=False):
     """
     Return an exponential that has been fit to data using scipy.curvefit(). 
     If plot is True, plot the data and the fit. 
     """     
-    def expEval(x,a,b,c):
+    def exp_eval(x, a, b, c):
         """
         Return exponential of x with a,b,c parameters.
         """
-        return a * np.exp(-b*x) + c      
+        return a * np.exp(-b * x) + c      
       
     try:
-        p_opt, cov = opt.curve_fit(expEval,x,y)
+        p_opt, cov = opt.curve_fit(expEval, x, y)
     except:
         RuntimeError
         return None
     if PLOT_EXP:
-        hf.plot_exp(x,y,expEval(x,*p_opt))
+        hf.plot_exp(x, y, exp_eval(x, *p_opt))
     return p_opt
 
 
-def fitGauss(data,PLOT_GAUSS=False):
+def fit_gauss(data, PLOT_GAUSS=False):
     """
     Return parameters of a Gaussian that has been fit to data using least 
     squares fitting. If plot=True, plot the histogram and fit of the data. 
@@ -292,49 +292,49 @@ def fitGauss(data,PLOT_GAUSS=False):
         return 1.0/(p[1]*np.sqrt(2*np.pi))*np.exp(-(x-p[0])**2/(2*p[1]**2))
    
     data = data[data > 0]       
-    n,bins = np.histogram(data,bins='fd',density=True) 
-    p0 = [0,1] #initial parameter guess
-    errfn = lambda p,x,y: gauss(x,p) - y
-    p, success = opt.leastsq(errfn, p0[:],args=(bins[:-1],n))
+    n, bins = np.histogram(data, bins='fd', density=True) 
+    p0 = [0, 1] #initial parameter guess
+    errfn = lambda p, x, y: gauss(x, p) - y
+    p, success = opt.leastsq(errfn, p0[:],args=(bins[:-1], n))
     if PLOT_GAUSS:
-        hf.plot_gauss(bins,n,gauss(bins,p))
+        hf.plot_gauss(bins, n, gauss(bins, p))
     return p
     
     
-def fitPow(xdata,ydata,p0,plot=False,cid=''):
+def fit_pow(xdata, ydata, p0, plot=False, cid=''):
     """
     Return a power law curve fit of y using a least squares fit.
     """
-    def residuals(p,x,y):
-        return ydata - powEval(p,x)
+    def residuals(p, x, y):
+        return ydata - pow_eval(p, x)
     
-    def powEval(p,x):
-        return p[0] + p[1]*(x**p[2])
+    def pow_eval(p, x):
+        return p[0] + p[1] * (x**p[2])
 
-    pfinal,success = opt.leastsq(residuals,p0,args=(xdata,ydata))
-    xarr = np.arange(xdata[0],xdata[-1],0.1)
-    return xarr,powEval(pfinal,xarr)
+    pfinal, success = opt.leastsq(residuals, p0, args=(xdata, ydata))
+    xarr = np.arange(xdata[0], xdata[-1], 0.1)
+    return xarr, pow_eval(pfinal, xarr)
     
     
-def fitPowLin(xdata,ydata,p0,plot=False,cid=''):
+def fit_pow_linear(xdata,ydata,p0,plot=False,cid=''):
     """
     Return a power law curve fit of y by converting to linear data using 
     logarithms and then performing a linear least squares fit.
     """
-    def fitLine(p,x):
-        return p[0] + p[1]*x        
+    def fit_line(p, x):
+        return p[0] + p[1] * x        
         
-    def residuals(p,x,y):
+    def residuals(p, x, y):
         return ydata - fitLine(p,x)
     
-    def powEval(x,amp,index):
-        return amp*(x**index)
+    def pow_eval(x,amp,index):
+        return amp * (x**index)
         
     logx = np.log(xdata)
     logy = np.log(ydata)
-    pfinal,success = opt.leastsq(residuals,p0,args=(logx,logy))
+    pfinal, success = opt.leastsq(residuals, p0, args=(logx, logy))
     
-    return powEval(xdata,pfinal[0],pfinal[1])
+    return pow_eval(xdata, pfinal[0], pfinal[1])
     
 #%%
 #if __name__ == "__main__":

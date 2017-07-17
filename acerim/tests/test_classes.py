@@ -12,7 +12,7 @@ import numpy as np
 import acerim
 from acerim import aceclasses as ac
 
-DATA_PATH = os.path.join(acerim.__path__[0], 'examples')
+DATA_PATH = os.path.join(acerim.__path__[0], 'sample')
 
 class TestCraterDataFrame(unittest.TestCase):
     """Test CraterDataFrame object"""
@@ -82,12 +82,12 @@ class TestAceDataset(unittest.TestCase):
         expected = (90.0, -90.0, -180.0, 180.0, 6378.137, 4.0)
         self.assertEqual(actual, expected)
         
-    def test_isGlobal(self):
-        """Test .isGlobal method for checking if dataset has 360 degrees of lon""" 
-        is_global = ac.AceDataset(self.test_dataset, wlon=0, elon=360).isGlobal()
+    def test_is_global(self):
+        """Test .is_global method for checking if dataset has 360 degrees of lon""" 
+        is_global = ac.AceDataset(self.test_dataset, wlon=0, elon=360).is_global()
         self.assertTrue(is_global)
         
-        not_global = ac.AceDataset(self.test_dataset, wlon=0, elon=180).isGlobal()
+        not_global = ac.AceDataset(self.test_dataset, wlon=0, elon=180).is_global()
         self.assertFalse(not_global)
         
     def test_calc_mpp0(self):
@@ -113,8 +113,8 @@ class TestAceDataset(unittest.TestCase):
         ads = self.ads
         self.assertRaises(ValueError, ads.calc_mpp, 90)
         
-    def test_getROI(self):
-        """Test getROI"""
+    def test_get_roi(self):
+        """Test get_roi method"""
         pass
         
         
