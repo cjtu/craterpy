@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Welcome to the ACERIM tutorial!
 ===============================
@@ -24,7 +23,6 @@ from acerim import aceclasses as ac
 from acerim import acefunctions as af
 from acerim import acestats as acs
 
-
 """
 aceclasses.AceDataset 
 ---------------------
@@ -40,8 +38,9 @@ print(ads)
 # AceDataset object with bounds (90.0N, -90.0S), (-180.0E, 180.0E), radius 6378.137 km, and 4.0 ppd resolution
 
 """It seems that the geospatial information supplied the wrong radius for the 
-Moon. We can set any of the geographical bounds, the radius of the planetary 
-body, or the dataset resolution by specifying parameters in the import.
+Moon (it should be 1737.4 km). We can set any of the geographical bounds, the 
+radius of the planetary body, or the dataset resolution by specifying the 
+desired parameters when initializing an AceDataset.
 """
 
 ads = ac.AceDataset(image_data_path, nlat=90, slat=-90, wlon=-180, elon=180, 
@@ -49,7 +48,7 @@ ads = ac.AceDataset(image_data_path, nlat=90, slat=-90, wlon=-180, elon=180,
 print(ads)
 # AceDataset object with bounds (90N, -90S), (-180E, 180E), radius 1737.4 km, and 4 ppd resolution
 
-"""That's better. Now we can explore some features of the AceDataset"""
+"""Now we can explore some features of the AceDataset"""
 # TODO: AceDataset features
 # To get an ROI from the AceDataset, the crater lat, lon and rad is required
 
