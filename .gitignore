@@ -10,3 +10,4 @@ _static
 build/
 dist/
 tutorial.rst
+*.sublime*
