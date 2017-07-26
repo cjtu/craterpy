@@ -1,15 +1,19 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Wed Jul 13 16:24:07 2016
+This file contains the two classes central to ACERIM:
 
-@author: christian 
+    CraterDataFrame - extends pandas.DataFrame
+    AceDataset - wraps gdal.Dataset
+
+For usage, see sample/tutorial.rst.
 """
 import gdal
 import pandas as pd
 import numpy as np
 from acerim import acefunctions as af
-#%%
+
+############################## CRATERDATAFRAME ################################
 class CraterDataFrame(pd.DataFrame):
     """
     Class for representing and manipulating crater data. Extends the pandas 
@@ -82,6 +86,7 @@ class CraterDataFrame(pd.DataFrame):
         self.radcol = radcol
 
 
+############################### ACEDATASET ####################################
 class AceDataset(object):
     """
     Class for loading and manipulating image data. Wraps the gdal Dataset

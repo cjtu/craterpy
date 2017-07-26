@@ -1,10 +1,11 @@
+""" Keeps track of the current acerim version"""
 # Format expected by setup.py and doc/source/conf.py: string of form "X.Y.Z"
 _version_major = 0
 _version_minor = 0
-_version_maintenance = 7  # use '' for first of series, number for 1 and above
-_version_extra = 'dev' # dev for in development (NEVER push with dev), '' for full release
+_version_maintenance = 7  # use '' for first major/minor release, int for 1+
+_version_extra = 'dev0' # NEVER release with dev0, use '' for full release
 
-# Construct full version string from these.
+# Construct full version string to pass to setup.py
 _ver = [_version_major, _version_minor]
 if _version_maintenance:
     _ver.append(_version_maintenance)

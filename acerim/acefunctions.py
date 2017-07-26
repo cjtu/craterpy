@@ -1,13 +1,22 @@
 # -*- coding: utf-8 -*-
 """
-Created on Tue May 16 08:15:23 2017
+This file contains several functions used in the ACERIM workflow. They are 
+sorted into different sections:
 
-@author: Christian
+    ACERIM FUNCTIONS - top-level functions
+    PLOTTING - plot figures
+    ROI MANIPULATION - manipulate 2D arrays of image data
+    GEOSPATIAL CALCULATIONS - manipulate geospatial data
+    STATISTICS - compute statistics and fitting functions
+
+For usage, see sample/tutorial.rst.
 """
 from acerim import acestats as acs
 import numpy as np
 import matplotlib.pyplot as plt
-######################## ACERIM FUNCTIONS ##############################
+
+
+######################### ACERIM FUNCTIONS ####################################
 def compute_stats(cdf, ads, stats=None, index=None):
     """Return a CraterDataFrame object with chosen statistics from stats on 
     craters in cdf using data in ads.
@@ -55,7 +64,7 @@ def compute_stats(cdf, ads, stats=None, index=None):
     return ret_cdf
 
 
-######################### PLOTTING #########################
+################################ PLOTTING #####################################
 def plot_roi(ads, roi, figsize=((8,8)), extent=None, title='ROI', vmin=None,
              vmax=None, cmap='gray', **kwargs):
     """
@@ -98,7 +107,7 @@ def plot_roi(ads, roi, figsize=((8,8)), extent=None, title='ROI', vmin=None,
     plt.show()
 
 
-######################### ROI manipulation #################
+########################### ROI MANIPULATION ##################################
 def mask_where(ndarray, condition):
     """
     Return copy of ndarray with nan entries where condition is True.
@@ -185,8 +194,8 @@ def crater_ring_mask(aceds, roi, lat, lon, rmin, rmax):
     inner = ellipse_mask(roi, rmin_pixwidth, rmin_pixheight)
     return outer*~inner
 
-    
-########################### Geo CALCULATIONS ###############################
+
+######################### GEOSPATIAL CALCULATIONS #############################
 def inbounds(lat, lon, mode='std'):
     """True if lat and lon within global coordinates.
     Standard: mode='std' for lat in (-90, 90) and lon in (-180, 180).
@@ -254,7 +263,7 @@ def greatcircdist(lat1, lon1, lat2, lon2, radius):
     return dist
 
 
-#%% STATISTICAL 
+############################### STATISTICS ####################################
 #import numpy as np
 #import scipy.optimize as opt
 #import helper_functions as hf

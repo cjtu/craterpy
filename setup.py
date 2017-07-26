@@ -1,5 +1,4 @@
-""" Instructions for building acerim package and its metadata.
-"""
+""" Setuptools instructions for building acerim package and its metadata."""
 from setuptools import setup, find_packages
 from codecs import open
 from os import path

@@ -6,9 +6,11 @@ Overview
 
 Welcome to ACERIM!
 
+Please note: this package is still in pre-alpha and is actively under development. You can direct any questions to Christian at cj.taiudovicic@gmail.com. 
+
 The Automated Crater Ejecta Region of Interest Mapper (ACERIM) is a python package for planetary scientists that simplifies crater data analysis. If you have image data and a list of crater locations, ACERIM will help you extract data from those locations and analyze that data with statistics of your choosing.
 
-*Use ACERIM if you want to do one or more of the following*::
+Use ACERIM if you want to do one or more of the following::
 
   - import crater databases and image datasets into easily queried python objects;
   - extract image data from regions around craters given their latitude, longitude, radius, and the desired ROI window size;
@@ -132,7 +134,7 @@ Any bugs or errors can be reported to Christian at cj.taiudovicic@gmail.com. Ple
 Citing ACERIM
 -------------
 
-For convenience, this project uses the OSI-certified MIT open access liscence for ease of use and distribution. The author simply asks that you cite the project, which can be found at: 
+For convenience, this project uses the OSI-certified MIT open access liscence for ease of use and distribution. The author simply asks that you cite the project if you use it in your work. Citation information can be found and easily exported in your desired format at: 
 
 .. image:: https://zenodo.org/badge/88457986.svg
    :target: https://zenodo.org/badge/latestdoi/88457986

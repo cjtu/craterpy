@@ -2,6 +2,8 @@
 Worked Examples
 ===============
 
+NOTE: this file is IN PROGRESS
+
 This README will provide a breakdown of acerim's functionality as well as basic examples of how to use acerim to so the following:
 
 1) Import crater data
