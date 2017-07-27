@@ -46,7 +46,7 @@ acerim assumes that supplied image data is in a simple cylindrical projection.
 If a geotiff is supplied, the AceDataset will attempt to read and store the 
 geographical information automatically. Importing moon.tif from image_data_path:
 """
-moon_image_path = data_dir + '/moon.tif'
+moon_image_path = sample_dir + '/moon.tif'
 moon = Ads(moon_image_path)
 print(moon)
 
@@ -62,7 +62,7 @@ moon.radius
 this time specifying the correct radius. Any of the geospatial parameters can 
 be set by specifying them in the constructor:
 """
-moon = Ads(image_data_path, nlat=90, slat=-90, wlon=-180, elon=180, 
+moon = Ads(moon_image_path, nlat=90, slat=-90, wlon=-180, elon=180, 
 		   radius=1737.4, ppd=4)
 print(moon)
 
@@ -103,7 +103,7 @@ moon.plot_roi(arist_roi, figsize=(5,5), title='Aristarchus', vmin=0, vmax=75,
 """ In this section we will explore how to use the CraterDataFrame to store and
 access crater data in this tabular data structure.
 """
-crater_sheet_path = data_dir + '/craters.csv'
+crater_sheet_path = sample_dir + '/craters.csv'
 
 """ Importing a crater spreadsheet """
 """ A CraterDataFrame can be initialized by passing a string to the 
@@ -125,7 +125,7 @@ index columns, etc), this can be handled with pandas and then passed to the
 CraterDataFrame like so:
 """
 import pandas
-dataframe = pandas.DataFrame(crater_sheet_path)
+dataframe = pandas.read_csv(crater_sheet_path)
 craters_frompandas = Cdf(dataframe)
 
 """ A final import option that is useful for simplying queries is the index
@@ -148,18 +148,18 @@ loc['Crater Name']:
 craters.loc['Humboldt']
 
 """ There are different way to get a value from the CraterDataFrame. This will 
-return the radius of the crater:
+return the longitude of the crater:
 """
-craters.loc['Humboldt']['Rad']
+craters.loc['Humboldt']['Lon']
 
 """ But using ".at[]" is the most efficient way to get a single cell of data:
 """
-craters.at['Humboldt', 'Rad']
+craters.at['Humboldt', 'Lon']
 
 """ DataFrames also support fancy (boolean) indexing. To get all crater larger 
-than 9 km:
+than 9 km in diameter:
 """
-craters[craters['Rad'] > 9]
+craters[craters['Diam'] > 9]
 
 """ Or to get all craters with longitude between 0 and 10 degrees:
 """
@@ -179,13 +179,12 @@ for name in craters.index[:5]:
     lat = craters.at[name, 'Lat']
     lon = craters.at[name, 'Lon']
     rad = craters.at[name, '_Rad']
-    roi = ads.get_roi(lat, lon, rad, wsize=4, plot_roi=True)
+    roi = moon.get_roi(lat, lon, rad, wsize=4, plot_roi=True)
 
         
 """ The acestats module """
 
-"""
-Statistics can be performed on an roi using the acestats module.
+""" Statistics can be performed on an roi using the acestats module.
 """
 # TODO: acestats examples
     
