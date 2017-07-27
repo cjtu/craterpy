@@ -17,53 +17,70 @@ import matplotlib.pyplot as plt
 
 
 ######################### ACERIM FUNCTIONS ####################################
-def compute_stats(cdf, ads, stats=None, index=None):
-    """Return a CraterDataFrame object with chosen statistics from stats on 
-    craters in cdf using data in ads.
+def compute_ejecta_profile_stats():
+    """TODO: build function from acerim_july27
+    """ 
+    pass
+
+def compute_ejecta_stats(cdf, ads, ejrad=2, stats=None, plot=False, vmin=None, 
+                         vmax=None, strict=False):
+    """Compute the specified stats from acestats.py on a circular ejecta ROI
+    extending ejsize crater radii from the crater center. Return results as a 
+    CraterDataFrame the same length as cdf with stats appended as extra columns.    
     
     Parameters
     ---------- 
-    ads : AceDataset object
-        Contains the image data used to compute stats.
     cdf : CraterDataFrame object
-        Contains the crater locations and sizes to locate regions of interest
-        from aceDS.
+        Contains the crater locations and sizes to locate ROIs in aceDS. Also
+        form the basis of the returned CraterDataFrame
+    ads : AceDataset object
+        AceDataset of image data used to compute stats.
+    ejrad : int, float
+        The radius of ejecta blanket measured in crater radii from the 
+        crater center to the ejecta extent.
     stats : Array-like of str
-        Indicates the stat names to compute. Stat functions are given in 
-        acestats.py. Use print(acestats.list_all to list valid stats.
-    craters : array-like
-        Indicies of craters in craterDF to compute stats on. If None, 
-        computes stats on all craters in craterDF.
+        Indicates the stat names to compute. Stat functions must be defined in 
+        acestats.py. Default: all stats in acestats.py. 
+    plot : bool
+        Plot the ejecta ROI.
+    vmin : int, float
+        The minimum valid image data value. Set this to filter all values lower.
+    vmax : int, float
+        The maximum valid image data value. Set this to filter all values higher.
+    strict : bool
+        How strict the (vmin, vmax) range is. If true, exclude values <= vmin
+        and values >= vmax, if they are specified.
 
     Returns
     -------
     CraterDataFrame
-        Includes craters which stats were computed on, with stats included
-        as new columns.
+        Same length as cdf with stats included as new columns.
     """
     # If stats and index not provided, assume use all stats and all rows in cdf
     if stats is None:
         stats = acs._listStats()
-    if index is None:
-        index = cdf.index
     # Initialize return CraterDataframe with stats as individual columns
-    from acerim import aceclasses as ac
-    ret_cdf = ac.CraterDataFrame(cdf.loc[index]) 
+    ret_cdf = cdf
     for stat in stats:
         ret_cdf[stat] = ret_cdf.index
     # Main computation loop
-    for i in index:
+    for i in cdf.index:
         # Get lat, lon, rad and compute roi for current crater
         lat = cdf.loc[i, cdf.latcol]
         lon = cdf.loc[i, cdf.loncol]
-        #rad = cdf.loc[i, cdf.radcol]
-        rad = cdf.loc[i, 'Diam']/2 #TODO Fix this!!
-        roi = ads.get_roi(lat, lon, rad)
+        rad = cdf.loc[i, cdf.radcol]
+        roi, extent = ads.get_roi(lat, lon, rad, ejrad, get_extent=True)
+        mask = crater_ring_mask(ads, roi, lat, lon, rad, rad*ejrad)
+        roi_masked = mask_where(roi, ~mask)
+        roi_notnan = roi_masked[~np.isnan(roi_masked)]
+        filtered_roi = filter_roi(roi_masked, vmin, vmax, strict)
+        if plot:
+            ads.plot_roi(filtered_roi, extent=extent)
         for stat, function in acs._getFunctions(stats):
-            ret_cdf.loc[i, stat] = function(roi)
+            ret_cdf.loc[i, stat] = function(roi_notnan)
     return ret_cdf
-
-
+  
+   
 ################################ PLOTTING #####################################
 def plot_roi(ads, roi, figsize=((8,8)), extent=None, title='ROI', vmin=None,
              vmax=None, cmap='gray', **kwargs):
@@ -108,6 +125,27 @@ def plot_roi(ads, roi, figsize=((8,8)), extent=None, title='ROI', vmin=None,
 
 
 ########################### ROI MANIPULATION ##################################
+def filter_roi(roi, vmin=None, vmax=None, strict=False):
+    """
+    Filter values outside (vmin, vmax) by setting them to np.nan. If strict,
+    keep only values strictly less than vmax and strictly greater than vmin.
+    
+    E.g. strict=False keeps vmin <= roi <= vmax
+         strict=True keeps vmin < roi < vmax
+    """
+    froi = roi
+    if vmin is None:
+        vmin = -np.inf
+    if vmax is None:
+        vmax = np.inf
+    if strict:
+        froi[froi >= vmax] = np.nan
+        froi[froi <= vmin] = np.nan
+    else:
+        froi[froi > vmax] = np.nan
+        froi[froi < vmin] = np.nan
+    return roi
+
 def mask_where(ndarray, condition):
     """
     Return copy of ndarray with nan entries where condition is True.
@@ -192,7 +230,7 @@ def crater_ring_mask(aceds, roi, lat, lon, rmin, rmax):
     rmin_pixwidth = m2pix(rmin, aceds.calc_mpp(lat))
     outer = ellipse_mask(roi, rmax_pixwidth, rmax_pixheight) 
     inner = ellipse_mask(roi, rmin_pixwidth, rmin_pixheight)
-    return outer*~inner
+    return outer * ~inner
 
 
 ######################### GEOSPATIAL CALCULATIONS #############################

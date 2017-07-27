@@ -62,25 +62,33 @@ class CraterDataFrame(pd.DataFrame):
         
         # If no lat-, lon-, or rad- col provided, try to find them in columns
         if not latcol:
-            findlat = ['lat' in col.lower() for col in self.columns]
+            findlat = [('latitude' == col.lower()) or ('lat' == col.lower()) 
+                        for col in self.columns]
             if any(findlat):
                 latcol = self.columns[np.where(findlat)[0][0]]
+            else:
+                raise ImportError('Unable to infer latitude column from header. Specify latcol in constructor.')
         if not loncol:
-            findlon = ['lon' in col.lower() for col in self.columns]
+            findlon = [('longitude' == col.lower()) or ('lon' == col.lower()) 
+                        for col in self.columns]
             if any(findlon):
                 loncol = self.columns[np.where(findlon)[0][0]]
+            else:
+                raise ImportError('Unable to infer longitude column from header. Specify loncol in constructor.')
         if not radcol:
-            findrad = ['rad' in col.lower() for col in self.columns]
-            finddiam = ['diam' in col.lower() for col in self.columns]
+            findrad = [('radius' == col.lower()) or ('rad' == col.lower()) 
+                        for col in self.columns]
             if any(findrad):
                 radcol = self.columns[np.where(findrad)[0][0]]
-            elif any(finddiam):
-                diamcol = self.columns[np.where(finddiam)[0][0]]
-                self['_Rad'] = (0.5)*self[diamcol]
-                radcol = '_Rad'
-        if not latcol or not loncol or not radcol:
-            raise ImportError('Unable to infer lat or lon or rad from header.'\
-                              +'Specify name of latcol, loncol and/or radcol')
+            else:
+                finddiam = [('diameter' == col.lower()) or 
+                            ('diam' == col.lower()) for col in self.columns]    
+                if any(finddiam):
+                    diamcol = self.columns[np.where(finddiam)[0][0]]
+                    self['radius'] = (0.5)*self[diamcol]
+                    radcol = 'radius'
+                else:
+                    raise ImportError('Unable to infer radius or diameter column from header. Specify radcol in constructor.')
         self.latcol = latcol
         self.loncol = loncol
         self.radcol = radcol
