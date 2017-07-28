@@ -20,7 +20,7 @@ import pandas as pd
 ######################### ACERIM FUNCTIONS ####################################
 def ejecta_profile_stats(cdf, ads, ejrad=2, rspacing=0.25, stats=None, 
                          plot_roi=False, vmin=None, vmax=None, strict=False, 
-                         plot_stats=False, savepath=None, timer=False):
+                         plot_stats=False, savepath=None, timer=False, dt=60):
     """Compute stat profiles across ejecta blankets by computing stats in a 
     series of concentric rings beginning at the crater rim and extending to 
     ejrad crater radii from the crater centre. Each ring is rspacing thick and
@@ -59,6 +59,7 @@ def ejecta_profile_stats(cdf, ads, ejrad=2, rspacing=0.25, stats=None,
         savename = p.join(savepath,'{}_ejpstats.csv')
     if stats is None:
         stats = acs._listStats()
+    stat_dict = {}
     for ind in cdf.index: # Main CraterDataFrame loop
         lat = cdf.loc[ind, cdf.latcol]
         lon = cdf.loc[ind, cdf.loncol]
@@ -75,12 +76,13 @@ def ejecta_profile_stats(cdf, ads, ejrad=2, rspacing=0.25, stats=None,
                 roi_masked = mask_where(roi, ~mask)
                 filtered_roi = filter_roi(roi_masked, vmin, vmax, strict)
                 roi_notnan = filtered_roi[~np.isnan(filtered_roi)]
-            for stat, function in acs._getFunctions(stats):
-                stat_df.loc[ring_array[i], stat] = function(roi_notnan)                
-            if plot_roi:
-                ads.plot_roi(filtered_roi, extent=extent) 
+                for stat, function in acs._getFunctions(stats):
+                    stat_df.loc[ring_array[i], stat] = function(roi_notnan)                
+                if plot_roi:
+                    ads.plot_roi(filtered_roi, extent=extent) 
+            stat_dict[ind] = stat_df
             if plot_stats:
-                plot_ejecta_stats()
+                plot_ejecta_stats(stat_df)
             if savepath:
                 stat_df.to_csv(savename.format(ind))
         except ImportError as e: # Catches and prints out of bounds exceptions
@@ -94,7 +96,7 @@ def ejecta_profile_stats(cdf, ads, ejrad=2, rspacing=0.25, stats=None,
                 print(update)
                 Tnow = timer()
             count +=1
-    
+    return stat_dict
     
 
 def ejecta_stats(cdf, ads, ejrad=2, stats=None, plot=False, vmin=None, 
@@ -213,11 +215,11 @@ def filter_roi(roi, vmin=None, vmax=None, strict=False):
     if vmax is None:
         vmax = np.inf
     nanmask = ~np.isnan(roi) # build nanmask with pre-existing nans, if any
-    nanmask[nanmask] &= x[nanmask] > vmax # Add values outside of (vmin,vmax) to nanmask
-    nanmask[nanmask] &= x[nanmask] < vmin
+    nanmask[nanmask] &= roi[nanmask] > vmax # Add values outside of (vmin,vmax) to nanmask
+    nanmask[nanmask] &= roi[nanmask] < vmin
     if strict: # if strict, also exclude values equal to vmin, vmax
-        nanmask[nanmask] &= x[nanmask] == vmax
-        nanmask[nanmask] &= x[nanmask] == vmin
+        nanmask[nanmask] &= roi[nanmask] == vmax
+        nanmask[nanmask] &= roi[nanmask] == vmin
     roi[nanmask] = np.nan
     return roi
 
