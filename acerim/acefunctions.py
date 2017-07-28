@@ -14,16 +14,91 @@ For usage, see sample/tutorial.rst.
 from acerim import acestats as acs
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
 
 
 ######################### ACERIM FUNCTIONS ####################################
-def compute_ejecta_profile_stats():
-    """TODO: build function from acerim_july27
+def ejecta_profile_stats(cdf, ads, ejrad=2, rspacing=0.25, stats=None, 
+                         plot_roi=False, vmin=None, vmax=None, strict=False, 
+                         plot_stats=False, savepath=None, timer=False):
+    """Compute stat profiles across ejecta blankets by computing stats in a 
+    series of concentric rings beginning at the crater rim and extending to 
+    ejrad crater radii from the crater centre. Each ring is rspacing thick and
+    the crater floor is excluded. Output is a dictionary of cdf.index values to
+    pandas.DataFrame of stats containing the computed stats as columns and 
+    ring radius as rows.
+    
+    Parameters
+    ----------
+    
+    Returns
+    -------
+    stat_df : dict of (index: pandas.DataFrame)
+        Dictionary of stats using the cdf index as keys and the pandas.DataFrame
+        of statistics as values (see example)
+    
+    Example
+    -------
+    >>> compute_ejecta_profile_stats(my_cdf, my_ads, 2, 0.25, stats=['mean',
+                                    'median','maximum'],savepath='/tmp/')
+    
+    /tmp/index1_ejecta_stats.csv
+        radius,mean,median,maximum
+        1,     55,  45,    70
+        1.25,  50,  40,    65
+        1.5,   35,  35,    45
+        1.75,  30,  33,    42
+        
     """ 
-    pass
+    if timer:
+        from timeit import default_timer as timer
+        Tstart, Tnow = timer(), timer()
+        count = 1 # count craters
+    if savepath:
+        import os.path as p
+        savename = p.join(savepath,'{}_ejpstats.csv')
+    if stats is None:
+        stats = acs._listStats()
+    for ind in cdf.index: # Main CraterDataFrame loop
+        lat = cdf.loc[ind, cdf.latcol]
+        lon = cdf.loc[ind, cdf.loncol]
+        rad = cdf.loc[ind, cdf.radcol]
+        try:
+            roi, extent = ads.get_roi(lat, lon, rad, ejrad, get_extent=True)
+            ring_array = np.arange(1, ejrad+rspacing, rspacing) # inner ring radius [crater radii]
+            ring_darray = ring_array*rad # inner ring radius [km]
+            stat_df = pd.DataFrame(index=ring_array[:-1], columns=stats)
+            for i in range(len(ring_array)-1): # Ejecta ring radii loop  
+                rad_inner = ring_darray[i] # inner radius of this ejecta ring 
+                rad_outer = ring_darray[i+1] # outer radius of this ejecta ring
+                mask = crater_ring_mask(ads, roi, lat, lon, rad_inner, rad_outer)
+                roi_masked = mask_where(roi, ~mask)
+                filtered_roi = filter_roi(roi_masked, vmin, vmax, strict)
+                roi_notnan = filtered_roi[~np.isnan(filtered_roi)]
+            for stat, function in acs._getFunctions(stats):
+                stat_df.loc[ring_array[i], stat] = function(roi_notnan)                
+            if plot_roi:
+                ads.plot_roi(filtered_roi, extent=extent) 
+            if plot_stats:
+                plot_ejecta_stats()
+            if savepath:
+                stat_df.to_csv(savename.format(ind))
+        except ImportError as e: # Catches and prints out of bounds exceptions
+            print(e, ". Skipping....")
+        if timer: # Print a status update approx every dt seconds
+            if (timer() - Tnow > dt) or (count == len(cdf)):
+                update = 'Finished crater {} out of {}'.format(count, len(cdf))
+                elapsed = timer()-Tstart
+                update += '\n  Time elapsed: {}h:{}m:{}s'.format(int(elapsed//3600),
+                              int((elapsed%3600)//60), round((elapsed%3600)%60,2))
+                print(update)
+                Tnow = timer()
+            count +=1
+    
+    
 
-def compute_ejecta_stats(cdf, ads, ejrad=2, stats=None, plot=False, vmin=None, 
-                         vmax=None, strict=False):
+def ejecta_stats(cdf, ads, ejrad=2, stats=None, plot=False, vmin=None, 
+                 vmax=None, strict=False):
     """Compute the specified stats from acestats.py on a circular ejecta ROI
     extending ejsize crater radii from the crater center. Return results as a 
     CraterDataFrame the same length as cdf with stats appended as extra columns.    
@@ -71,13 +146,13 @@ def compute_ejecta_stats(cdf, ads, ejrad=2, stats=None, plot=False, vmin=None,
         rad = cdf.loc[i, cdf.radcol]
         roi, extent = ads.get_roi(lat, lon, rad, ejrad, get_extent=True)
         mask = crater_ring_mask(ads, roi, lat, lon, rad, rad*ejrad)
-        roi_masked = mask_where(roi, ~mask)
-        roi_notnan = roi_masked[~np.isnan(roi_masked)]
+        roi_masked = mask_where(roi, ~mask) # ensure it is ~mask to keep the ring interior
         filtered_roi = filter_roi(roi_masked, vmin, vmax, strict)
-        if plot:
-            ads.plot_roi(filtered_roi, extent=extent)
+        roi_notnan = filtered_roi[~np.isnan(filtered_roi)] # Collapse to 1D non-nan array
         for stat, function in acs._getFunctions(stats):
             ret_cdf.loc[i, stat] = function(roi_notnan)
+        if plot: # plot filtered and masked roi
+            ads.plot_roi(filtered_roi, extent=extent)
     return ret_cdf
   
    
@@ -133,17 +208,17 @@ def filter_roi(roi, vmin=None, vmax=None, strict=False):
     E.g. strict=False keeps vmin <= roi <= vmax
          strict=True keeps vmin < roi < vmax
     """
-    froi = roi
     if vmin is None:
         vmin = -np.inf
     if vmax is None:
         vmax = np.inf
-    if strict:
-        froi[froi >= vmax] = np.nan
-        froi[froi <= vmin] = np.nan
-    else:
-        froi[froi > vmax] = np.nan
-        froi[froi < vmin] = np.nan
+    nanmask = ~np.isnan(roi) # build nanmask with pre-existing nans, if any
+    nanmask[nanmask] &= x[nanmask] > vmax # Add values outside of (vmin,vmax) to nanmask
+    nanmask[nanmask] &= x[nanmask] < vmin
+    if strict: # if strict, also exclude values equal to vmin, vmax
+        nanmask[nanmask] &= x[nanmask] == vmax
+        nanmask[nanmask] &= x[nanmask] == vmin
+    roi[nanmask] = np.nan
     return roi
 
 def mask_where(ndarray, condition):
