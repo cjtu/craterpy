@@ -1,110 +1,41 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-This file contains the two classes central to ACERIM:
+This file contains the core ACERIM classes:
 
+	AceDataset - wraps gdal.Dataset
     CraterDataFrame - extends pandas.DataFrame
-    AceDataset - wraps gdal.Dataset
+    
 
-For usage, see sample/tutorial.rst.
+These two classes are used in tandem to use crater information from 
+CraterDataFrame to extract ROIs from AceDataset. For usage, see 
+sample/tutorial.rst.
 """
 import gdal
 import pandas as pd
 import numpy as np
 from acerim import acefunctions as af
 
-############################## CRATERDATAFRAME ################################
-class CraterDataFrame(pd.DataFrame):
-    """
-    Class for representing and manipulating crater data. Extends the pandas 
-    Dataframe, a "two-dimensional size-mutable, potentially heterogeneous
-    tabular data structure". Columns represent data fields and rows represent
-    individual craters. See help(pandas.DataFrame) for more info. 
-    
-    Parameters
-    ----------
-    data : str or pandas.DataFrame
-        Str will assume a filename ending in '.csv' with data to be read. It is 
-        recommended to pass a pandas.DataFrame object if complicated import 
-        options are required.
-    **kwargs : 
-        All optional arguments from pandas.DataFrame can be appended as keyword 
-        arguments.
-                
-        
-    Examples
-    --------
-    >>> cdict = {'Lat' : [10, -20., 80.0], 
-                 'Lon' : [14, -40.1, 317.2],
-                 'Diam' : [2, 12., 23.7]}
-    >>> cdf = CraterDataFrame(cdict)
-    >>> cdf['Diam'][0]
-    2.0
-    >>> index = ['Crater A', 'Crater B', 'Crater C']
-    >>> cdf2 = CraterDataFrame(cdict, index=index)
-    >>> cdf2.loc['Crater A']['Lat']
-    10.0
-    >>> cols = ['Lat', 'Lon', 'Diam']
-    >>> cdf3 = CraterDataFrame(cdict, index=index, columns=cols)
-    >>> cdf3.keys()[0]
-    'Lat'
-    """
-    def __init__(self, data=None, index_col=None, latcol=None, 
-    			 loncol=None, radcol=None, **kwargs):
-        """
-        Initialize a CraterDataFrame object. See help(CraterDataFrame)
-        for correct usage.
-        
-        """
-        if isinstance(data, str):
-            data = pd.read_csv(data, index_col=index_col) 
-        super(CraterDataFrame, self).__init__(data, **kwargs)
-        
-        # If no lat-, lon-, or rad- col provided, try to find them in columns
-        if not latcol:
-            findlat = [('latitude' == col.lower()) or ('lat' == col.lower()) 
-                        for col in self.columns]
-            if any(findlat):
-                latcol = self.columns[np.where(findlat)[0][0]]
-            else:
-                raise ImportError('Unable to infer latitude column from header. Specify latcol in constructor.')
-        if not loncol:
-            findlon = [('longitude' == col.lower()) or ('lon' == col.lower()) 
-                        for col in self.columns]
-            if any(findlon):
-                loncol = self.columns[np.where(findlon)[0][0]]
-            else:
-                raise ImportError('Unable to infer longitude column from header. Specify loncol in constructor.')
-        if not radcol:
-            findrad = [('radius' == col.lower()) or ('rad' == col.lower()) 
-                        for col in self.columns]
-            if any(findrad):
-                radcol = self.columns[np.where(findrad)[0][0]]
-            else:
-                finddiam = [('diameter' == col.lower()) or 
-                            ('diam' == col.lower()) for col in self.columns]    
-                if any(finddiam):
-                    diamcol = self.columns[np.where(finddiam)[0][0]]
-                    self['radius'] = (0.5)*self[diamcol]
-                    radcol = 'radius'
-                else:
-                    raise ImportError('Unable to infer radius or diameter column from header. Specify radcol in constructor.')
-        self.latcol = latcol
-        self.loncol = loncol
-        self.radcol = radcol
-
-
 ############################### ACEDATASET ####################################
 class AceDataset(object):
     """
-    Class for loading and manipulating image data. Wraps the gdal Dataset
-    object. See help(gdal.Dataset) for list of wrapped attributes and methods.
-    Input image must be in simple cylindrical projection (Plate Caree).
+    Wraps the GDAL Dataset class to load and manipulate image data.
+
+    Inputting a string will assume a data file path and open it using gdal.Open.
+    If projection information is available (e.g. in a geotiff), AceDataset will 
+    attempt to scrape it and populate its attributes automaticaly. Otherwise, 
+    the geographic info can be manually overridden by setting the desired 
+    instance variable attributes, or by supplying them as arguments during 
+    initialization. See help(gdal.Dataset) for list of available attributes and 
+    methods from GDAL.
+
+    Note: AceDataset does not reproject input data and assumes the input is in
+    simple cylindrical (Plate Caree) projection.
     
     Parameters
     ----------
     dataset : str or gdal.Dataset
-        Str will assume a filename compatible with gdal.Open(data). It is 
+        If str, assume filename compatible with gdal.Open(data). It is 
         recommended to pass an open simple cylindrical projected gdal.Dataset 
         object if other import or reprojection options are required. 
     nlat : int, float
@@ -130,7 +61,7 @@ class AceDataset(object):
     def __init__(self, dataset, nlat=None, slat=None, wlon=None, elon=None, 
                  radius=None, ppd=None, **kwargs):
         """
-        Initialize an AceDataset object. See help(AceDataset) for correct 
+        Initialize AceDataset object. See help(AceDataset) for correct 
         usage.
         """        
         if isinstance(dataset, str):
@@ -156,8 +87,8 @@ class AceDataset(object):
 
 
     def __getattr__(self, name):
-        """Point method and attribute calls to self.gdalDataset."""
-        if name not in self.__dict__: # If not implemented in AceDataset
+        """Redirects method and attribute calls to self.gdalDataset."""
+        if name not in self.__dict__: # Redirect if not in AceDataset
             try:
                 func = getattr(self.__dict__['gdalDataset'], name)
                 if callable(func): # Call method
@@ -170,7 +101,7 @@ class AceDataset(object):
                 raise AttributeError('Object has no attribute {}'.format(name))
 
     def __repr__(self):
-        """Return string representation of AceDataset"""
+        """Return string representation of AceDataset with all attribute info"""
         attrs = self.nlat, self.slat, self.wlon, self.elon, self.radius, self.ppd
         rep = 'AceDataset object with bounds '
         rep += '({}N, {}S), ({}E, {}E), radius {} km, and {} ppd resolution'.format(*attrs)
@@ -179,7 +110,8 @@ class AceDataset(object):
     
     def calc_mpp(self, lat=0):
         """
-        Return the ground resolution in meters/pixel at the given latitude. 
+        Return the ground resolution in meters/pixel at the given latitude, 
+        calculated with the greatcircdist function in acefunctions.py.
         
         Parameters
         ----------
@@ -204,7 +136,8 @@ class AceDataset(object):
     def get_info(self):
         """
         Return list of georeferencing and projection information from the input
-        data file if available. See help(gdal.Dataset) for compatible files.
+        data file if available. See help(gdal.Dataset) for compatible files
+        for the GetGeoTransform method.
         
         Returns
         -------
@@ -255,18 +188,23 @@ class AceDataset(object):
         >>> a.is_global()
         True
         """
-        return abs(self.elon - self.wlon) == 360
+        return abs(self.elon - self.wlon - 360) <= 0.0001
     
     
     def get_roi(self, lat, lon, rad, wsize=1, mask_crater=False, plot_roi=False, 
                get_extent=False):
         """
-        Return square ROI centered on (lat,lon) which extends wsize crater 
-        radii from the crater center. 
+        Return square 2D numpy array containing region of interest (ROI) 
+        centered on (lat,lon). The window size is given by 2*wsize*rad and 
+        extends wsize crater radii from the crater center. 
+
+        The crater at the center given by the ellipse at lat, lon, rad is
+        excluded from the ROI with the mask_crater flag. This replaces pixels 
+        in the crater rim with NaN.
         
-        If the the lon extent of a global dataset is crossed, use wrap_lon(). 
-        If the lon extent of a non global dataset of the lat extent is crossed, 
-        raise error.
+        If the requested ROI crosses the lon extent of a global dataset, use 
+        wrap_lon() to concatenate the parts of the roi on either side of the 
+        boundary. Otherwise, raise error if lat or lon out of bounds.
     
         Arguments:
         ----------
@@ -366,6 +304,100 @@ class AceDataset(object):
         Implements plot_roi function in functions.py. 
         """
         af.plot_roi(self, roi, *args, **kwargs)
+
+
+############################## CRATERDATAFRAME ################################
+class CraterDataFrame(pd.DataFrame):
+    """
+    Extends DataFrame from the Pandas module. DataFrames are "two-dimensional 
+    size-mutable, potentially heterogeneous tabular data structures". They are
+    a convenient way to contain and manipulate tabular data in Python.
+
+    The CraterDataFrame differs from the stock DataFrame in that it detects the
+    columns of latitude, longitude, and radius (or diameter),
+    storing a reference to each column in latcol, loncol and radcol,
+    respectively. This ensures that crater location data can be extracted from 
+    the correct data columns. It also allows the option to initialize using from 
+    a csv filename or by passing a pandas.DataFrame object with Lat, Lon, and 
+    size columns.
+
+    Sicne CraterDataFrame inherits from pandas.DataFrame, all DataFrame methods
+    are available for use in the CraterDataFrame. See help(pandas.DataFrame)
+    for methods and DataFrame usage. 
+    
+    Parameters
+    ----------
+    data : str or pandas.DataFrame
+        Str will assume a filename ending in '.csv' with data to be read. It is 
+        recommended to pass a pandas.DataFrame object if complicated import 
+        options are required.
+    **kwargs : 
+        All optional arguments from pandas.DataFrame can be appended as keyword 
+        arguments.    
+        
+    Examples
+    --------
+    >>> cdict = {'Lat' : [10, -20., 80.0], 
+                 'Lon' : [14, -40.1, 317.2],
+                 'Diam' : [2, 12., 23.7]}
+    >>> cdf = CraterDataFrame(cdict)
+    >>> cdf['Diam'][0]
+    2.0
+    >>> index = ['Crater A', 'Crater B', 'Crater C']
+    >>> cdf2 = CraterDataFrame(cdict, index=index)
+    >>> cdf2.loc['Crater A']['Lat']
+    10.0
+    >>> cols = ['Lat', 'Lon', 'Diam']
+    >>> cdf3 = CraterDataFrame(cdict, index=index, columns=cols)
+    >>> cdf3.keys()[0]
+    'Lat'
+    """
+    def __init__(self, data=None, index_col=None, latcol=None, 
+    			 loncol=None, radcol=None, **kwargs):
+        """
+        Initialize a CraterDataFrame object with data (a str filename, a 
+        pandas.DataFrame object, or any of the acceptable inputs to 
+        pandas.DataFrame). See help(CraterDataFrame) for correct usage.
+        """
+        if isinstance(data, str):
+            data = pd.read_csv(data, index_col=index_col) 
+        super(CraterDataFrame, self).__init__(data, **kwargs)
+        
+        # If no lat-, lon-, or rad- col provided, try to find them in columns
+        if not latcol:
+            findlat = [('latitude' == col.lower()) or ('lat' == col.lower()) 
+                        for col in self.columns]
+            if any(findlat):
+                latcol = self.columns[np.where(findlat)[0][0]]
+            else:
+                raise ImportError('Unable to infer latitude column from header.'+
+                                  ' Specify latcol in constructor.')
+        if not loncol:
+            findlon = [('longitude' == col.lower()) or ('lon' == col.lower()) 
+                        for col in self.columns]
+            if any(findlon):
+                loncol = self.columns[np.where(findlon)[0][0]]
+            else:
+                raise ImportError('Unable to infer longitude column from header.'+
+                				  ' Specify loncol in constructor.')
+        if not radcol:
+            findrad = [('radius' == col.lower()) or ('rad' == col.lower()) 
+                        for col in self.columns]
+            if any(findrad):
+                radcol = self.columns[np.where(findrad)[0][0]]
+            else:
+                finddiam = [('diameter' == col.lower()) or 
+                            ('diam' == col.lower()) for col in self.columns]    
+                if any(finddiam):
+                    diamcol = self.columns[np.where(finddiam)[0][0]]
+                    self['radius'] = (0.5)*self[diamcol]
+                    radcol = 'radius'
+                else:
+                    raise ImportError('Unable to infer radius or diameter column'+
+                     				  ' from header. Specify radcol in constructor.')
+        self.latcol = latcol
+        self.loncol = loncol
+        self.radcol = radcol
 
 
 if __name__ == "__main__":
