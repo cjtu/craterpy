@@ -1,8 +1,28 @@
 # -*- coding: utf-8 -*-
 """
-Created on Tue May 23 13:59:59 2017
+This file contains statistical functions that can be used to quickly
+generate statistics on ROIs (e.g. by using the ejecta_stats or 
+ejecta_profile_stats functions in acefunctions.py). 
 
-@author: Christian
+Additional desired statistical functions can be added to this file by 
+following the naming convention used here:
+
+    def statname(roi_array):
+        '''What this stat function does'''
+        return statistics(roi_array)
+
+Each function should take a single numpy array as an arugument and return a 
+single value.
+
+The private functions are:
+
+    _listStats(): return names of all non-protected functions in this file 
+
+    _getFunctions(stats): return array of pairs of function names and functions as 
+                  specified by stats 
+
+Non-statistical functions in this file must be private (begin with "_") to avoid
+being called with other stat functions.
 """
 import numpy as np
 import scipy as sp
@@ -39,17 +59,11 @@ def q3(roi):
 
 
 
-
-
-# Protected Functions
+# Private Functions (must begin with "_")
 def _listStats():
     """
-    Get a list of the names of all non protcted functions from acestats. 
-    Protected functions start with '_'.
-    
-    Returns
-    -------
-    List of string of names of functions in this module.
+    Return list of the names of all non-private functions from acestats. 
+    Private functions are excluded by their leading '_'.
     """
     from acerim import acestats
     all_func = np.array(inspect.getmembers(acestats, inspect.isfunction))
@@ -58,14 +72,14 @@ def _listStats():
 
 def _getFunctions(stats):
     """
-    Get functions from this module according to stats. If stats_list is
-    undefined, gets all functions from this module, excluding protected 
+    Return functions from this module according to stats. If stats is
+    undefined, return all functions from this module, excluding private 
     functions.
     
     Returns
     -------
-    Array containing 2 element lists of function names and corresponding functions. 
-        E.g. array( ['function name', <function>], ['func2 name'], <func2>)    
+    List of lists containing 2 element pairs of function names and functions. 
+        E.g. array( ['func name 1', <func1>], ['func name 2', <func2>])    
     """
     from acerim import acestats
     if isinstance(stats, str):

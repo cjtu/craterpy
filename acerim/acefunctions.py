@@ -16,7 +16,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 
-
 ######################### ACERIM FUNCTIONS ####################################
 def ejecta_profile_stats(cdf, ads, ejrad=2, rspacing=0.25, stats=None, 
                          plot_roi=False, vmin=None, vmax=None, strict=False, 
@@ -292,6 +291,7 @@ def ring_mask(roi, rmin, rmax, center=(None,None)):
 
 def crater_floor_mask(aceds, roi, lat, lon, rad):
     """
+    Mask the floor of the crater lat, lon, with radius rad.
     """
     pixwidth = m2pix(rad, aceds.calc_mpp(lat))
     pixheight = m2pix(rad, aceds.calc_mpp())
@@ -300,6 +300,8 @@ def crater_floor_mask(aceds, roi, lat, lon, rad):
 
 def crater_ring_mask(aceds, roi, lat, lon, rmin, rmax):
     """
+    Mask a ring around a crater with inner radius rmin and outer radius rmax
+    crater radii.
     """ 
     rmax_pixheight = m2pix(rmax, aceds.calc_mpp())
     rmax_pixwidth = m2pix(rmax, aceds.calc_mpp(lat))
