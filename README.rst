@@ -44,7 +44,7 @@ Installation
 Quick Installation with Anaconda
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The recommended way to install ACERIM is using the `anaconda <https://www.continuum.io/Anaconda-Overview>`_ platform which can be downloaded from `Continuum Analytics <https://www.continuum.io/downloads>`_.  Anaconda is preferred because it
+The recommended way to install ACERIM is using the `anaconda <https://www.continuum.io/Anaconda-Overview>`_ platform which can be downloaded from `Continuum Analytics <https://www.continuum.io/downloads>`_.  Anaconda is useful because it:
 
 1) automatically solves package dependency conflicts, and 
 2) conveniently manages your virtual environments, allowing you to separate packages with finicky dependencies from your main python installation. 
@@ -55,13 +55,13 @@ With *anaconda and gdal installed*, open a terminal/command line window and crea
 
   conda create --name env_name python=3.3 anaconda gdal
 
-Replace env_name with your desired environment name. Listing anaconda will install all anaconda packages into the environment (including the required numpy, scipy, pandas, etc). This aooears to be the simplest way to avoid dependency issues in gdal, but does install unnecessary packages into the environment. For a lightweight install, see `Manual Installation`_. Note that the python version in your environment must be between 2.7 to 3.3 for gdal to function. 
+Replace env_name with your desired environment name. Listing anaconda will install all anaconda packages into the environment (including the required numpy, scipy, pandas, etc). This aooears to be the simplest way to avoid dependency issues in gdal, but does install unnecessary packages into the environment. For a lightweight install, see Manual Installation. Note that the python version in your environment must be between 2.7 to 3.3 for gdal to function. 
 
 Activate your new environment::
 
   activate env_name
 
-OS X, Unix or powershell users may need to type **source**::
+OS X, Unix, or powershell users may need to type **source**::
 
   source activate env_name
 
@@ -106,13 +106,13 @@ Then proceed with installing ACERIM with pip::
 Manual Installation without Anaconda
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-If you are familiar with installing packages without Anaconda, you can install ACERIM and its dependencies using pip. Or head to this link `acerim <https://pypi.python.org/simple/acerim>`_ to download the latest distribution from PyPI. You can then unzip it in your desired directory and from the root project directory run:
+If you are familiar with installing packages without Anaconda, you can install ACERIM and its dependencies using pip. Or head to this `link <https://pypi.python.org/simple/acerim>`_ to download the latest distribution from PyPI. You can then unzip the package in your desired directory and from the root project directory run:
 
 ::
 
   python setup.py install
 
-But you knew that already... 
+But you probably knew that already... 
 
 
 Organization
