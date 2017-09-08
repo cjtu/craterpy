@@ -6,21 +6,21 @@ Overview
 
 Welcome to ACERIM!
 
-Please note: this package is still in pre-alpha and is actively under development. You can direct any questions to Christian at cj.taiudovicic@gmail.com. 
+Please note: this package is actively under development. You can direct any questions to Christian at cj.taiudovicic@gmail.com. 
 
 The Automated Crater Ejecta Region of Interest Mapper (ACERIM) is a python package for planetary scientists that simplifies crater data analysis. If you have image data and a list of crater locations, ACERIM will help you extract data from those locations and analyze that data with statistics of your choosing.
 
-Use ACERIM if you want to do one or more of the following::
+Use ACERIM if you want to do one or more of the following:
 
-  - import crater databases and image datasets into easily queried python objects;
-  - extract image data from regions around craters given their latitude, longitude, radius, and the desired ROI window size;
-  - mask your data arays to isolate pixels within the crater, on the ejecta blanket, or within a user-provided shapefile;
-  - compute statistics on the extracted crater/ejecta data;
-  - save and plot your ROIs and statistics.
+  - import crater databases and image datasets into easily queried python DataFrames
+  - extract image data from regions around craters or other features given lat, lon and radius
+  - mask your data arays (e.g. to remove pixels within a crater floor or in a ring on the ejecta blanket)
+  - compute statistics on the extracted crater and/or ejecta image data
+  - save and plot images and statistics.
 
 New users can head to acerim/sample/tutorial.py for a step-by-step walkthrough (with sample data) of how to use ACERIM in a research workflow.
 
-Note: This package was written with the Moon in mind, but is applicable to any cratered planetary body. However, ACERIM currently only supports image data in the simple cylindrical projection. For assistance reprojecting images in python, see `GDAL <http://www.gdal.org/>`_.
+Note: This package was written with the Moon in mind, but is applicable to any cratered planetary body. However, ACERIM currently only supports image data in the simple cylindrical projection. For assistance reprojecting images to simple cylindrical format in python, see `GDAL <http://www.gdal.org/>`_.
 
 
 Dependencies
@@ -41,8 +41,8 @@ Installation
 **PLEASE NOTE**: Acerim depends on the GDAL (Geospatial Data Abstraction Library) python package. Since GDAL in turn depends on C++, it is highly recommended that you follow the installation instructions for gdal on PyPI `here <https://pypi.python.org/pypi/GDAL>`_. Once GDAL is successfully isntalled, proceed with installing ACERIM.
 
 
-Using Anaconda
-^^^^^^^^^^^^^^
+Quick Installation with Anaconda
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The recommended way to install ACERIM is using the `anaconda <https://www.continuum.io/Anaconda-Overview>`_ platform which can be downloaded from `Continuum Analytics <https://www.continuum.io/downloads>`_.  Anaconda is preferred because it
 
@@ -53,32 +53,66 @@ The following section will describe how to create and activate a conda virtual e
 
 With *anaconda and gdal installed*, open a terminal/command line window and create a new conda environment using:: 
 
-  conda create --name env_name python=3.3 gdal numpy scipy pandas matplotlib
+  conda create --name env_name python=3.3 anaconda gdal
 
-Replace env_name with your desired environment name. Listing gdal and the other dependencies outright forces conda to resolve dependency conflicts while building the environment and can avoid dependency headaches down the line. Note that the python version in your environment must be between 2.7 to 3.3 for gdal to function. You can activate the environment with::
+Replace env_name with your desired environment name. Listing anaconda will install all anaconda packages into the environment (including the required numpy, scipy, pandas, etc). This aooears to be the simplest way to avoid dependency issues in gdal, but does install unnecessary packages into the environment. For a lightweight install, see `Manual Installation`_. Note that the python version in your environment must be between 2.7 to 3.3 for gdal to function. 
+
+Activate your new environment::
+
+  activate env_name
+
+OS X, Unix or powershell users may need to type **source**::
 
   source activate env_name
 
-With the environment active, install ACERIM from the Python Package Index (PyPI) using the pip command::
+With the environment active, install ACERIM from the Python Package Index (PyPI) using pip (python install package)::
 
   pip install acerim
 
-If the installer completes without any errors, a simple import statement can verify that ACERIM was successfully installed::
+If the installer completes without any errors, you can test that ACERIM and its dependencies are successfully install. If the following command runs error-free, then ACERIM was successfully installed!
+
+::
 
   python -c "import acerim"
 
 Now that you have ACERIM installed, head over to /acerim/sample/tutorial.py to get started with your crater analytics!
 
+Note: Remember to activate your virtual environment before using ACERIM.
 
-Manual installation
-^^^^^^^^^^^^^^^^^^^
-First ensure that GDAL and the other ACERIM Dependencies_ are installed. You will also require setuptools to install the package
 
-Download the most recent distribution of `acerim <https://pypi.python.org/simple/acerim>`_ from PyPI and unzip it in the desired directory. From the root project directory run:
+Manual Installation with Anaconda
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+To install gdal and the other acerim Dependencies_ manually, start by creating a blank environment with conda::
+
+  conda create --name your_env python=3.3
+
+Activate the environment::
+
+  activate your_env
+
+Or::
+  
+  source activate your_env
+
+Then install GDAL and all of the Dependencies_ using conda.
+
+  conda install gdal numpy scipy pandas matplotlib
+
+Then proceed with installing ACERIM with pip::
+
+  pip install acerim
+
+
+Manual Installation without Anaconda
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If you are familiar with installing packages without Anaconda, you can install ACERIM and its dependencies using pip. Or head to this link `acerim <https://pypi.python.org/simple/acerim>`_ to download the latest distribution from PyPI. You can then unzip it in your desired directory and from the root project directory run:
 
 ::
 
   python setup.py install
+
+But you knew that already... 
 
 
 Organization
@@ -112,11 +146,11 @@ The core of this project is located in /acerim. To get started using ACERIM, see
 Testing ACERIM
 --------------
 
-A suite of unittests are located in the /acerim/tests. They use the sample data included in /acerim/sample to test all ACERIM classes and functions. To test if ACERIM is working as it should on your machine, install the pytest module (using *conda install pytest* or *pip install pytest*) and follow the following steps::
+A suite of unittests are located in the /acerim/tests. They use the sample data included in /acerim/sample to test all ACERIM classes and functions. You can verify that ACERIM is working correctly on your machine by installing the pytest module (using *conda install pytest* or *pip install pytest*) and following these steps::
 
   1) open a shell/cmd window
   2) navigate to the parent ACERIM directory (e.g.'/Users/cjtu/Desktop/acerim')
-  3) run the following command:
+  3) run the command:
 
 ::
 
