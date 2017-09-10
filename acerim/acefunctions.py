@@ -385,6 +385,28 @@ def greatcircdist(lat1, lon1, lat2, lon2, radius):
 #import scipy.optimize as opt
 #import helper_functions as hf
 
+def histogram(roi, bins, hmin=None, hmax=None, skew=False, *args, **kwargs):
+    """
+    Return histogram, bins of histogram computed on ROI. See np.histogram for 
+    full usage and optional parameters. Set verbose=True to print a summary of
+    the statistics.
+    """
+    roi_notnan = roi[~np.isnan(filtered_roi)]
+    roi_valid = roi_notnan[hmin <= roi_notnan <= hmax]
+    hist, bins = np.histogram(roi, bins=bins, hmin=hmin, hmax=hmax, *args, **kwargs)
+    ret = [hist, bins]
+    output = 'Histogram with {} pixels total, \
+              {} pixels in [hmin, hmax] inclusive, \
+              {} nan pixels excluded, \
+              {} bins'.format(len(roi), len(roi_valid), len(roi_notnan), len(bins))
+    if skew:
+        skewness = scipy.stats.skew(hist)
+        ret.append(skewness)
+        output += ', {} skewness'.format(skewness)
+    if verbose:
+        print(output)
+    return ret
+
 def fit_exp(x, y, PLOT_EXP=False):
     """
     Return an exponential that has been fit to data using scipy.curvefit(). 
