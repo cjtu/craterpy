@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Fri May 26 07:33:17 2017
-
-@author: Christian
+Suite of unittests for functions in acefunctions.py.
 """
 import os
 import unittest
