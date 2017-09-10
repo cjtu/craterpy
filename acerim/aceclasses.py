@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 This file contains the core ACERIM classes:
@@ -347,9 +346,7 @@ class CraterDataFrame(pd.DataFrame):
     >>> cdf2 = CraterDataFrame(cdict, index=index)
     >>> cdf2.loc['Crater A']['Lat']
     10.0
-    >>> cols = ['Lat', 'Lon', 'Diam']
-    >>> cdf3 = CraterDataFrame(cdict, index=index, columns=cols)
-    >>> cdf3.keys()[0]
+    >>> cdf2.latcol
     'Lat'
     """
     def __init__(self, data=None, index_col=None, latcol=None, 
@@ -364,40 +361,30 @@ class CraterDataFrame(pd.DataFrame):
         super(CraterDataFrame, self).__init__(data, **kwargs)
         
         # If no lat-, lon-, or rad- col provided, try to find them in columns
-        if not latcol:
-            findlat = [('latitude' == col.lower()) or ('lat' == col.lower()) 
-                        for col in self.columns]
-            if any(findlat):
-                latcol = self.columns[np.where(findlat)[0][0]]
-            else:
-                raise ImportError('Unable to infer latitude column from header.'+
-                                  ' Specify latcol in constructor.')
-        if not loncol:
-            findlon = [('longitude' == col.lower()) or ('lon' == col.lower()) 
-                        for col in self.columns]
-            if any(findlon):
-                loncol = self.columns[np.where(findlon)[0][0]]
-            else:
-                raise ImportError('Unable to infer longitude column from header.'+
-                				  ' Specify loncol in constructor.')
-        if not radcol:
-            findrad = [('radius' == col.lower()) or ('rad' == col.lower()) 
-                        for col in self.columns]
-            if any(findrad):
-                radcol = self.columns[np.where(findrad)[0][0]]
-            else:
-                finddiam = [('diameter' == col.lower()) or 
-                            ('diam' == col.lower()) for col in self.columns]    
-                if any(finddiam):
-                    diamcol = self.columns[np.where(finddiam)[0][0]]
-                    self['radius'] = (0.5)*self[diamcol]
-                    radcol = 'radius'
-                else:
-                    raise ImportError('Unable to infer radius or diameter column'+
-                     				  ' from header. Specify radcol in constructor.')
-        self.latcol = latcol
-        self.loncol = loncol
-        self.radcol = radcol
+        colnames = ['latitude', 'longitude', 'radius']
+        colabbrevs = ['lat', 'lon', 'rad']
+        attrs = [None, None, None]
+
+        for i in range(len(colnames)):
+            if not attrs[i]: # If not defined in constructor
+                findcol = [(colnames[i] == col.strip().lower()) or 
+                            (colabbrevs[i] == col.strip().lower()) for col in self.columns]
+                if any(findcol):
+                    attrs[i] = self.columns[np.where(findcol)[0][0]]
+                elif colnames[i] == 'radius':
+                    finddiam = [('diameter' == col.strip().lower()) or 
+                                ('diam' == col.strip().lower()) for col in self.columns]    
+                    if any(finddiam):
+                        diamcol = self.columns[np.where(finddiam)[0][0]]
+                        self['radius'] = (0.5)*self[diamcol]
+                        attrs[i] = 'radius'                    
+                if not attrs[i]:
+                    raise ImportError('Unable to infer {} column from header. '.format(colnames[i])+
+                                      'Specify {}col in constructor.'.format(colabbrevs[i]))
+
+        self.latcol = attrs[0]
+        self.loncol = attrs[1]
+        self.radcol = attrs[2]
 
 
 if __name__ == "__main__":
