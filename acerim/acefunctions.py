@@ -407,6 +407,9 @@ def histogram(roi, bins, hmin=None, hmax=None, skew=False, *args, **kwargs):
         print(output)
     return ret
 
+
+# Ejecta profile stats
+
 def fit_exp(x, y, PLOT_EXP=False):
     """
     Return an exponential that has been fit to data using scipy.curvefit(). 
