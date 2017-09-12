@@ -14,7 +14,7 @@ from __future__ import division, print_function, absolute_import
 import gdal
 import numpy as np
 import pandas as pd
-from . import acefunctions as af
+from acerim import acefunctions as af
 
 ############################### ACEDATASET ####################################
 class AceDataset(object):

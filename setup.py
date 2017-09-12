@@ -60,7 +60,8 @@ COMMAND_OPTIONS = { # optional and override docs/conf.py settings
         'build_docs': {
             'project': ('setup.py', NAME),
             'version': ('setup.py', VERSION),
-            'release': ('setup.py', VERSION)}}
+            'release': ('setup.py', VERSION),
+            'build_dir': ('setup.py', './docs/_build')}}
 
 # Run setup() function with metadata above
 setup(
