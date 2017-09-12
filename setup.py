@@ -61,6 +61,8 @@ COMMAND_OPTIONS = { # optional and override docs/conf.py settings
             'project': ('setup.py', NAME),
             'version': ('setup.py', VERSION),
             'release': ('setup.py', VERSION),
+            'source_dir': ('setup.py', './acerim'),
+            'config_dir': ('setup.py', './docs'),
             'build_dir': ('setup.py', './docs/_build')}}
 
 # Run setup() function with metadata above

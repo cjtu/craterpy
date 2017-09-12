@@ -206,7 +206,7 @@ class AceDataset(object):
         wrap_lon() to concatenate the parts of the roi on either side of the 
         boundary. Otherwise, raise error if lat or lon out of bounds.
     
-        Arguments:
+        Parameters
         ----------
         lat : int, float
             Crater latitude, centre latitude of ROI.
@@ -226,7 +226,7 @@ class AceDataset(object):
         get_extent : bool
             Reuturns the ROI window extent as (minlon, maxlon, minlat, maxlat)
         
-        Returns:
+        Returns
         --------
         roi: 2Darray
             Numpy 2D array of data centered on the specified crater and 
