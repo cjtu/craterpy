@@ -1,15 +1,22 @@
-""" Keeps track of the current acerim version"""
-# Format expected by setup.py and doc/source/conf.py: string of form "X.Y.Z"
+""" 
+Keeps track of the current acerim version. Versions are specified as a string
+of the form "X.Y.Z" (major.minor.maintenance). Versions that are still in 
+development append 'dev0' to the end (e.g., "X.Y.Zdev0").
+"""
 _version_major = 0
 _version_minor = 0
-_version_maintenance = 9  # use '' for first major/minor release, int for 1+
-_version_extra = '' # NEVER release with dev0, use '' for full release
+_version_maintenance = 10  # use '' for each new major/minor release; int for 1+
+_version_extra = 'dev0' # NEVER release with dev, use '' for full release
 
-# Construct full version string to pass to setup.py
-_ver = [_version_major, _version_minor]
-if _version_maintenance:
-    _ver.append(_version_maintenance)
-if _version_extra:
-    _ver.append(_version_extra)
 
-__version__ = '.'.join(map(str, _ver))
+def concatenate_version(major, minor, maintenance, extra):
+	""" Construct full version string to pass to setup.py """
+	_ver = [major, minor]
+	if maintenance:
+	    _ver.append(maintenance)
+	if extra:
+	    _ver.append(extra)
+	return '.'.join(map(str, _ver))
+
+__version__ = concatenate_version(_version_major, _version_minor, 
+									_version_maintenance, _version_extra)
