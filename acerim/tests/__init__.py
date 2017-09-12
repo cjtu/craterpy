@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
 """
-Created on Mon May 22 09:42:31 2017
-
-@author: Christian
+Indicate that /tests is a package and makes it discoverable by pytest, unittest.
 """

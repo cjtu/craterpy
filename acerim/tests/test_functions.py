@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Suite of unittests for functions in acefunctions.py.
+Suite of unittests for functions found in /acerim/acefunctions.py.
 """
 from __future__ import division, print_function, absolute_import
 import os
