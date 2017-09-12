@@ -11,10 +11,11 @@ sorted into different sections:
 
 For usage, see sample/tutorial.rst.
 """
-from acerim import acestats as acs
+from __future__ import division, print_function, absolute_import
 import numpy as np
-import matplotlib.pyplot as plt
 import pandas as pd
+import matplotlib.pyplot as plt
+from . import acestats as acs
 
 ######################### ACERIM FUNCTIONS ####################################
 def ejecta_profile_stats(cdf, ads, ejrad=2, rspacing=0.25, stats=None, 

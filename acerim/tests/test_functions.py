@@ -2,6 +2,7 @@
 """
 Suite of unittests for functions in acefunctions.py.
 """
+from __future__ import division, print_function, absolute_import
 import os
 import unittest
 import numpy as np

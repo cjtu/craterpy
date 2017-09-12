@@ -10,10 +10,11 @@ These two classes are used in tandem to use crater information from
 CraterDataFrame to extract ROIs from AceDataset. For usage, see 
 sample/tutorial.rst.
 """
+from __future__ import division, print_function, absolute_import
 import gdal
-import pandas as pd
 import numpy as np
-from acerim import acefunctions as af
+import pandas as pd
+from . import acefunctions as af
 
 ############################### ACEDATASET ####################################
 class AceDataset(object):

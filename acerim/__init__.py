@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Initialize acerim package"""
-
-from __future__ import absolute_import, division, print_function
+"""Initialize acerim package and import CraterDataFrame and AceDataset into 
+acerim namespace.
+"""
+from .aceclasses import CraterDataFrame, AceDataset

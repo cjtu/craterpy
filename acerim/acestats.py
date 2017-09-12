@@ -24,9 +24,10 @@ The private functions are:
 Non-statistical functions in this file must be private (begin with "_") to avoid
 being called with other stat functions.
 """
+from __future__ import division, print_function, absolute_import
+import inspect
 import numpy as np
 import scipy as sp
-import inspect
 
 # Statistical Functions
 def maximum(roi):

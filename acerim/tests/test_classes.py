@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 """
-Suite of unittests for ACERIM classes in aceclasses.py.
+Suite of unittests for classes in aceclasses.py.
 """
-
+from __future__ import division, print_function, absolute_import
 import os
-import pandas as pd
 import unittest
 import numpy as np
+import pandas as pd
 import acerim
 from acerim import aceclasses as ac
 
