@@ -1,0 +1,7 @@
+python <= 3.3
+numpy
+scipy
+matplotlib
+pandas
+gdal
+acerim
