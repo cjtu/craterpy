@@ -6,3 +6,6 @@ dependencies:
 - libgdal
 - gdal
 - sphinxcontrib-napoleon
+
+channels:
+   - win-64
