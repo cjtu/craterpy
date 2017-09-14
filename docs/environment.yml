@@ -5,3 +5,4 @@ dependencies:
 - matplotlib
 - libgdal
 - gdal
+- sphinxcontrib-napoleon
