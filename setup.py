@@ -51,7 +51,7 @@ PLATFORMS = 'OS Independent'
 PACKAGES = find_packages(exclude=['tests']) 
 PACKAGE_DATA = {'': ['*.csv', '*.tif']}
 INSTALL_REQUIRES = ['numpy', 'scipy', 'matplotlib', 'gdal', 'pandas']
-PYTHON_REQUIRES = '>=2.7, <=3.3'
+#PYTHON_REQUIRES = '>=2.7, <=3.3'
 EXTRAS_REQUIRE = None # {'test': ['pytest'], 'cite': ['duecredit'],}
 
 # Setup Sphinx integration to automatically build documentation 
@@ -83,7 +83,7 @@ setup(
     package_data=PACKAGE_DATA,
     install_requires=INSTALL_REQUIRES,
     extras_require=EXTRAS_REQUIRE,
-    python_requires=PYTHON_REQUIRES,
+    #python_requires=PYTHON_REQUIRES,
     cmdclass=CMDCLASS, 
     command_options=COMMAND_OPTIONS,
 )
