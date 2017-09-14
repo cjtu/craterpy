@@ -1,7 +1,7 @@
-python <= 3.3
 numpy
 scipy
 matplotlib
 pandas
+libgdal
 gdal
 acerim
