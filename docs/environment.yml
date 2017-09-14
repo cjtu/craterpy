@@ -8,4 +8,4 @@ dependencies:
 - sphinxcontrib-napoleon
 
 channels:
-   - win-64
+   - https://conda.anaconda.org/conda-forge/win-64
