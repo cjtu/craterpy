@@ -4,9 +4,9 @@ of the form "X.Y.Z" (major.minor.maintenance). Versions that are still in
 development append 'dev0' to the end (e.g., "X.Y.Zdev0").
 """
 _version_major = 0
-_version_minor = 0
-_version_maintenance = 10  # use '' for each new major/minor release; int for 1+
-_version_extra = 'dev0' # NEVER release with dev, use '' for full release
+_version_minor = 1
+_version_maintenance = ''  # use '' for each new major/minor release; int for 1+
+_version_extra = '' # NEVER release with dev, use '' for full release
 
 
 def concatenate_version(major, minor, maintenance, extra):

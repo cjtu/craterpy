@@ -56,13 +56,13 @@ EXTRAS_REQUIRE = None # {'test': ['pytest'], 'cite': ['duecredit'],}
 
 # Setup Sphinx integration to automatically build documentation 
 CMDCLASS = {'build_docs': BuildDoc}
-COMMAND_OPTIONS = { # optional and override docs/conf.py settings
+"""COMMAND_OPTIONS = { # optional and override docs/conf.py settings
         'build_docs': {
             'project': ('setup.py', NAME),
             'version': ('setup.py', VERSION),
             'release': ('setup.py', VERSION),
             'source_dir': ('setup.py', './docs/source'),
-            'build_dir': ('setup.py', './docs/build')}}
+            'build_dir': ('setup.py', './docs/build')}}"""
 
 # Run setup() function with metadata above
 setup(
@@ -85,5 +85,5 @@ setup(
     extras_require=EXTRAS_REQUIRE,
     #python_requires=PYTHON_REQUIRES,
     cmdclass=CMDCLASS, 
-    command_options=COMMAND_OPTIONS,
+    #command_options=COMMAND_OPTIONS,
 )

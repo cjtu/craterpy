@@ -6,12 +6,17 @@
 Welcome to ACERIM's documentation!
 ==================================
 
-Contents:
+.. include:: ../../README.rst
+
+
+API Documentation
+-----------------
 
 .. toctree::
    :maxdepth: 2
 
-
+	acerim
+	acerim.tests
 
 Indices and tables
 ==================
