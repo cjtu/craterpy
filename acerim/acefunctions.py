@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 """
 This file contains several functions used in the ACERIM workflow. They are 
-sorted into different sections:
+sorted into the following sections:
 
-    ACERIM FUNCTIONS - top-level functions
-    PLOTTING - plot figures
-    ROI MANIPULATION - manipulate 2D arrays of image data
-    GEOSPATIAL CALCULATIONS - manipulate geospatial data
-    STATISTICS - compute statistics and fitting functions
+- ACERIM FUNCTIONS - top-level functions
+- PLOTTING - plot figures
+- ROI MANIPULATION - manipulate 2D arrays of image data
+- GEOSPATIAL CALCULATIONS - manipulate geospatial data
+- STATISTICS - compute statistics and fitting functions
 
 For usage, see sample/tutorial.rst.
 """

@@ -1,14 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-This file contains the core ACERIM classes:
-
-	AceDataset - wraps gdal.Dataset
-    CraterDataFrame - extends pandas.DataFrame
-    
-
-These two classes are used in tandem to use crater information from 
-CraterDataFrame to extract ROIs from AceDataset. For usage, see 
-sample/tutorial.rst.
+This file contains the core ACERIM classes, the AceDataset and CraterDataFrame.
+For usage, see sample/tutorial.rst.
 """
 from __future__ import division, print_function, absolute_import
 import gdal
