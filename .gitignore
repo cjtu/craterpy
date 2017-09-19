@@ -11,3 +11,4 @@ build/
 dist/
 tutorial.rst
 *.sublime*
+*.ipynb_checkpoints*
