@@ -4,9 +4,9 @@ This file contains the core ACERIM classes, the AceDataset and CraterDataFrame.
 For usage, see sample/tutorial.rst.
 """
 from __future__ import division, print_function, absolute_import
-import gdal
 import numpy as np
 import pandas as pd
+import gdal
 from acerim import acefunctions as af
 
 ############################### ACEDATASET ####################################

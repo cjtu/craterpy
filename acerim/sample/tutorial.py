@@ -24,8 +24,8 @@ the AceDataset and the CraterDataFrame. Here we shorten these to Ads and Cdf,
 respectively, to avoid typing acerim.aceclasses.AceDataset each time we want to
 load an image.
 """
-from acerim import AceDataset as Ads
-from acerim import CraterDataFrame as Cdf
+from acerim.aceclasses import AceDataset as Ads
+from acerim.aceclasses import CraterDataFrame as Cdf
 
 
 """ Path to your data """

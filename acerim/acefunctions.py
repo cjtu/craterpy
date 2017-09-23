@@ -194,7 +194,7 @@ def plot_roi(ads, roi, figsize=((8,8)), extent=None, title='ROI', vmin=None,
         help(matplotlib.pyplot.imshow) for more info.
     """
     plt.figure("ROI", figsize=figsize)
-    plt.imshow(roi, extent=extent, cmap=cmap, vmin=vmin, vmax=vmax)
+    plt.imshow(roi, extent=extent, cmap=cmap, vmin=vmin, vmax=vmax) # ADD kwargs
     plt.title(title)
     plt.xlabel('Longitude (degrees)')
     plt.ylabel('Latitude (degrees)')

@@ -58,6 +58,10 @@ def q3(roi):
     """Return the third quartile (75/25) value of roi"""
     return np.percentile(roi, 75)
 
+# num pix
+# area
+# std
+
 
 
 # Private Functions (must begin with "_")
