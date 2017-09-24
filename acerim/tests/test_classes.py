@@ -66,7 +66,7 @@ class TestAceDataset(unittest.TestCase):
     def test_get_info(self):
         """Test .get_info method for reading geotiff info"""
         ads = self.ads
-        actual = ads.get_info()
+        actual = ads._get_info()
         expected = (90.0, -90.0, -180.0, 180.0, 6378.137, 4.0)
         self.assertEqual(actual, expected)
 
