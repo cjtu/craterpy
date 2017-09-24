@@ -5,7 +5,7 @@ language: python
 
 env:
   global:
-    - CONDA_DEPS="anaconda flake8 pytest numpy scipy matplotlib pandas gdal"
+    - CONDA_DEPS="anaconda flake8 pytest numpy scipy matplotlib pandas gdal libgdal=2.0.0"
 
 python:
   - "3.5"
