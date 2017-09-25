@@ -18,7 +18,7 @@ Use ACERIM if you want to do one or more of the following:
   - compute statistics on the extracted crater and/or ejecta image data
   - save and plot images and statistics.
 
-New users can head to acerim/sample/tutorial.py for a step-by-step walkthrough (with sample data) of how to use ACERIM in a research workflow.
+New users can head to the `Tutorial Jupyter notebook <https://github.com/cjtu/acerim/blob/master/acerim/sample/Tutorial.ipynb>`_ for a step-by-step walkthrough (with sample data) of how to use ACERIM in a research workflow.
 
 Note: This package was written with the Moon in mind, but is applicable to any cratered planetary body. However, ACERIM currently only supports image data in the simple cylindrical projection. For assistance reprojecting images to simple cylindrical format in python, see `GDAL <http://www.gdal.org/>`_.
 
@@ -26,7 +26,7 @@ Note: This package was written with the Moon in mind, but is applicable to any c
 Dependencies
 ------------
 
-ACERIM is compatible with python versions 2.7-3.3. Additionally, the following packages are required for ACERIM to run::
+ACERIM is compatible with python versions 2.7 and 3.5. Additionally, the following packages are required for ACERIM to run::
 
   - gdal
   - numpy
@@ -75,7 +75,7 @@ If the installer completes without any errors, you can test that ACERIM and its 
 
   python -c "import acerim"
 
-Now that you have ACERIM installed, head over to /acerim/sample/tutorial.py to get started with your crater analytics!
+Now that you have ACERIM installed, head over to the `Tutorial <https://github.com/cjtu/acerim/blob/master/acerim/sample/Tutorial.ipynb>`_ to get started!
 
 Note: Remember to activate your virtual environment before using ACERIM.
 
@@ -112,7 +112,6 @@ If you are familiar with installing packages without Anaconda, you can install A
 
   python setup.py install
 
-But you probably knew that already... 
 
 
 Organization
