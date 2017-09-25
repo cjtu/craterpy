@@ -2,18 +2,23 @@ language: python
 
 env:
   global:
-    - CONDA_DEPS="flake8 sphinx numpy scipy matplotlib pandas gdal libgdal=2.0.0"
+    - CONDA_DEPS="anaconda flake8 sphinx numpy scipy matplotlib pandas gdal libgdal=2.0.0"
 
 python:
   - "2.7"
+  - "3.4"
   - "3.5"
+  - "3.6"
 
 os:
   - linux
-  - osx
 
 before_install:
-  - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
+  - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
+      wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh;
+    else
+      wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
+    fi
   - bash miniconda.sh -b -p $HOME/miniconda
   - export PATH=$HOME/miniconda/bin:$PATH
   - hash -r
@@ -29,4 +34,4 @@ install:
 
 script:
   - py.test
-  - flake8
+  - flake8 --exclude .git, __pycache__, docs/source/conf.py, build, dist
