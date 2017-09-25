@@ -1,14 +1,16 @@
-os:
-  - linux
-
 language: python
 
 env:
   global:
-    - CONDA_DEPS="anaconda flake8 sphinx pytest numpy scipy matplotlib pandas gdal libgdal=2.0.0"
+    - CONDA_DEPS="flake8 sphinx numpy scipy matplotlib pandas gdal libgdal=2.0.0"
 
 python:
+  - "2.7"
   - "3.5"
+
+os:
+  - linux
+  - osx
 
 before_install:
   - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
