@@ -27,4 +27,4 @@ install:
 
 script:
   - py.test
-  
+  - flake8

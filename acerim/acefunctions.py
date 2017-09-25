@@ -7,7 +7,9 @@ For usage, see sample/tutorial.rst.
 
 from __future__ import division, print_function, absolute_import
 import numpy as np
+import scipy as sp
 import pandas as pd
+import scipy.optimize as opt
 import matplotlib.pyplot as plt
 from acerim import acestats as acs
 
@@ -159,8 +161,7 @@ def ejecta_stats(cdf, ads, ejrad=2, stats=None, plot=False, vmin=None,
 # Plotting
 def plot_roi(ads, roi, figsize=((8, 8)), extent=None, title='ROI', vmin=None,
              vmax=None, cmap='gray', **kwargs):
-    """
-    Plot roi 2D array.
+    """Plot roi 2D array.
 
     If extent, cname and cdiam are supplied, the axes will display the
     lats and lons specified and title will inclue cname and cdiam.
@@ -197,6 +198,18 @@ def plot_roi(ads, roi, figsize=((8, 8)), extent=None, title='ROI', vmin=None,
     plt.xlabel('Longitude (degrees)')
     plt.ylabel('Latitude (degrees)')
     plt.show()
+
+
+def plot_ejecta_stats():
+    """Plot ejecta statistics.
+    """
+    pass  # TODO: implement this
+
+
+def plot_ejecta_profile_stats():
+    """Plot ejecta profile statistics.
+    """
+    pass  # TODO: implement this
 
 
 # ROI MANIPULATION
@@ -387,26 +400,25 @@ def greatcircdist(lat1, lon1, lat2, lon2, radius):
 
 
 # STATISTICS
-# import numpy as np
-# import scipy.optimize as opt
-# import helper_functions as hf
-
-def histogram(roi, bins, hmin=None, hmax=None, skew=False, *args, **kwargs):
+def histogram(roi, bins, hmin=None, hmax=None, skew=False, verbose=False,
+              *args, **kwargs):
     """
     Return histogram, bins of histogram computed on ROI. See np.histogram for
     full usage and optional parameters. Set verbose=True to print a summary of
     the statistics.
     """
-    roi_notnan = roi[~np.isnan(filtered_roi)]
+    roi_notnan = roi[~np.isnan(roi)]
     roi_valid = roi_notnan[hmin <= roi_notnan <= hmax]
-    hist, bins = np.histogram(roi, bins=bins, hmin=hmin, hmax=hmax, *args, **kwargs)
+    hist, bins = np.histogram(roi, bins=bins, hmin=hmin, hmax=hmax, *args,
+                              **kwargs)
     ret = [hist, bins]
     output = 'Histogram with {} pixels total, \
               {} pixels in [hmin, hmax] inclusive, \
               {} nan pixels excluded, \
-              {} bins'.format(len(roi), len(roi_valid), len(roi_notnan), len(bins))
+              {} bins'.format(len(roi), len(roi_valid), len(roi_notnan),
+                              len(bins))
     if skew:
-        skewness = scipy.stats.skew(hist)
+        skewness = sp.stats.skew(hist)
         ret.append(skewness)
         output += ', {} skewness'.format(skewness)
     if verbose:
@@ -415,7 +427,6 @@ def histogram(roi, bins, hmin=None, hmax=None, skew=False, *args, **kwargs):
 
 
 # Ejecta profile stats
-
 def fit_exp(x, y, PLOT_EXP=False):
     """
     Return an exponential that has been fit to data using scipy.curvefit().
@@ -427,13 +438,16 @@ def fit_exp(x, y, PLOT_EXP=False):
         """
         return a * np.exp(-b * x) + c
 
+    def plot_exp(x, y, exp):
+        pass  # TODO: implement this
+
     try:
-        p_opt, cov = opt.curve_fit(expEval, x, y)
+        p_opt, cov = opt.curve_fit(exp_eval, x, y)
     except:
         RuntimeError
         return None
     if PLOT_EXP:
-        hf.plot_exp(x, y, exp_eval(x, *p_opt))
+        plot_exp(x, y, exp_eval(x, *p_opt))
     return p_opt
 
 
@@ -448,13 +462,19 @@ def fit_gauss(data, PLOT_GAUSS=False):
         """
         return 1.0/(p[1]*np.sqrt(2*np.pi))*np.exp(-(x-p[0])**2/(2*p[1]**2))
 
+    def errorfn(p, x, y):
+        """Compute distance from gaussian to y."""
+        gauss(x, p) - y
+
+    def plot_gauss(bins, n, gauss):
+        pass  # TODO: implement this
+
     data = data[data > 0]
     n, bins = np.histogram(data, bins='fd', density=True)
     p0 = [0, 1]  # initial parameter guess
-    errfn = lambda p, x, y: gauss(x, p) - y
-    p, success = opt.leastsq(errfn, p0[:], args=(bins[:-1], n))
+    p, success = opt.leastsq(errorfn, p0[:], args=(bins[:-1], n))
     if PLOT_GAUSS:
-        hf.plot_gauss(bins, n, gauss(bins, p))
+        plot_gauss(bins, n, gauss(bins, p))
     return p
 
 
@@ -482,7 +502,7 @@ def fit_pow_linear(xdata, ydata, p0, plot=False, cid=''):
         return p[0] + p[1] * x
 
     def residuals(p, x, y):
-        return ydata - fitLine(p, x)
+        return ydata - fit_line(p, x)
 
     def pow_eval(x, amp, index):
         return amp * (x**index)

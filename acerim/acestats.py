@@ -27,7 +27,6 @@ Non-statistical functions in this file must be private (begin with "_").
 from __future__ import division, print_function, absolute_import
 import inspect
 import numpy as np
-import scipy as sp
 
 
 # Statistical Functions
