@@ -89,7 +89,7 @@ class AceDataset(object):
                     return gdalDataset_wrapper
                 else:  # Not callable so must be attribute
                     return func
-            except AttributeError as e:
+            except AttributeError:
                 raise AttributeError('Object has no attribute {}'.format(name))
 
     def __repr__(self):
