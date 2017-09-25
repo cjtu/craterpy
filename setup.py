@@ -3,7 +3,6 @@
 
 from setuptools import setup, find_packages
 from codecs import open
-from sphinx.setup_command import BuildDoc
 from os import path
 here = path.abspath(path.dirname(__file__))
 
@@ -20,6 +19,16 @@ def get_readme():
     """ Fetch long winded description from /README.rst """
     with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
         return f.read()
+
+
+def try_BuildDoc():
+    """Try to import BuildDoc (incompatible with py2)"""
+    try:
+        from sphinx.setup_command import BuildDoc
+        return {'build_docs': BuildDoc}
+    except ImportError:
+        print("Warning: sphinx.setup_command unavailable. Docs not built")
+        return {}
 
 
 # Set metadata
@@ -53,7 +62,7 @@ INSTALL_REQUIRES = ['numpy', 'scipy', 'matplotlib', 'gdal', 'pandas']
 EXTRAS_REQUIRE = None  # {'test': ['pytest'], 'cite': ['duecredit'],}
 
 # Setup Sphinx integration to automatically build documentation
-CMDCLASS = {'build_docs': BuildDoc}
+CMDCLASS = try_BuildDoc()
 COMMAND_OPTIONS = {  # Overrides docs/conf.py settings
         'build_docs': {
             'project': ('setup.py', NAME),
