@@ -295,6 +295,15 @@ class AceDataset(object):
         af.plot_roi(self, roi, *args, **kwargs)
 
 
+class CraterSeries(pd.Series):
+    """Underlying series object of the CraterDataFrame. Necessary when 
+    subclassing pandas.DataFrame.
+    """
+    @property
+    def _constructor(self):
+        return CraterSeries
+
+
 class CraterDataFrame(pd.DataFrame):
     """
     Extends DataFrame from the Pandas module. DataFrames are "two-dimensional
@@ -378,6 +387,16 @@ class CraterDataFrame(pd.DataFrame):
         self.latcol = attrs[0]
         self.loncol = attrs[1]
         self.radcol = attrs[2]
+
+    @property
+    def _constructor(self):
+        return CraterDataFrame
+
+    _constructor_sliced = CraterSeries
+        
+
+
+
 
 
 if __name__ == "__main__":
