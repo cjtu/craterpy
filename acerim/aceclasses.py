@@ -296,7 +296,7 @@ class AceDataset(object):
 
 
 class CraterSeries(pd.Series):
-    """Underlying series object of the CraterDataFrame. Necessary when 
+    """Underlying series object of the CraterDataFrame. Necessary when
     subclassing pandas.DataFrame.
     """
     @property
@@ -393,10 +393,6 @@ class CraterDataFrame(pd.DataFrame):
         return CraterDataFrame
 
     _constructor_sliced = CraterSeries
-        
-
-
-
 
 
 if __name__ == "__main__":
