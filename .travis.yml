@@ -2,11 +2,14 @@ language: python
 
 env:
   global:
-    - CONDA_DEPS="anaconda flake8 sphinx pytest numpy scipy matplotlib pandas gdal libgdal=2.0.0"
+  - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
+      CONDA_DEPS="anaconda flake8 sphinx pytest numpy scipy matplotlib pandas gdal=1.11.2;
+    else
+      CONDA_DEPS="anaconda flake8 sphinx pytest numpy scipy matplotlib pandas gdal libgdal=2.0.0";
+    fi
 
 python:
   - "2.7"
-  - "3.4"
   - "3.5"
 
 os:

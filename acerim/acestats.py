@@ -97,8 +97,8 @@ def _getFunctions(stats):
         stats = [stats]
     invalid_stats = [stat for stat in stats if stat not in _listStats()]
     if invalid_stats:
-        raise ValueError('The following stats are not defined in acestats.py: '
-                         + str(invalid_stats))
+        raise ValueError('The following stats are not defined in acestats.py: \
+                          {}'.format(invalid_stats))
     all_func = inspect.getmembers(acestats, inspect.isfunction)
     stat_func = []
     for i, func in enumerate(all_func):
