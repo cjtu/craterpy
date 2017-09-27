@@ -145,10 +145,8 @@ Citing ACERIM
 
 For convenience, this project uses the OSI-certified MIT open access liscence for warranty-free ease of use and distribution. The author simply asks that you cite the project. The citable DOI can be found at Zenodo by clicking the button below. To read more about citable code, check out `Zenodo <http://help.zenodo.org/features>`_.
 
-::
-
 .. image:: https://zenodo.org/badge/88457986.svg
-   :target: https://zenodo.org/badge/latestdoi/88457986
+    :target: https://zenodo.org/badge/latestdoi/88457986
 
 
 License
