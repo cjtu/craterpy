@@ -1,6 +1,7 @@
 build: false
 
-matrix: fast_finish: true
+matrix: 
+  fast_finish: true
 
 environment:
   matrix:
