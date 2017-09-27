@@ -2,6 +2,7 @@ language: python
 
 python:
   - "2.7"
+  - "3.4"
   - "3.5"
 
 os:
@@ -9,7 +10,7 @@ os:
 
 env:
   global:
-  - CONDA_DEPS_27="anaconda flake8 sphinx pytest numpy scipy matplotlib pandas gdal=1.11.2
+  - CONDA_DEPS_27="anaconda flake8 sphinx pytest numpy scipy matplotlib pandas gdal=1.11.2"
   - CONDA_DEPS_35="anaconda flake8 sphinx pytest numpy scipy matplotlib pandas gdal libgdal=2.0.0"
 
 
@@ -28,14 +29,11 @@ before_install:
   - conda info -a
 
 install:
-  - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
-      conda create -q -n test-env python=2.7 $CONDA_DEPS_27;
-    else
-      conda create -q -n test-env python=$TRAVIS_PYTHON_VERSION $CONDA_DEPS_35;
-    fi
+  - conda create -q -n test-env python=$TRAVIS_PYTHON_VERSION
   - source activate test-env
+  - conda install pytest numpy scipy matplotlib pandas 
+  - conda install --no-deps gdal=2.1.0 libgdal=2.1.0
   - python setup.py install
 
 script:
-  - py.test acerim
-  - flake8
+  - py.test
