@@ -19,7 +19,7 @@ install:
   - "conda create -q -n test-environment python=%PYTHON_VERSION%"
   - activate test-environment
   - conda install pytest numpy scipy matplotlib pandas
-  - conda install --no-deps gdal=2.1.0 libgdal=2.1.0
+  - conda install gdal=2.1.0 libgdal=2.1.0
   - python setup.py install
 
 test_script:
