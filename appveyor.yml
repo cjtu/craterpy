@@ -4,7 +4,7 @@ environment:
   matrix:
     - PYTHON_VERSION: 2.7
       MINICONDA: C:\Miniconda
-    - PYTHON_VERSION: 3.5
+    - PYTHON_VERSION: 3.4
       MINICONDA: C:\Miniconda3
 
 
@@ -18,7 +18,7 @@ install:
   - conda info -a
   - "conda create -q -n test-environment python=%PYTHON_VERSION%"
   - activate test-environment
-  - conda install numpy scipy matplotlib pandas gdal=2.2.2 libgdal=2.2.2"
+  - conda install numpy scipy matplotlib pandas gdal=2.1.0 libgdal=2.1.0"
   - conda install pytest
   - python setup.py install
 
