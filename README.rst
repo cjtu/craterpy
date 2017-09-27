@@ -1,5 +1,5 @@
-ACERIM |ZenodoBadge|_ |TravisBadge|_ |AppveyorBadge|_ |RtdBadge|_
-=================================================================
+ACERIM |ZenodoBadge|_ |TravisBadge|_ |AppveyorBadge|_ |RtdBadge|_ |PyPiBadge|_ |CodecovBadge|_
+==============================================================================================
 .. |ZenodoBadge| image:: https://zenodo.org/badge/88457986.svg
 .. _ZenodoBadge: https://zenodo.org/badge/latestdoi/88457986
 
@@ -11,6 +11,12 @@ ACERIM |ZenodoBadge|_ |TravisBadge|_ |AppveyorBadge|_ |RtdBadge|_
 
 .. |RtdBadge| image:: http://readthedocs.org/projects/acerim/badge/?version=latest
 .. _RtdBadge: http://acerim.readthedocs.io/en/latest/?badge=latest
+
+.. |PyPiBadge| image:: https://badge.fury.io/py/acerim.svg
+.. _PyPiBadge: https://badge.fury.io/py/acerim
+
+.. |CodecovBadge| image:: https://codecov.io/gh/cjtu/acerim/branch/master/graph/badge.svg
+.. _CodecovBadge: https://codecov.io/gh/cjtu/acerim
 
 Overview
 --------
