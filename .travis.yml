@@ -10,8 +10,8 @@ os:
 
 env:
   global:
-  - CONDA_DEPS_27=""
-  - CONDA_DEPS_35=""
+  - CONDA_DEPS_27=false
+  - CONDA_DEPS_35=false
   - COVERAGE=true  # Coverage support with codecov
   - FLAKE8=false  # Flake8 style checker
 
@@ -31,26 +31,31 @@ before_install:
   - conda info -a
 
 install:
+  # Create and activate conda environment
   - conda create -q -n test-env python=$TRAVIS_PYTHON_VERSION
   - source activate test-env
-  - conda install numpy scipy matplotlib pandas  # install dependencies first
-  - conda install gdal=2.1.0 libgdal=2.1.0  # Use explicit gdal, libgdal
-  - if [[ "$COVERAGE" == "true" ]]; then  
-      conda install pytest-cov codecov  # Test coverage stats
+  # Install non gdal dependencies
+  - conda install numpy scipy matplotlib pandas
+  # Install gdal, libgdal and explicitly state versions to avoid mismatch bug
+  - conda install gdal=2.1.0 libgdal=2.1.0
+  # Upload test coverage stats to codecov
+  - if [[ "$COVERAGE" == "true" ]]; then
+      conda install pytest-cov codecov
     else
       conda install pytest
     fi
   - python setup.py install
 
 script:
-  - if [[ "$COVERAGE" == "true" ]]; then  
-      py.test --cov=./  # cov flag will output coverage
+  # Use the --cov flag to pytest-cov to run coverage stats
+  - if [[ "$COVERAGE" == "true" ]]; then
+      py.test --cov=./
     else
       py.test
     fi
 
 after_success:
-  # attempts to upload to codecov, but does not fail build if codecov fails
+  # Tries to upload coverage to codecov, but does not fail build if upload fails
   - if [[ "$COVERAGE" == "true" ]]; then
     codecov || echo "codecov upload failed"  
     fi
