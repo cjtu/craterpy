@@ -51,6 +51,6 @@ script:
 
 after_success:
   # attempts to upload to codecov, but does not fail build if codecov fails
-  if [[ "$COVERAGE" == "true" ]]; then
+  - if [[ "$COVERAGE" == "true" ]]; then
     codecov || echo "codecov upload failed"  
-  fi
+    fi
