@@ -1,14 +1,13 @@
 *~
 *.DS_store
 *.cache
-*.egg-info/
-*.egg
+*.pyc
+*.egg*
 __pycache__
 _build/
 _templates
 _static
 build/
 dist/
-tutorial.rst
 *.sublime*
 *.ipynb_checkpoints*
