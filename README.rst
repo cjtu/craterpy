@@ -1,5 +1,5 @@
-ACERIM |ZenodoBadge|_ |TravisBadge|_ |AppveyorBadge|_
-=====================================================
+ACERIM |ZenodoBadge|_ |TravisBadge|_ |AppveyorBadge|_ |RtdBadge|_
+=================================================================
 .. |ZenodoBadge| image:: https://zenodo.org/badge/88457986.svg
 .. _ZenodoBadge: https://zenodo.org/badge/latestdoi/88457986
 
@@ -8,6 +8,9 @@ ACERIM |ZenodoBadge|_ |TravisBadge|_ |AppveyorBadge|_
 
 .. |AppveyorBadge| image:: https://ci.appveyor.com/api/projects/status/7r7f4lbj6kgguhtw/branch/master?svg=true
 .. _AppveyorBadge: https://ci.appveyor.com/project/cjtu/acerim/branch/master
+
+.. |RtdBadge| image:: http://readthedocs.org/projects/acerim/badge/?version=latest
+.. _RtdBadge: http://acerim.readthedocs.io/en/latest/?badge=latest
 
 Overview
 --------
