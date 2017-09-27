@@ -35,25 +35,17 @@ install:
   - conda create -q -n test-env python=$TRAVIS_PYTHON_VERSION
   - source activate test-env
   # Install non gdal dependencies
-  - conda install numpy scipy matplotlib pandas
+  - conda install pytest pytest-cov numpy scipy matplotlib pandas
   # Install gdal, libgdal and explicitly state versions to avoid mismatch bug
   - conda install gdal=2.1.0 libgdal=2.1.0
-  # Upload test coverage stats to codecov
-  - if [[ "$COVERAGE" == "true" ]]; then
-      pip install pytest-cov coverage codecov
-    else
-      conda install pytest
-    fi
+  # Upload test coverage stats with codecov
+  - pip install codecov
   - python setup.py install
 
 script:
   # Use the --cov flag to pytest-cov to run coverage stats
-  - if [[ "$COVERAGE" == "true" ]]; then
-      py.test --cov=./
-    else
-      py.test
-    fi
-
+  - py.test --cov=./
+    
 after_success:
   # Tries to upload coverage to codecov, but does not fail build if upload fails
   - if [[ "$COVERAGE" == "true" ]]; then
