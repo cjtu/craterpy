@@ -40,7 +40,7 @@ install:
   - conda install gdal=2.1.0 libgdal=2.1.0
   # Upload test coverage stats to codecov
   - if [[ "$COVERAGE" == "true" ]]; then
-      conda install pytest-cov codecov
+      pip install pytest-cov coverage codecov
     else
       conda install pytest
     fi
