@@ -3,6 +3,7 @@
 *.cache
 *.pyc
 *.coverage
+*coverage.xml
 *.egg*
 __pycache__
 _build/
