@@ -2,6 +2,7 @@
 *.DS_store
 *.cache
 *.pyc
+*.coverage
 *.egg*
 __pycache__
 _build/
