@@ -19,9 +19,11 @@ install:
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q conda
   - conda info -a
-  - "conda create -q -n test-environment python=%PYTHON_VERSION%
+  - "conda create -q -n test-environment python=%PYTHON_VERSION%"
   - activate test-environment
-  - conda install anaconda pytest numpy scipy matplotlib pandas gdal=2.1.0 libgdal=2.1.0"
+  - conda install numpy scipy matplotlib pandas gdal=2.1.0 libgdal=2.1.0"
+  - conda install pytest
+  - python setup.py install
 
 test_script:
   - py.test
