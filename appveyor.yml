@@ -1,8 +1,5 @@
 build: false
 
-matrix: 
-  fast_finish: true
-
 environment:
   matrix:
     - PYTHON_VERSION: 2.7
@@ -21,7 +18,7 @@ install:
   - conda info -a
   - "conda create -q -n test-environment python=%PYTHON_VERSION%"
   - activate test-environment
-  - conda install numpy scipy matplotlib pandas gdal=2.1.0 libgdal=2.1.0"
+  - conda install numpy scipy matplotlib pandas gdal=2.2.2 libgdal=2.2.2"
   - conda install pytest
   - python setup.py install
 
