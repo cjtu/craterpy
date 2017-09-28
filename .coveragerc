@@ -1,0 +1,13 @@
+[run]
+branch = True
+source = acerim
+omit =
+    *tests/*
+    *setup.py
+    *version.py
+    *__init__.py
+
+[report]
+exclude_lines =
+    if __name__ == "__main__":
+ignore_errors = True

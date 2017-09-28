@@ -1,5 +1,22 @@
-ACERIM
-======
+ACERIM |ZenodoBadge|_ |TravisBadge|_ |AppveyorBadge|_ |RtdBadge|_ |PyPiBadge|_ |CodecovBadge|_
+==============================================================================================
+.. |ZenodoBadge| image:: https://zenodo.org/badge/88457986.svg
+.. _ZenodoBadge: https://zenodo.org/badge/latestdoi/88457986
+
+.. |TravisBadge| image:: https://travis-ci.org/cjtu/acerim.svg?branch=master
+.. _TravisBadge: https://travis-ci.org/cjtu/acerim
+
+.. |AppveyorBadge| image:: https://ci.appveyor.com/api/projects/status/7r7f4lbj6kgguhtw/branch/master?svg=true
+.. _AppveyorBadge: https://ci.appveyor.com/project/cjtu/acerim/branch/master
+
+.. |RtdBadge| image:: http://readthedocs.org/projects/acerim/badge/?version=latest
+.. _RtdBadge: http://acerim.readthedocs.io/en/latest/?badge=latest
+
+.. |PyPiBadge| image:: https://badge.fury.io/py/acerim.svg
+.. _PyPiBadge: https://badge.fury.io/py/acerim
+
+.. |CodecovBadge| image:: https://codecov.io/gh/cjtu/acerim/branch/master/graph/badge.svg
+.. _CodecovBadge: https://codecov.io/gh/cjtu/acerim
 
 Overview
 --------
@@ -26,49 +43,48 @@ Note: This package was written with the Moon in mind, but is applicable to any c
 Dependencies
 ------------
 
-ACERIM is compatible with python versions 2.7 and 3.5. Additionally, the following packages are required for ACERIM to run::
+ACERIM is compatible with python versions 2.7, 3.4 and 3.5. It requires the following packages:
 
-  - gdal
   - numpy
   - scipy
   - pandas
   - matplotlib
+  - gdal=2.1.0
 
 
 Installation
 ------------
 
-**PLEASE NOTE**: Acerim depends on the GDAL (Geospatial Data Abstraction Library) python package. Since GDAL in turn depends on C++, it is highly recommended that you follow the installation instructions for gdal on PyPI `here <https://pypi.python.org/pypi/GDAL>`_. Once GDAL is successfully isntalled, proceed with installing ACERIM.
+**Warning**: Acerim depends on the GDAL (Geospatial Data Abstraction Library) python package which requires certain C++ binaries. It is recommended that you follow the `gdal installation instructions <https://pypi.python.org/pypi/GDAL>`_ before installing ACERIM.
 
 
 Quick Installation with Anaconda
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The recommended way to install ACERIM is using the `anaconda <https://www.continuum.io/Anaconda-Overview>`_ platform which can be downloaded from `Continuum Analytics <https://www.continuum.io/downloads>`_.  Anaconda is useful because it:
+The simplest way to install ACERIM is with `Anaconda <https://www.continuum.io/Anaconda-Overview>`_. See `Continuum Analytics <https://www.continuum.io/downloads>`_ for installation instructions.  Anaconda is useful because it:
 
-1) automatically solves package dependency conflicts, and 
-2) conveniently manages your virtual environments, allowing you to separate packages with finicky dependencies from your main python installation. 
+1) Provides easy to use virtual environments, and
+2) Resolves package dependencies before install.
 
 The following section will describe how to create and activate a conda virtual environment to run ACERIM. For more on Anaconda virtual environments, see `Managing Environments <https://conda.io/docs/using/envs>`_. 
 
-With *anaconda and gdal installed*, open a terminal/command line window and create a new conda environment using:: 
+With *anaconda and gdal installed*, open a terminal window and create a new conda environment with the following command (replace **your_env_name** and choose desired python version):: 
 
-  conda create --name env_name python=3.3 anaconda gdal
+  conda create --name your_env_name python=3.5
 
-Replace env_name with your desired environment name. Listing anaconda will install all anaconda packages into the environment (including the required numpy, scipy, pandas, etc). This aooears to be the simplest way to avoid dependency issues in gdal, but does install unnecessary packages into the environment. For a lightweight install, see Manual Installation. Note that the python version in your environment must be between 2.7 to 3.3 for gdal to function. 
+Activate the environment (OS X, Unix, or powershell users may need the *source*)::
 
-Activate your new environment::
+  (source) activate your_env_name
 
-  activate env_name
+Now install the dependencies. Ensure to specify the gdal and libgdal versions to avoid a known bug being tracked `here <https://github.com/ContinuumIO/anaconda-issues/issues/1687>`_::
 
-OS X, Unix, or powershell users may need to type **source**::
+  conda install numpy scipy pandas matplotlib gdal=2.1.0 libgdal=2.1.0
 
-  source activate env_name
-
-With the environment active, install ACERIM from the Python Package Index (PyPI) using pip (python install package)::
+With the environment active, install the latest stable release of ACERIM from the Cheese Shop (Python Package Index) using pip (python install package)::
 
   pip install acerim
 
+<<<<<<< HEAD
 If the installer completes without any errors, you can test that ACERIM and its dependencies are successfully install. If the following command runs error-free, then ACERIM was successfully installed!
 
 ::
@@ -77,38 +93,17 @@ If the installer completes without any errors, you can test that ACERIM and its 
 
 Now that you have ACERIM installed, head over to the `Tutorial <https://nbviewer.jupyter.org/github/cjtu/acerim/blob/master/acerim/sample/Tutorial.ipynb>`_ to get started!
 
-Note: Remember to activate your virtual environment before using ACERIM.
+**Note**: Remember to activate your virtual environment each time you use ACERIM.
 
 
-Manual Installation with Anaconda
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-To install gdal and the other acerim Dependencies_ manually, start by creating a blank environment with conda::
+Cloning this repository
+^^^^^^^^^^^^^^^^^^^^^^^
 
-  conda create --name your_env python=3.3
+You can clone this repository by navigating to your target directory and issuing the command::
 
-Activate the environment::
+  git clone https://github.com/cjtu/acerim.git
 
-  activate your_env
-
-Or::
-  
-  source activate your_env
-
-Then install GDAL and all of the Dependencies_ using conda.
-
-  conda install gdal numpy scipy pandas matplotlib
-
-Then proceed with installing ACERIM with pip::
-
-  pip install acerim
-
-
-Manual Installation without Anaconda
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-If you are familiar with installing packages without Anaconda, you can install ACERIM and its dependencies using pip. Or head to this `link <https://pypi.python.org/simple/acerim>`_ to download the latest distribution from PyPI. You can then unzip the package in your desired directory and from the root project directory run:
-
-::
+If you then switch to the *acerim* root directory and activate your environment, you can install the package from its source using::
 
   python setup.py install
 
@@ -120,7 +115,6 @@ Organization
 The project has the following structure::
 
     acerim/
-      |- README.rst
       |- acerim/
          |- aceclasses.py
          |- acefunctions.py
@@ -128,32 +122,30 @@ The project has the following structure::
          |- sample
             |- craters.csv
             |- moon.tif
-            |- tutorial.rst
-            |- tutorial.py
+            |- Tutorial
          |- tests
             |- test_classes.py
             |- test_functions.py
          |- version.py
       |- docs/
+      |- LICENSE.txt
+      |- README.rst
       |- setup.py
       |- setup.cfg
-      |- LICENSE.txt
 
-The core of this project is located in /acerim. To get started using ACERIM, see tutorial.py in /acerim/sample. API documentation is listed in /docs and is also available at `readthedocs <https://readthedocs.org/projects/acerim/>`_. A suite of unittests is located in /acerim/tests.
+The main modules are located in **acerim/acerim/**. To get started, see the examples given in `Tutorial <https://github.com/cjtu/acerim/blob/master/acerim/sample/Tutorial.ipynb>`_. API documentation is available at `readthedocs <https://readthedocs.org/projects/acerim/>`_.
 
 
 Testing ACERIM
 --------------
 
-A suite of unittests are located in the /acerim/tests. They use the sample data included in /acerim/sample to test all ACERIM classes and functions. You can verify that ACERIM is working correctly on your machine by installing the pytest module (using *conda install pytest* or *pip install pytest*) and following these steps::
+A suite of unittests are located in the **/acerim/tests**. They use the sample data included in **/acerim/sample**. To troubleshoot possible errors you can install the pytest module and run it.::
 
-  1) open a shell/cmd window
-  2) navigate to the parent ACERIM directory (e.g.'/Users/cjtu/Desktop/acerim')
-  3) run the command:
+  conda install pytest
 
-::
+Then from the root acerim directory::
 
-    py.test acerim
+    py.test
 
 A summary of test results will appear in the shell. 
 
@@ -161,16 +153,16 @@ A summary of test results will appear in the shell.
 Support and Bug Reporting
 -------------------------
 
-Any bugs or errors can be reported to Christian at cj.taiudovicic@gmail.com. Please include your operating system and details of your python environment (e.g. using conda list).
+Any bugs or errata can be reported to Christian at cj.taiudovicic@gmail.com. Please include your operating system and details of your python environment (e.g. using conda list).
 
 
 Citing ACERIM
 -------------
 
-For convenience, this project uses the OSI-certified MIT open access liscence for ease of use and distribution. The author simply asks that you cite the project if you use it in your work. Citation information can be found and easily exported in your desired format at: 
+For convenience, this project uses the OSI-certified MIT open access liscence for warranty-free ease of use and distribution. The author simply asks that you cite the project. The citable DOI can be found at Zenodo by clicking the button below. To read more about citable code, check out `Zenodo <http://help.zenodo.org/features>`_.
 
 .. image:: https://zenodo.org/badge/88457986.svg
-   :target: https://zenodo.org/badge/latestdoi/88457986
+    :target: https://zenodo.org/badge/latestdoi/88457986
 
 
 License
