@@ -57,7 +57,7 @@ KEYWORDS = 'planetary science crater ejecta data analysis'
 PLATFORMS = 'OS Independent'
 PACKAGES = find_packages(exclude=['tests'])
 PACKAGE_DATA = {'': ['*.csv', '*.tif']}
-INSTALL_REQUIRES = ['numpy', 'scipy', 'matplotlib', 'gdal', 'pandas']
+INSTALL_REQUIRES = ['numpy', 'scipy', 'matplotlib', 'pandas', 'gdal=2.1.0']
 # PYTHON_REQUIRES = '>=2.7, <=3.3'
 EXTRAS_REQUIRE = None  # {'test': ['pytest'], 'cite': ['duecredit'],}
 
