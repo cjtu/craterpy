@@ -51,3 +51,4 @@ after_success:
   - if [[ "$COVERAGE" == "true" ]]; then
     codecov || echo "codecov upload failed";
     fi
+  - echo "Build success"
