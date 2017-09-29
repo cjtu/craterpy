@@ -1,4 +1,4 @@
-ACERIM |ZenodoBadge|_ |TravisBadge|_ |AppveyorBadge|_ |RtdBadge|_ |PyPiBadge|_ |CodecovBadge|_
+ACERIM |TravisBadge|_ |AppveyorBadge|_ |RtdBadge|_ |PyPiBadge|_ |CodecovBadge|_ |ZenodoBadge|_
 ==============================================================================================
 .. |ZenodoBadge| image:: https://zenodo.org/badge/88457986.svg
 .. _ZenodoBadge: https://zenodo.org/badge/latestdoi/88457986
@@ -25,14 +25,14 @@ Welcome to ACERIM!
 
 Please note: this package is actively under development. You can direct any questions or report any bugs to Christian at cj.taiudovicic@gmail.com. 
 
-The Automated Crater Ejecta Region of Interest Mapper (ACERIM) is a python package for planetary scientists that simplifies crater data analysis. If you have image data and a list of crater locations, ACERIM will help you extract data from those locations and analyze that data with statistics of your choosing.
+The Automated Crater Ejecta Region of Interest Mapper (ACERIM) is a python package for planetary scientists that simplifies crater data analysis. If you have image data and a list of crater locations, ACERIM will help you extract data from the interior or ejecta of those craters and analyze the images with your choice of statistics.
 
 Use ACERIM if you want to do one or more of the following:
 
-  - import crater databases and image datasets into easily queried python DataFrames
-  - extract image data from regions around craters or other features given lat, lon and radius
-  - mask your data arays (e.g. to remove pixels within a crater floor or in a ring on the ejecta blanket)
-  - compute statistics on the extracted crater and/or ejecta image data
+  - import crater databases and image datasets into easily queried python DataFrames,
+  - extract image data from regions around craters or other features given lat, lon and radius,
+  - mask your data arays (e.g. to remove pixels within a crater floor or to exact pixels on the ejecta blanket),
+  - compute statistics on the extracted image data,
   - save and plot images and statistics.
 
 New users can head to the `Tutorial Jupyter notebook <https://nbviewer.jupyter.org/github/cjtu/acerim/blob/master/acerim/sample/Tutorial.ipynb>`_ for a step-by-step walkthrough (with sample data) of how to use ACERIM in a research workflow.
