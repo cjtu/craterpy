@@ -139,7 +139,7 @@ def ejecta_stats(cdf, ads, ejrad=2, stats=None, plot=False, vmin=None,
     # Initialize return CraterDataframe with stats as individual columns
     ret_cdf = cdf
     for stat in stats:
-        ret_cdf.loc[:,stat] = ret_cdf.index
+        ret_cdf.loc[:, stat] = ret_cdf.index
     # Main computation loop
     for i in cdf.index:
         # Get lat, lon, rad and compute roi for current crater

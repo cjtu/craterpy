@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Suite of unittests for classes found in /acerim/aceclasses.py.
 """

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Suite of unittests for functions found in /acerim/acefunctions.py.
 """
