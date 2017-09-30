@@ -27,12 +27,13 @@ Non-statistical functions in this file must be private (begin with "_").
 from __future__ import division, print_function, absolute_import
 import inspect
 import numpy as np
+import scipy.stats as stats
 
 
 # Statistical Functions
-def maximum(roi):
-    """Return maximum pixel value in roi"""
-    return np.max(roi)
+def size(roi):
+    """Return the number of elements in roi"""
+    return roi.size
 
 
 def mean(roi):
@@ -45,14 +46,24 @@ def median(roi):
     return np.median(roi)
 
 
+def mode(roi):
+    """Return the mode of roi"""
+    return stats.mode(roi, None)[0][0]
+
+
+def std(roi):
+    """Return the standard deviation of roi"""
+    return np.std(roi, ddof=1)
+
+
+def maximum(roi):
+    """Return maximum pixel value in roi"""
+    return np.max(roi)
+
+
 def minimum(roi):
     """Return minimum pixel value in roi"""
     return np.min(roi)
-
-
-def pct95(roi):
-    """Return the 95th percentile (95/5) value of roi"""
-    return np.percentile(roi, 95)
 
 
 def q1(roi):
@@ -64,9 +75,12 @@ def q3(roi):
     """Return the third quartile (75/25) value of roi"""
     return np.percentile(roi, 75)
 
-# num pix
-# area
-# std
+
+def pct95(roi):
+    """Return the 95th percentile (95/5) value of roi"""
+    return np.percentile(roi, 95)
+
+# TODO: area
 
 
 # Private Functions (must begin with "_")
