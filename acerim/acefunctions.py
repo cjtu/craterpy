@@ -12,6 +12,7 @@ import pandas as pd
 import scipy.optimize as opt
 import matplotlib.pyplot as plt
 from acerim import acestats as acs
+import shapely
 
 
 # ACERIM FUNCTIONS
