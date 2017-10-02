@@ -7,6 +7,26 @@ import numpy as np
 from acerim import acestats as acs
 
 
+class Test_protected(unittest.TestCase):
+    """Test the protected functions in acestats.py"""
+
+    def test_listStats(self):
+        """Test the _listStats function"""
+        expected = np.array(["maximum", "mean", "median"])
+        actual = acs._listStats()[:3]
+        np.testing.assert_array_equal(actual, expected)
+
+    def test_getFunctions(self):
+        """Test the _getFunctions function"""
+        expected_names = ["maximum", "mean", "median"]
+        expected_funcs = [True, True, True]
+        stats_funcs = acs._getFunctions(("maximum", "mean", "median"))
+        actual_names = [name[0] for name in stats_funcs]
+        actual_funcs = [callable(func[1]) for func in stats_funcs]
+        self.assertEqual(actual_names, expected_names)
+        self.assertEqual(actual_funcs, expected_funcs)
+
+
 class Test_ace_stats(unittest.TestCase):
     """Test the basic stats found in acestats.py"""
     data_arr = np.array([4, 4, 8, 3, 4, -1, 0, -5, 1, -10, 3])

@@ -30,6 +30,44 @@ import numpy as np
 import scipy.stats as stats
 
 
+# Private Functions (must begin with "_")
+def _listStats():
+    """
+    Return list of the names of all non-private functions from acestats.
+    Private functions are excluded by their leading '_'.
+    """
+    from acerim import acestats
+    all_func = np.array(inspect.getmembers(acestats, inspect.isfunction))
+    stat_func = all_func[np.where([a[0][0] != '_' for a in all_func])]
+    return stat_func[:, 0]
+
+
+def _getFunctions(stats):
+    """
+    Return functions from this module according to stats. If stats is
+    undefined, return all functions from this module, excluding private
+    functions.
+
+    Returns
+    -------
+    List of lists containing 2 element pairs of function names and functions.
+        E.g. array( ['func name 1', <func1>], ['func name 2', <func2>])
+    """
+    from acerim import acestats
+    if isinstance(stats, str):
+        stats = [stats]
+    invalid_stats = [stat for stat in stats if stat not in _listStats()]
+    if invalid_stats:
+        raise ValueError('The following stats are not defined in acestats.py: \
+                          {}'.format(invalid_stats))
+    all_func = inspect.getmembers(acestats, inspect.isfunction)
+    stat_func = [func for func in all_func if func[0] in stats]
+    # for i, func in enumerate(all_func):
+    #     if func[0] in stats:
+    #         stat_func.append(all_func[i])
+    return stat_func
+
+
 # Statistical Functions
 def size(roi):
     """Return the number of elements in roi"""
@@ -81,41 +119,3 @@ def pct95(roi):
     return np.percentile(roi, 95)
 
 # TODO: area
-
-
-# Private Functions (must begin with "_")
-def _listStats():
-    """
-    Return list of the names of all non-private functions from acestats.
-    Private functions are excluded by their leading '_'.
-    """
-    from acerim import acestats
-    all_func = np.array(inspect.getmembers(acestats, inspect.isfunction))
-    stat_func = all_func[np.where([a[0][0] != '_' for a in all_func])]
-    return stat_func[:, 0]
-
-
-def _getFunctions(stats):
-    """
-    Return functions from this module according to stats. If stats is
-    undefined, return all functions from this module, excluding private
-    functions.
-
-    Returns
-    -------
-    List of lists containing 2 element pairs of function names and functions.
-        E.g. array( ['func name 1', <func1>], ['func name 2', <func2>])
-    """
-    from acerim import acestats
-    if isinstance(stats, str):
-        stats = [stats]
-    invalid_stats = [stat for stat in stats if stat not in _listStats()]
-    if invalid_stats:
-        raise ValueError('The following stats are not defined in acestats.py: \
-                          {}'.format(invalid_stats))
-    all_func = inspect.getmembers(acestats, inspect.isfunction)
-    stat_func = []
-    for i, func in enumerate(all_func):
-        if func[0] in stats:
-            stat_func.append(all_func[i])
-    return stat_func
