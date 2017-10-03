@@ -16,15 +16,27 @@ class Test_protected(unittest.TestCase):
         actual = acs._listStats()[:3]
         np.testing.assert_array_equal(actual, expected)
 
-    def test_getFunctions(self):
-        """Test the _getFunctions function"""
+    def test_getFunctions_single(self):
+        """Test the _getFunctions function with one stat specified"""
+        expected_name = "maximum"
+        stat_func = acs._getFunctions("maximum")
+        actual_name = stat_func[0][0]
+        actual_func = stat_func[0][1]
+        self.assertEqual(actual_name, expected_name)
+        self.assertEqual(callable(actual_func), True)
+
+    def test_getFunctions_multi(self):
+        """Test the _getFunctions function with multiple stats specified"""
         expected_names = ["maximum", "mean", "median"]
-        expected_funcs = [True, True, True]
         stats_funcs = acs._getFunctions(("maximum", "mean", "median"))
-        actual_names = [name[0] for name in stats_funcs]
-        actual_funcs = [callable(func[1]) for func in stats_funcs]
+        actual_names = [pair[0] for pair in stats_funcs]
+        funcs_callable = [callable(pair[1]) for pair in stats_funcs]
         self.assertEqual(actual_names, expected_names)
-        self.assertEqual(actual_funcs, expected_funcs)
+        self.assertEqual(funcs_callable, [True, True, True])
+
+    def test_getFuctions_undefined_stat(self):
+        """Test that _getFunctions raises Exception if passed undefined stat"""
+        self.assertRaises(ValueError, acs._getFunctions, "Unknown_Stat")
 
 
 class Test_ace_stats(unittest.TestCase):
