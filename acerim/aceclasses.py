@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 import gdal
 from acerim import acefunctions as af
+gdal.UseExceptions()  # configure gdal to use Python exceptions
 
 
 class AceDataset(object):
@@ -59,12 +60,11 @@ class AceDataset(object):
         """Initialize AceDataset object."""
         if isinstance(dataset, str):
             self.gdalDataset = gdal.Open(dataset)
-            if not self.gdalDataset:
-                raise ImportError('Unable to open file. Check file path.')
         elif isinstance(dataset, gdal.Dataset):
             self.gdalDataset = dataset
         else:
-            raise ImportError('Invalid input dataset')
+            raise ImportError('Invalid input dataset.')
+
         args = [nlat, slat, wlon, elon, radius, ppd]
         attrs = ['nlat', 'slat', 'wlon', 'elon', 'radius', 'ppd']
         # Attempt to read geospatial information with get_info
@@ -96,9 +96,9 @@ class AceDataset(object):
         """Representation of AceDataset with all attribute info"""
         attrs = (self.nlat, self.slat, self.wlon, self.elon,
                  self.radius, self.ppd)
-        rep = 'AceDataset object with bounds '
-        rep += '({}N, {}S), ({}E, {}E), \
-                radius {} km, and {} ppd resolution'.format(*attrs)
+        rep = 'AceDataset object with latitude ({}, {})N, '.format(*attrs[:2])
+        rep += 'longitude ({}, {})E, radius {} km, '.format(*attrs[2:5])
+        rep += 'and resolution {} ppd'.format(attrs[5])
         return rep
 
     def calc_mpp(self, lat=0):

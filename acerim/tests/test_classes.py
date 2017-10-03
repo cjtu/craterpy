@@ -6,6 +6,7 @@ import os
 import unittest
 import numpy as np
 import pandas as pd
+import gdal
 import acerim
 from acerim import aceclasses as ac
 
@@ -21,14 +22,29 @@ class TestAceDataset(unittest.TestCase):
         """Import test tif '/tests/moon.tif'"""
         self.assertIsNotNone(self.ads)
 
+    def test_import_gdal_Dataset(self):
+        """Test instantiating AceDataset from gdal.Dataset"""
+        gds = gdal.Open(self.test_dataset)
+        self.assertIsNotNone(ac.AceDataset(gds))
+
+    def test_import_error(self):
+        """Test that importing invalid dataset fails"""
+        self.assertRaises(RuntimeError, ac.AceDataset, "Invalid_DS")
+        self.assertRaises(ImportError, ac.AceDataset, [1, 2])
+
     def test_get_gdalDataset_attrs(self):
+        """Test that wrapped gdal Dataset attrs are accessible"""
         pass
 
     def test_get_AceDataset_attrs(self):
         pass
 
     def test_repr(self):
-        pass
+        expected = 'AceDataset object with latitude (90.0, -90.0)N, '
+        expected += 'longitude (-180.0, 180.0)E, radius 1737 km, and '
+        expected += 'resolution 4.0 ppd'
+        actual = self.ads.__repr__()
+        self.assertEqual(actual, expected)
 
     def test_is_global(self):
         """Test .is_global method"""
