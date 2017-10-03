@@ -12,7 +12,6 @@ import pandas as pd
 import scipy.optimize as opt
 import matplotlib.pyplot as plt
 from acerim import acestats as acs
-import shapely
 
 
 # ACERIM FUNCTIONS
@@ -326,6 +325,41 @@ def crater_ring_mask(aceds, roi, lat, lon, rmin, rmax):
     inner = ellipse_mask(roi, rmin_pixwidth, rmin_pixheight)
     return outer * ~inner
 
+
+def polygon_mask(aceds, roi, extent, poly_verts):
+    """
+    Mask the region inside a polygon given by poly_verts.
+    
+    Parameters
+    ==========
+    aceds
+    roi
+    extent: (float, float, float, float)
+        Extent tuple of (minlon, maxlon, minlat, maxlat).
+    poly_verts: list of tuple
+        List of (lon, lat) polygon vertices.
+        
+    Example
+    =======
+    ads = AceDatset(datafile)
+    roi, extent = ads.get_roi(-27, 80.9, 94.5, wsize=2, get_extent=True)
+    mask = polygon_mask(ads, roi, extent, poly_verts)
+    masked = mask_where(roi, ~mask)
+    plot_roi(ads, masked, vmin=0, vmax=1)
+    """
+    from matplotlib.path import Path
+    minlon, maxlon, minlat, maxlat = extent
+    # Create grid
+    nlat, nlon = roi.shape
+    x, y = np.meshgrid(np.arange(nlon), np.arange(nlat))
+    x, y = x.flatten(), y.flatten()
+    gridpoints = np.vstack((x,y)).T
+    
+    poly_pix = [(deg2pix(lon-minlon, aceds.ppd), 
+                     deg2pix(lat-minlat, aceds.ppd)) for lon,lat in poly_verts]
+    path = Path(poly_pix)
+    mask = path.contains_points(gridpoints).reshape((nlat,nlon))
+    return mask
 
 # GEOSPATIAL FUNCTIONS
 def inbounds(lat, lon, mode='std'):
