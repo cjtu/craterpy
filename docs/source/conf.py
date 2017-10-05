@@ -50,7 +50,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = 'ACERIM'
+project = 'craterpy'
 copyright = '2017, Christian Tai Udovicic'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -183,7 +183,7 @@ html_static_path = ['_static']
 # html_file_suffix = None
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'ACERIMdoc'
+htmlhelp_basename = 'craterpydoc'
 
 
 # -- Options for LaTeX output ---------------------------------------------
@@ -203,7 +203,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-  ('index', 'ACERIM.tex', 'ACERIM Documentation',
+  ('index', 'craterpy.tex', 'craterpy Documentation',
    'Christian Tai Udovicic', 'manual'),
 ]
 
@@ -233,7 +233,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'acerim', 'ACERIM Documentation',
+    ('index', 'craterpy', 'craterpy Documentation',
      ['Christian Tai Udovicic'], 1)
 ]
 
@@ -247,9 +247,9 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  ('index', 'ACERIM', 'ACERIM Documentation',
-   'Christian Tai Udovicic', 'ACERIM',
-   'Package for anylyzing impact crater ejecta.', 'Miscellaneous'),
+  ('index', 'craterpy', 'craterpy Documentation',
+   'Christian Tai Udovicic', 'craterpy',
+   'A package for impact crater data science.', 'Miscellaneous'),
 ]
 
 # Documents to append as an appendix to all manuals.

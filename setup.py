@@ -8,9 +8,9 @@ here = path.abspath(path.dirname(__file__))
 
 
 def get_version():
-    """ Fetch version from /acerim/version.py """
+    """ Fetch version from version.py """
     version = {}
-    with open(path.join(here, 'acerim', 'version.py')) as f:
+    with open(path.join(here, 'craterpy', 'version.py')) as f:
         exec(f.read(), version)
     return version['__version__']
 
@@ -31,16 +31,16 @@ def try_BuildDoc():
         return {}
 
 
-# Set metadata
-NAME = 'acerim'
+# Set package metadata
+NAME = 'craterpy'
 VERSION = get_version()
-DESCRIPTION = 'A package for analyzing impact crater ejecta.'
+DESCRIPTION = 'A package for impact crater data science.'
 LONG_DESCRIPTION = get_readme()
 AUTHOR = 'Christian Tai Udovicic'
 AUTHOR_EMAIL = 'cj.taiudovicic@gmail.com'
 MAINTAINER = AUTHOR
 MAINTAINER_EMAIL = AUTHOR_EMAIL
-URL = 'http://github.com/cjtu/acerim'
+URL = 'http://github.com/cjtu/craterpy'
 LICENSE = 'MIT'
 CLASSIFIERS = ['Development Status :: 3 - Alpha',
                'Intended Audience :: Science/Research',
@@ -53,11 +53,11 @@ CLASSIFIERS = ['Development Status :: 3 - Alpha',
                'Programming Language :: Python :: 3',
                'Programming Language :: Python :: 3.2',
                'Programming Language :: Python :: 3.3']
-KEYWORDS = 'planetary science crater ejecta data analysis'
+KEYWORDS = 'crater data analysis planetary science'
 PLATFORMS = 'OS Independent'
 PACKAGES = find_packages(exclude=['tests'])
 PACKAGE_DATA = {'': ['*.csv', '*.tif']}
-INSTALL_REQUIRES = ['numpy', 'scipy', 'matplotlib', 'pandas', 'gdal']
+INSTALL_REQUIRES = ['numpy', 'scipy', 'pandas', 'matplotlib', 'gdal']
 # PYTHON_REQUIRES = '>=2.7, <=3.3'
 EXTRAS_REQUIRE = None  # {'test': ['pytest'], 'cite': ['duecredit'],}
 

@@ -1,8 +1,4 @@
-# -*- coding: utf-8 -*-
-"""
-This file contains the core ACERIM classes, the AceDataset and CraterDataFrame.
-For usage, see sample/tutorial.rst.
-"""
+"""Contains the CpyDataset object which wraps gdal.Dataset."""
 from __future__ import division, print_function, absolute_import
 import numpy as np
 import pandas as pd
@@ -11,76 +7,64 @@ from acerim import acefunctions as af
 gdal.UseExceptions()  # configure gdal to use Python exceptions
 
 
-class AceDataset(object):
-    """
-    Wraps the GDAL Dataset class to load and manipulate simple cylindrical
-    image data.
+class CpyDataset(object):
+    """The CpyDataset is a specialized version of the GDAL Dataset object.
 
-    The dataset parameter takes a string specifying the path to the image file.
-    If projection information is available (e.g. file is a tagged geotiff),
-    AceDataset will attempt to populate its geographical information
-    automaticaly. Geographic information is not necessary and can be set
-    manually (or overridden) by specifying the parameters in the constructor.
+    The CpyDataset only supports simple cylindrically projected datasets. It 
+    can open any file format accepted by gdal.Open(). If the input file is a
+    GeoTIFF, the geographical bounds and resolution will be read
+    automatically. Otherwise, the attributes must be passed in the constructor.
 
-    AceDataset objects inhherit all attributes and methods from gdal.Dataset.
-    See help(gdal.Dataset) full list and usage.
+    CpyDataset inherits all attributes and methods from gdal.Dataset.
 
-    Warning: AceDataset does not reproject input data! It assumes the input
-    file is in simple cylindrical (Plate Caree) projection. For the best
-    results, please reproject your data to simple cylindrical before using
-    ACERIM.
 
-    Parameters
+    Attributes
     ----------
-    dataset : str or gdal.Dataset
-        If str, assume filename compatible with gdal.Open(data). Can also take
-        a gdal.Dataset and convert it to an AceDataset.
-    nlat : int, float
-        North latitude of dataset in (decimal) degrees.
-    slat : int, float
-        South latitude of dataset in (decimal) degrees.
-    wlon : int, float
-        West latitude of dataset in (decimal) degrees.
-    elon : int, float
-        East latitude of dataset in (decimal) degrees.
-    radius : int, float
-        Radius of planeary body in km.
-    ppd : int, float
-        Resolution of dataset in pixels/degree.
-    **kwargs : ...
-        Additional attributes to include in this instance of AceDataset,
-        accessible by the supplied keyword.
+    nlat, slat, wlon, elon : int or float
+        North, south, west, and east bounds of dataset [degrees].
+    radius : int or float
+        Radius of the planeary body [km].
+    ppd : int or float
+        Resolution of dataset in [pixels per degree].
 
-    >>> import os
-    >>> f=os.path.dirname(os.path.abspath('__file__'))+'/tests/moon.tif'
-    >>> ads = AceDataset(f, radius=1737)
+    Methods
+    -------
+    get_roi(lat, lon, radius, wsize=1)
+        Return 2D region of interest array around a crater.
+
+    See Also
+    --------
+    gdal.Dataset
+    
+    Examples
+    --------
+    >>> import os.path as p
+    >>> datadir = p.join(p.dirname(p.abspath('__file__')), 'examples')
+    >>> dsfile = p.join(datadir, 'moon.tif')
+    >>> ds = CpyDataset(dsfile, radius=1737)
+    >>> roi = ds.get_roi(-27.2, 80.9, 207)  # Humboldt crater
     """
     def __init__(self, dataset, nlat=None, slat=None, wlon=None, elon=None,
                  radius=None, ppd=None, **kwargs):
-        """Initialize AceDataset object."""
-        if isinstance(dataset, str):
-            self.gdalDataset = gdal.Open(dataset)
-        elif isinstance(dataset, gdal.Dataset):
-            self.gdalDataset = dataset
+        """Initialize CpyDataset object."""
+        # gdal.Dataset is not easily inherited from so we wrap it instead
+        if isinstance(dataset, gdal.Dataset):
+            self.gdalDataset = dataset  
         else:
-            raise ImportError('Invalid input dataset.')
+            self.gdalDataset = gdal.Open(dataset)
 
         args = [nlat, slat, wlon, elon, radius, ppd]
         attrs = ['nlat', 'slat', 'wlon', 'elon', 'radius', 'ppd']
-        # Attempt to read geospatial information with get_info
-        dsinfo = self._get_info()
+        geotags = self._get_info()  # Attempt to read geotiff tags
         for i, arg in enumerate(args):
-            if arg is None:  # Attempt to read missing geospatial info
-                setattr(self, attrs[i], dsinfo[i])
-            else:  # If argument is supplied, override automatic get_info
+            if arg is None:  # Get missing attrs from geotiff tags
+                setattr(self, attrs[i], geotags[i])
+            else:  # If argument is supplied, override geotiff tags
                 setattr(self, attrs[i], arg)
-        # Add key-value attributes to object
-        for key, value in kwargs.items():
-            setattr(self, key, value)
 
     def __getattr__(self, name):
-        """Handles method and attribute calls to wrap self.gdalDataset."""
-        if name not in self.__dict__:  # Redirect if not in AceDataset
+        """Wraps self.gdalDataset."""
+        if name not in self.__dict__:  # Redirect if not in CpyDataset
             try:
                 func = getattr(self.__dict__['gdalDataset'], name)
                 if callable(func):  # Call method
@@ -93,65 +77,63 @@ class AceDataset(object):
                 raise AttributeError('Object has no attribute {}'.format(name))
 
     def __repr__(self):
-        """Representation of AceDataset with all attribute info"""
+        """Representation of CpyDataset with attribute info"""
         attrs = (self.nlat, self.slat, self.wlon, self.elon,
                  self.radius, self.ppd)
-        rep = 'AceDataset object with latitude ({}, {})N, '.format(*attrs[:2])
-        rep += 'longitude ({}, {})E, radius {} km, '.format(*attrs[2:5])
+        rep = 'CpyDataset with extent ({}N, {}N)'.format(*attrs[:2])
+        rep += '({}E, {}E), radius {} km, '.format(*attrs[2:5])
         rep += 'and resolution {} ppd'.format(attrs[5])
         return rep
 
     def calc_mpp(self, lat=0):
-        """
-        Return the ground resolution in meters/pixel at the given latitude,
-        calculated with the greatcircdist function in acefunctions.py.
+        """Return the ground resolution in meters/pixel at the given latitude.
+        
+        Due to stretching towards the poles in the simple-cylindrical
+        projection, pixels have higher meter resolution near the equator.
+        This simple function calculates the latitude-dependent mpp resolution.
 
         Parameters
         ----------
-        lat: int, float
-            Current latitude. Defaults to the equator (lat=0) if not specified.
+        lat: int or float
+            Latitude (Default is 0, the equator).
 
         Examples
         --------
-        >>> import os
-        >>> f = os.path.dirname(os.path.abspath('__file__'))+'/tests/moon.tif'
-        >>> a = AceDataset(f, radius = 1737)
-        >>> '{:.3f}'.format(a.calc_mpp())
-        '7.579'
-        >>> '{:.3f}'.format(a.calc_mpp(50))
-        '4.872'
+        >>> import os.path as p
+        >>> datadir = p.join(p.dirname(p.abspath('__file__')), 'examples')
+        >>> dsfile = p.join(datadir, 'moon.tif')
+        >>> ds = CpyDataset(dsfile, radius=1737)
+        >>> '{:.0f}'.format(ds.calc_mpp())
+        '7579.1'
+        >>> '{:.0f}'.format(ds.calc_mpp(50))
+        '4871.7'
         """
-        pixwidth = 1/self.ppd
-        dist = af.greatcircdist(lat, 0, lat, pixwidth, self.radius)
-        return dist
+        circ = 2*np.pi*1000*self.radius*np.cos(lat)  # circumference at lat [m]
+        npix = 360*self.ppd  # number of pixels in one circumference [pix]
+        return circ/npix  # number of meters in one pixel at lat [m]/[pix]
 
     def _get_info(self):
-        """
-        Return list of georeferencing and projection information from the input
-        data file if available. See help(gdal.Dataset) for compatible files
-        for the GetGeoTransform method.
+        """Get geotiff args from gdal.Datast.GetGeoTransform() method.
 
         Returns
         -------
-        nlat : int, float
-            North latitude from gdal.Dataset.GetProjection()
-        slat : int, float
-            South latitude calculated using resolution (degrees/pixel) from
-            gdal.Dataset.GetProjection() and the y-size of the image.
-        wlon : int, float
-            West latitude from gdal.Dataset.GetProjection()
-        elon : int, float
-            East latitude calculated using resolution (degrees/pixel) from
-            gdal.Dataset.GetProjection() and the x-size of the image.
+        nlat : int or float
+            North latitude [degrees].
+        slat : int or float
+            South latitude [degrees].
+        wlon : int or float
+            West longitude [degrees].
+        elon : int or float
+            East longitude [degrees].
         ppd : float
-            Pixel resolution in pixels/degree from gdal.Dataset.GetProjection.
+            Resolution [pixels/degree].
 
         Examples
         --------
         >>> import os
         >>> f = os.path.dirname(os.path.abspath('__file__'))+'/tests/moon.tif'
-        >>> a = AceDataset(f)
-        >>> a.get_info()
+        >>> ds = CpyDataset(f)
+        >>> ds.get_info()
         (90.0, -90.0, -180.0, 180.0, 6378.137, 4.0)
         """
         xsize, ysize = self.RasterXSize, self.RasterYSize
@@ -169,17 +151,18 @@ class AceDataset(object):
 
     def is_global(self):
         """
-        Check if self has 360 degrees of longitude.
+        Check if dataset has 360 degrees of longitude.
 
         Examples
         --------
-        >>> import os
-        >>> f = os.path.dirname(os.path.abspath('__file__'))+'/tests/moon.tif'
-        >>> a = AceDataset(f, 90, -90, 0, 360, 1737)
-        >>> a.is_global()
+        >>> import os.path as p
+        >>> datadir = p.join(p.dirname(p.abspath('__file__')), 'examples')
+        >>> dsfile = p.join(datadir, 'moon.tif')
+        >>> ds = CpyDataset(dsfile, radius=1737)
+        >>> ds.is_global()
         True
         """
-        return abs(self.elon - self.wlon - 360) <= 0.0001
+        return np.isclose(self.elon, self.wlon + 360)
 
     def get_roi(self, lat, lon, rad, wsize=1, mask_crater=False,
                 plot_roi=False, get_extent=False):
