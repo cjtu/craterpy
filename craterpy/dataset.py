@@ -1,19 +1,19 @@
-"""Contains the CpyDataset object which wraps gdal.Dataset."""
+"""Contains the CraterpyDataset object which wraps gdal.Dataset."""
 from __future__ import division, print_function, absolute_import
 import numpy as np
 import gdal
 gdal.UseExceptions()  # configure gdal to use Python exceptions
 
 
-class CpyDataset(object):
-    """The CpyDataset is a specialized version of the GDAL Dataset object.
+class CraterpyDataset(object):
+    """The CraterpyDataset is a specialized version of the GDAL Dataset object.
 
-    The CpyDataset only supports simple cylindrically projected datasets. It
-    can open any file format accepted by gdal.Open(). If the input file is a
-    GeoTIFF, the geographical bounds and resolution will be read
-    automatically. Otherwise, the attributes must be passed in the constructor.
+    The CraterpyDataset only supports simple cylindrically projected datasets.
+    It opens files supported by gdal.Open(). If the input file is a GeoTIFF,
+    the geographical bounds and resolution will be read automatically.
+    Otherwise, all attributes must be passed in the constructor.
 
-    CpyDataset inherits all attributes and methods from gdal.Dataset.
+    CraterpyDataset inherits all attributes and methods from gdal.Dataset.
 
 
     Attributes
@@ -41,12 +41,12 @@ class CpyDataset(object):
     >>> import os.path as p
     >>> datadir = p.join(p.dirname(p.abspath('__file__')), 'examples')
     >>> dsfile = p.join(datadir, 'moon.tif')
-    >>> ds = CpyDataset(dsfile, radius=1737)
+    >>> ds = CraterpyDataset(dsfile, radius=1737)
     >>> roi = ds.get_roi(-27.2, 80.9, 207)  # Humboldt crater
     """
     def __init__(self, dataset, nlat=None, slat=None, wlon=None, elon=None,
                  radius=None, ppd=None, nodata=None):
-        """Initialize CpyDataset object."""
+        """Initialize CraterpyDataset object."""
         # gdal.Dataset is not easily inherited from so we wrap it instead
         if isinstance(dataset, gdal.Dataset):
             self.gdalDataset = dataset
@@ -64,7 +64,7 @@ class CpyDataset(object):
 
     def __getattr__(self, name):
         """Wraps self.gdalDataset."""
-        if name not in self.__dict__:  # Redirect if not in CpyDataset
+        if name not in self.__dict__:  # Redirect if not in CraterpyDataset
             try:
                 func = getattr(self.__dict__['gdalDataset'], name)
                 if callable(func):  # Call method
@@ -77,10 +77,10 @@ class CpyDataset(object):
                 raise AttributeError('Object has no attribute {}'.format(name))
 
     def __repr__(self):
-        """Representation of CpyDataset with attribute info"""
+        """Representation of CraterpyDataset with attribute info"""
         attrs = (self.nlat, self.slat, self.wlon, self.elon,
                  self.radius, self.ppd)
-        rep = 'CpyDataset with extent ({}N, {}N)'.format(*attrs[:2])
+        rep = 'CraterpyDataset with extent ({}N, {}N)'.format(*attrs[:2])
         rep += '({}E, {}E), radius {} km, '.format(*attrs[2:5])
         rep += 'and resolution {} ppd'.format(attrs[5])
         return rep
@@ -102,7 +102,7 @@ class CpyDataset(object):
         >>> import os.path as p
         >>> datadir = p.join(p.dirname(p.abspath('__file__')), 'examples')
         >>> dsfile = p.join(datadir, 'moon.tif')
-        >>> ds = CpyDataset(dsfile, radius=1737)
+        >>> ds = CraterpyDataset(dsfile, radius=1737)
         >>> '{:.0f}'.format(ds.calc_mpp())
         '7579.1'
         >>> '{:.0f}'.format(ds.calc_mpp(50))
@@ -132,7 +132,7 @@ class CpyDataset(object):
         --------
         >>> import os
         >>> f = os.path.dirname(os.path.abspath('__file__'))+'/tests/moon.tif'
-        >>> ds = CpyDataset(f)
+        >>> ds = CraterpyDataset(f)
         >>> ds.get_info()
         (90.0, -90.0, -180.0, 180.0, 6378.137, 4.0)
         """
@@ -158,7 +158,7 @@ class CpyDataset(object):
         >>> import os.path as p
         >>> datadir = p.join(p.dirname(p.abspath('__file__')), 'examples')
         >>> dsfile = p.join(datadir, 'moon.tif')
-        >>> ds = CpyDataset(dsfile, radius=1737)
+        >>> ds = CraterpyDataset(dsfile, radius=1737)
         >>> ds.is_global()
         True
         """

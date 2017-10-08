@@ -19,10 +19,7 @@ def circle_mask(roi, radius, center=(None, None)):
     width, height = roi.shape
     x = np.arange(width) - cx
     y = np.arange(height).reshape(-1, 1) - cy
-    if radius > 0:
-        return x*x + y*y <= radius*radius
-    else:
-        return np.zeros(roi.shape, dtype=bool)
+    return x*x + y*y <= radius*radius
 
 
 def ellipse_mask(roi, a, b, center=(None, None)):
