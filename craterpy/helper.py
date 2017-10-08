@@ -1,0 +1,124 @@
+"""This file contains various helper functions for craterpy"""
+from __future__ import division, print_function, absolute_import
+import numpy as np
+
+
+# Geospatial helpers
+def inbounds(lat, lon, mode='std'):
+    """True if lat and lon within global coordinates.
+    Standard: mode='std' for lat in (-90, 90) and lon in (-180, 180).
+    Positive: mode='pos' for lat in (0, 180) and lon in (0, 360)
+
+    >>> lat = -10
+    >>> lon = -10
+    >>> inbounds(lat, lon)
+    True
+    >>> inbounds(lat, lon, 'pos')
+    False
+    """
+    if mode == 'std':
+        return (-90 <= lat <= 90) and (-180 <= lon <= 180)
+    elif mode == 'pos':
+        return (0 <= lat <= 180) and (0 <= lon <= 360)
+
+
+def m2deg(dist, mpp, ppd):
+    """Return dist converted from meters to degrees."""
+    return dist/(mpp*ppd)
+
+
+def m2pix(dist, mpp):
+    """Return dist converted from meters to pixels"""
+    return int(dist/mpp)
+
+
+def deg2pix(dist, ppd):
+    """Return dist converted from degrees to pixels."""
+    return int(dist*ppd)
+
+
+def get_ind(value, array):
+    """Return closest index (rounded down) of a value from sorted array."""
+    ind = np.abs(array-value).argmin()
+    return int(ind)
+
+
+def deg2rad(theta):
+    """
+    Convert degrees to radians.
+
+    >>> deg2rad(180)
+    3.141592653589793
+    """
+    return theta * (np.pi / 180)
+
+
+def greatcircdist(lat1, lon1, lat2, lon2, radius):
+    """
+    Return great circle distance between two points on a spherical body.
+    Uses Haversine formula for great circle distances.
+
+    >>> greatcircdist(36.12, -86.67, 33.94, -118.40, 6372.8)
+    2887.259950607111
+    """
+    if abs(lat1) >= 90 or abs(lat2) >= 90 or not all(map(inbounds,
+                                                         (lat1, lon1),
+                                                         (lat2, lon2))):
+        raise ValueError("Latitude or longitude out of bounds.")
+    # Convert degrees to radians
+    lat1, lon1, lat2, lon2 = map(deg2rad, [lat1, lon1, lat2, lon2])
+    # Haversine
+    dlat = lat2 - lat1
+    dlon = lon2 - lon1
+    a = np.sin(dlat/2)**2 + np.cos(lat1)*np.cos(lat2)*np.sin(dlon/2)**2
+    theta = 2 * np.arcsin(np.sqrt(a))
+    dist = radius*theta
+    return dist
+
+
+# DataFrame helpers
+def findcol(df, names):
+    """Return first instance of a column from df matching an unformated string
+    in names. If none found, return None
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        Dataframe object.
+    names : str or list of str
+        Names to check against columns in df.
+
+    Examples
+    --------
+    >>> df = pd.DataFrame({'Lat' : [10, -20., 80.0],
+                           'Lon' : [14, -40.1, 317.2],
+                           'Diam' : [2, 12., 23.7]})
+    >>> findcol(df, ['Latitude', 'Lat'])
+    'Lat'
+    >>> findcol(df, ['Radius'])
+    >>> findcol(df, 'diam')
+    'Diam'
+    """
+    if isinstance(names, str):
+        names = [names]
+    dfcols = df.columns.values
+    findcol = [name.strip().lower() == col.strip().lower()
+               for name in names
+               for col in dfcols]
+    if any(findcol):
+        return dfcols[np.where(findcol)[0][0]]
+    return None
+
+
+def diam2radius(df, diamcol=None):
+    """Return dataframe with diameter column converted to radius."""
+    if not diamcol:
+        diamcol = findcol(df, ['diam', 'diameter'])
+        print(diamcol)
+    df.update(df[diamcol]/2)
+    df.rename(columns={diamcol: "Radius"}, inplace=True)
+    return df
+
+def downshift_lon(df):
+    """Shift longitudes from (0, 360) -> (-180, 180) convention."""
+    pass
