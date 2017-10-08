@@ -26,6 +26,8 @@ class CpyDataset(object):
         Radius of the planeary body [km].
     ppd : int or float
         Resolution of dataset in [pixels per degree].
+    nodata : int or float
+        Numerical value of invalid (no data) pixels.
 
     Methods
     -------
@@ -45,7 +47,7 @@ class CpyDataset(object):
     >>> roi = ds.get_roi(-27.2, 80.9, 207)  # Humboldt crater
     """
     def __init__(self, dataset, nlat=None, slat=None, wlon=None, elon=None,
-                 radius=None, ppd=None, **kwargs):
+                 radius=None, ppd=None, nodata=None):
         """Initialize CpyDataset object."""
         # gdal.Dataset is not easily inherited from so we wrap it instead
         if isinstance(dataset, gdal.Dataset):
