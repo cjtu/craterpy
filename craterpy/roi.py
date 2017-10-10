@@ -1,8 +1,6 @@
 """Contains the CraterRoi object"""
 from __future__ import division, print_function, absolute_import
 import numpy as np
-import pandas as pd
-import gdal
 import craterpy.helper as ch
 
 
@@ -81,9 +79,9 @@ class CraterRoi:
                           self.cds.ppd)
         height = ch.km2deg(2*self.wsize*self.rad, self.cds.calc_mpp(),
                            self.cds.ppd)
-        minlon = self.lon-wsize_deg/2
+        minlon = self.lon-(height/2)
         maxlon = minlon + width
-        minlat = self.lat-wsize_deg/2
+        minlat = self.lat-(width/2)
         maxlat = minlat + height
         return (minlon, maxlon, minlat, maxlat)
 
@@ -110,8 +108,8 @@ class CraterRoi:
                 extending wsize*rad distance from the crater centre.
             """
             # If lon > 180, switch lon convention from (0, 360) -> (-180, 180)
-            if lon > 180:
-                lon -= 360
+            if self.lon > 180:
+                self.lon -= 360
             return self.cds.get_roi(*self.extent)
 
     def filter(self, vmin=float('-inf'), vmax=float('inf'), strict=False,
