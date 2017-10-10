@@ -1,5 +1,5 @@
 import numpy as np
-from craterpy.functions import m2pix, deg2pix
+import craterpy.helper as ch
 
 
 def circle_mask(shape, radius, center=None):
@@ -118,20 +118,13 @@ def ring_mask(shape, rmin, rmax, center=None):
     return outer*~inner
 
 
-def crater_floor_mask(cds, roi, lat, lon, rad):
-    """Mask the floor of the crater lat, lon, with radius rad.
+def crater_floor_mask(croi):
+    """Return bool mask of interior of a crater in a CraterRoi.
 
     Parameters
     ----------
-    shape : tuple of int
-        Shape of output boolean mask array of the form (ysize, xsize).
-    rmin : int or float
-        Inner ring radius [pixels].
-    rmax : int or float
-        Outer ring radius [pixels].
-    center : tuple of int
-        Two element tuple of (yindex, xindex) of ellipse center (defautls to
-        center of the mask).
+    croi : CraterRoi
+        Crater region of interest specifying crater to mask
 
     Returns
     -------
@@ -140,56 +133,81 @@ def crater_floor_mask(cds, roi, lat, lon, rad):
     Examples
     --------
     """
-    pixwidth = m2pix(rad, cds.calc_mpp(lat))
-    pixheight = m2pix(rad, cds.calc_mpp())
-    return ellipse_mask(roi, pixwidth, pixheight)
+    pixwidth = ch.km2pix(croi.rad, croi.cds.calc_mpp(croi.lat))
+    pixheight = ch.km2pix(croi.rad, croi.cds.calc_mpp())
+    return ellipse_mask(croi.roi.shape, pixwidth, pixheight)
 
 
-def crater_ring_mask(cds, roi, lat, lon, rmin, rmax):
+def crater_ring_mask(croi, rmin, rmax):
+    """Return bool mask of interior of a ring aroun a crater in a CraterRoi.
+
+    Ring is calculated by subtracting an inner ellipse mask from an outer
+    ellipse mask which are specified by rmin and rmax, respectively.
+
+    Parameters
+    ----------
+    croi : CraterRoi
+        Crater region of interest specifying crater to mask
+    rmin : int or float
+        Inner ring radius [km].
+    rmax : int or float
+        Outer ring radius [km].
+
+    Returns
+    -------
+    mask : numpy 2D array
+
+    Examples
+    --------
     """
-    Mask a ring around a crater with inner radius rmin and outer radius rmax
-    crater radii.
-    """
-    rmax_pixheight = m2pix(rmax, cds.calc_mpp())
-    rmax_pixwidth = m2pix(rmax, cds.calc_mpp(lat))
-    rmin_pixheight = m2pix(rmin, cds.calc_mpp())
-    rmin_pixwidth = m2pix(rmin, cds.calc_mpp(lat))
-    outer = ellipse_mask(roi, rmax_pixwidth, rmax_pixheight)
-    inner = ellipse_mask(roi, rmin_pixwidth, rmin_pixheight)
+    rmax_pixheight = ch.km2pix(rmax, croi.cds.calc_mpp())
+    rmax_pixwidth = ch.km2pix(rmax, croi.cds.calc_mpp(croi.lat))
+    rmin_pixheight = ch.km2pix(rmin, croi.cds.calc_mpp())
+    rmin_pixwidth = ch.km2pix(rmin, croi.cds.calc_mpp(croi.lat))
+    outer = ellipse_mask(croi.roi.shape, rmax_pixwidth, rmax_pixheight)
+    inner = ellipse_mask(croi.roi.shape, rmin_pixwidth, rmin_pixheight)
     return outer * ~inner
 
 
-def polygon_mask(cds, roi, extent, poly_verts):
-    """
-    Mask the region inside a polygon given by poly_verts.
+def polygon_mask(croi, poly_verts):
+    """Mask the region inside a polygon given by poly_verts.
+
+    Uses the matplotlib.Path module and included contains_points() method to
+    calculate the interior of a polygon specified as a list of (lat, lon)
+    vertices.
 
     Parameters
     ==========
-    cds
-    roi
-    extent: (float, float, float, float)
-        Extent tuple of (minlon, maxlon, minlat, maxlat).
-    poly_verts: list of tuple
+    croi : CraterRoi
+        Crater region of interest being masked.
+    poly_verts : list of tuple
         List of (lon, lat) polygon vertices.
+
+    Returns
+    -------
+    mask : numpy 2D array
 
     Example
     =======
-    cds = CraterpyDatset(datafile)
-    roi, extent = cds.get_roi(-27, 80.9, 94.5, wsize=2, get_extent=True)
-    mask = polygon_mask(cds, roi, extent, poly_verts)
-    masked = mask_where(roi, ~mask)
-    plot_roi(cds, masked, vmin=0, vmax=1)
+    >>> import os.path as p
+    >>> f = p.join(p.dirname(p.abspath('__file__')), 'examples', 'moon.tif')
+    >>> cds = CraterpyDataset(f, radius=1737)
+    >>> croi = CraterRoi(cds, -27.2, 80.9, 207)  # Humboldt crater
+    >>> poly = [[-27.5, 80.5], [-28, 80.5], [-28, 81], [-27.5, 81]]
+    >>> mask = polygon_mask(cds, roi, extent, poly)
+    >>> croi.mask(mask)
+    >>> croi.plot()
     """
     from matplotlib.path import Path
-    minlon, maxlon, minlat, maxlat = extent
+    minlon, maxlon, minlat, maxlat = croi.extent
     # Create grid
-    nlat, nlon = roi.shape
+    nlat, nlon = croi.roi.shape
     x, y = np.meshgrid(np.arange(nlon), np.arange(nlat))
     x, y = x.flatten(), y.flatten()
     gridpoints = np.vstack((x, y)).T
-
-    poly_pix = [(deg2pix(lon-minlon, cds.ppd),
-                deg2pix(lat-minlat, cds.ppd)) for lon, lat in poly_verts]
+    poly_pix = [(ch.deg2pix(lon-minlon, croi.cds.ppd),
+                ch.deg2pix(lat-minlat, croi.cds.ppd))
+                for lon, lat in poly_verts]
     path = Path(poly_pix)
     mask = path.contains_points(gridpoints).reshape((nlat, nlon))
     return mask

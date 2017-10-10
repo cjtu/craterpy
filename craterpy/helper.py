@@ -4,9 +4,9 @@ import numpy as np
 
 
 # Geospatial helpers
-def deg2pix(dist, ppd):
-    """Return dist converted from degrees to pixels."""
-    return int(dist*ppd)
+def deg2pix(degrees, ppd):
+    """Return degrees converted to pixels at ppd pixels/degree."""
+    return int(degrees*ppd)
 
 
 def deg2rad(theta):
@@ -26,14 +26,14 @@ def get_ind(value, array):
     return int(ind)
 
 
-def m2deg(dist, mpp, ppd):
-    """Return dist converted from meters to degrees."""
-    return dist/(mpp*ppd)
+def km2deg(dist, mpp, ppd):
+    """Return dist converted from kilometers to degrees."""
+    return 1000*dist/(mpp*ppd)
 
 
-def m2pix(dist, mpp):
-    """Return dist converted from meters to pixels"""
-    return int(dist/mpp)
+def km2pix(dist, mpp):
+    """Return dist converted from kilometers to pixels"""
+    return int(1000*dist/mpp)
 
 
 def greatcircdist(lat1, lon1, lat2, lon2, radius):

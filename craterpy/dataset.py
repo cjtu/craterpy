@@ -2,6 +2,7 @@
 from __future__ import division, print_function, absolute_import
 import numpy as np
 import gdal
+import craterpy.helper as ch
 gdal.UseExceptions()  # configure gdal to use Python exceptions
 
 
@@ -55,12 +56,16 @@ class CraterpyDataset(object):
 
         args = [nlat, slat, wlon, elon, radius, ppd]
         attrs = ['nlat', 'slat', 'wlon', 'elon', 'radius', 'ppd']
-        geotags = self._get_info()  # Attempt to read geotiff tags
+        geotags = self._get_geotiff_info()  # Attempt to read geotiff tags
         for i, arg in enumerate(args):
             if arg is None:  # Get missing attrs from geotiff tags
                 setattr(self, attrs[i], geotags[i])
             else:  # If argument is supplied, override geotiff tags
                 setattr(self, attrs[i], arg)
+        if not self.ppd:
+            self.ppd = self.RasterXSize/(self.elon-self.wlon)
+        self.latarr = np.linspace(self.nlat, self.slat, self.RasterYSize)
+        self.lonarr = np.linspace(self.wlon, self.elon, self.RasterXSize)
 
     def __getattr__(self, name):
         """Wraps self.gdalDataset."""
@@ -112,7 +117,7 @@ class CraterpyDataset(object):
         npix = 360*self.ppd  # number of pixels in one circumference [pix]
         return circ/npix  # number of meters in one pixel at lat [m]/[pix]
 
-    def _get_info(self):
+    def _get_geotiff_info(self):
         """Get geotiff args from gdal.Datast.GetGeoTransform() method.
 
         Returns
@@ -141,13 +146,49 @@ class CraterpyDataset(object):
         try:  # Try to get info assuming WKT format
             radius = 0.001*float(self.GetProjection().split(',')[3])
         except IndexError:
-            raise ImportError('Dataset radius not defined')
+            print('Dataset radius not defined')
             radius = None
         wlon, dpp, nlat = (geotrans[0], geotrans[1], geotrans[3])
         elon = wlon + xsize*dpp
         slat = nlat - ysize*dpp
-        ppd = 1/dpp
+        ppd = 1/dpp if dpp else xsize/(elon-wlon)
         return nlat, slat, wlon, elon, radius, ppd
+
+    def _wrap360(self, minlon, maxlon, topind, height):
+        """Return roi that is split by the 360 degree edge of a global dataset.
+
+        Read the left and right sub-arrays and then concatenate them into
+        the full roi.
+
+        Parameters
+        ----------
+        minlon : int or float
+            Western longitude bound [degrees].
+        maxlon : int or float
+            Eastern longitude bound [degrees].
+        topind : int
+            Top index of returned roi.
+        height : int
+            Height of returned roi.
+
+        Returns
+        --------
+        roi: 2Darray
+            Concatenated roi wrapped around lon bound.
+        """
+        if minlon < self.wlon:
+            leftind = ch.deg2pix(minlon-(self.wlon-360))
+            leftwidth = ch.deg2pix(self.wlon - minlon, self.ppd)
+            rightind = 0
+            rightwidth = ch.deg2pix(maxlon - self.wlon, self.ppd)
+        elif maxlon > self.elon:
+            leftind = ch.deg2pix(self.elon-minlon)
+            leftwidth = ch.deg2pix(self.elon - minlon, self.ppd)
+            rightind = 0
+            rightwidth = ch.deg2pix(maxlon - self.elon, self.ppd)
+        left_roi = self.ReadAsArray(leftind, topind, leftwidth, height)
+        right_roi = self.ReadAsArray(rightind, topind, rightwidth, height)
+        return np.concatenate((left_roi, right_roi), axis=1)
 
     def is_global(self):
         """
@@ -164,6 +205,39 @@ class CraterpyDataset(object):
         """
         return np.isclose(self.elon, self.wlon + 360)
 
+    def get_roi(self, minlon, maxlon, minlat, maxlat):
+        """Return numpy array of data specified by its geographical bounds
+
+        Parameters
+        ----------
+        minlon : int or float
+            Western longitude bound [degrees].
+        maxlon : int or float
+            Eastern longitude bound [degrees].
+        minlat : int or float
+            Southern latitude bound [degrees].
+        maxlat : int or float
+            Northern latitude bound [degrees].
+
+        Returns
+        -------
+        roi : numpy 2D array
+            Numpy array specified by extent given.
+        
+        Examples
+        --------
+        # TODO
+        """
+
+        topind = ch.deg2pix(self.nlat-maxlat, self.ppd)
+        height = ch.deg2pix(maxlat-minlat, self.ppd)
+        if self.is_global() and (minlon < self.wlon or maxlon > self.elon):
+            roi = self._wrap360(self, minlon, maxlon, topind, height)
+        else:
+            leftind = ch.deg2pix(minlon-self.wlon, self.ppd)
+            width = ch.deg2pix(maxlon-minlon, self.ppd)
+            roi = self.ReadAsArray(leftind, topind, width, height)
+        return roi
 
 if __name__ == "__main__":
     import doctest
