@@ -4,22 +4,26 @@ import numpy as np
 
 
 # Geospatial helpers
-def inbounds(lat, lon, mode='std'):
-    """True if lat and lon within global coordinates.
-    Standard: mode='std' for lat in (-90, 90) and lon in (-180, 180).
-    Positive: mode='pos' for lat in (0, 180) and lon in (0, 360)
+def deg2pix(dist, ppd):
+    """Return dist converted from degrees to pixels."""
+    return int(dist*ppd)
 
-    >>> lat = -10
-    >>> lon = -10
-    >>> inbounds(lat, lon)
-    True
-    >>> inbounds(lat, lon, 'pos')
-    False
+
+def deg2rad(theta):
+    """Convert degrees to radians.
+
+    Examples
+    --------
+    >>> deg2rad(180)
+    3.141592653589793
     """
-    if mode == 'std':
-        return (-90 <= lat <= 90) and (-180 <= lon <= 180)
-    elif mode == 'pos':
-        return (0 <= lat <= 180) and (0 <= lon <= 360)
+    return theta * (np.pi / 180)
+
+
+def get_ind(value, array):
+    """Return closest index (rounded down) of a value from array."""
+    ind = np.abs(array-value).argmin()
+    return int(ind)
 
 
 def m2deg(dist, mpp, ppd):
@@ -32,38 +36,17 @@ def m2pix(dist, mpp):
     return int(dist/mpp)
 
 
-def deg2pix(dist, ppd):
-    """Return dist converted from degrees to pixels."""
-    return int(dist*ppd)
-
-
-def get_ind(value, array):
-    """Return closest index (rounded down) of a value from sorted array."""
-    ind = np.abs(array-value).argmin()
-    return int(ind)
-
-
-def deg2rad(theta):
-    """
-    Convert degrees to radians.
-
-    >>> deg2rad(180)
-    3.141592653589793
-    """
-    return theta * (np.pi / 180)
-
-
 def greatcircdist(lat1, lon1, lat2, lon2, radius):
-    """
-    Return great circle distance between two points on a spherical body.
+    """Return great circle distance between two points on a spherical body.
+
     Uses Haversine formula for great circle distances.
 
+    Examples
+    --------
     >>> greatcircdist(36.12, -86.67, 33.94, -118.40, 6372.8)
     2887.259950607111
     """
-    if abs(lat1) >= 90 or abs(lat2) >= 90 or not all(map(inbounds,
-                                                         (lat1, lon1),
-                                                         (lat2, lon2))):
+    if not all(map(inglobal, (lat1, lon1), (lat2, lon2))):
         raise ValueError("Latitude or longitude out of bounds.")
     # Convert degrees to radians
     lat1, lon1, lat2, lon2 = map(deg2rad, [lat1, lon1, lat2, lon2])
@@ -72,8 +55,28 @@ def greatcircdist(lat1, lon1, lat2, lon2, radius):
     dlon = lon2 - lon1
     a = np.sin(dlat/2)**2 + np.cos(lat1)*np.cos(lat2)*np.sin(dlon/2)**2
     theta = 2 * np.arcsin(np.sqrt(a))
-    dist = radius*theta
-    return dist
+    return radius*theta
+
+
+def inglobal(lat, lon, mode=None):
+    """True if lat and lon within global coordinates.
+
+    Default coords: lat in (-90, 90) and lon in (-180, 180).
+    mode='pos': lat in (-90, 90) and lon in (0, 360).
+
+    Examples
+    --------
+    >>> lat = -10
+    >>> lon = -10
+    >>> inbounds(lat, lon)
+    True
+    >>> inbounds(lat, lon, 'pos')
+    False
+    """
+    if mode == 'pos':
+        return (-90 <= lat <= 90) and (0 <= lon <= 360)
+    else:
+        return (-90 <= lat <= 90) and (-180 <= lon <= 180)
 
 
 # DataFrame helpers
@@ -118,6 +121,7 @@ def diam2radius(df, diamcol=None):
     df.update(df[diamcol]/2)
     df.rename(columns={diamcol: "Radius"}, inplace=True)
     return df
+
 
 def downshift_lon(df):
     """Shift longitudes from (0, 360) -> (-180, 180) convention."""
