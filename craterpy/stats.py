@@ -11,7 +11,7 @@ from craterpy import masking, plotting
 def _list_quickstats():
     """Return names of all functions in quickstats."""
     quickstats = inspect.getmembers(qs, inspect.isfunction)
-    return quickstats[:, 0]
+    return [q[0] for q in quickstats]
 
 
 def _get_quickstats_functions(statlist=None):
@@ -33,18 +33,16 @@ def _get_quickstats_functions(statlist=None):
     >>> _getquickstats_functions(['mean', 'median'])
     >>> [['mean', <function>], ['median', <function>]]
     """
-    quickstats = _list_quickstats()
+    qs_list = _list_quickstats()
     if not statlist:
-        statlist = quickstats
+        statlist = qs_list
     elif isinstance(statlist, str):  # or isinstance(statlist, basestring):
         statlist = [statlist]
-    invalid_stats = [stat for stat in statlist if stat not in quickstats]
+    invalid_stats = [stat for stat in statlist if stat not in qs_list]
     if invalid_stats:  # TODO: define custom Exception
         raise ValueError('The following stats are not defined ' +
                          'in quickstats.py: {}'.format(invalid_stats))
-    allstats = inspect.getmembers(qs, inspect.isfunction)
-    stat_funcs = [func for func in allstats if func[0] in statlist]
-    return stat_funcs
+    return [[stat, qs.__dict__[stat]] for stat in statlist]
 
 
 # Main craterpy stat functions
@@ -143,8 +141,8 @@ def ejecta_stats(cdf, cds, ejrad=2, stats=None, plot=False, vmin=None,
     cdf : CraterDataFrame object
         Contains the crater locations and sizes to locate ROIs in aceDS. Also
         form the basis of the returned CraterDataFrame
-    cds : CpyDataset object
-        CpyDataset of image data used to compute stats.
+    cds : CraterpyDataset object
+        CraterpyDataset of image data used to compute stats.
     ejrad : int, float
         The radius of ejecta blanket measured in crater radii from the
         crater center to the ejecta extent.

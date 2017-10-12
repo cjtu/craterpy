@@ -51,9 +51,9 @@ CLASSIFIERS = ['Development Status :: 3 - Alpha',
                'Programming Language :: Python :: 2',
                'Programming Language :: Python :: 2.7',
                'Programming Language :: Python :: 3',
-               'Programming Language :: Python :: 3.2',
-               'Programming Language :: Python :: 3.3']
-KEYWORDS = 'crater data analysis planetary science'
+               'Programming Language :: Python :: 3.4',
+               'Programming Language :: Python :: 3.5']
+KEYWORDS = 'python crater data analysis planetary science'
 PLATFORMS = 'OS Independent'
 PACKAGES = find_packages(exclude=['tests'])
 PACKAGE_DATA = {'': ['*.csv', '*.tif']}
