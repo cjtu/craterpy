@@ -85,37 +85,10 @@ class CraterpyDataset(object):
         """Representation of CraterpyDataset with attribute info"""
         attrs = (self.nlat, self.slat, self.wlon, self.elon,
                  self.radius, self.ppd)
-        rep = 'CraterpyDataset with extent ({}N, {}N)'.format(*attrs[:2])
+        rep = 'CraterpyDataset with extent ({}N, {}N), '.format(*attrs[:2])
         rep += '({}E, {}E), radius {} km, '.format(*attrs[2:5])
         rep += 'and resolution {} ppd'.format(attrs[5])
         return rep
-
-    def calc_mpp(self, lat=0):
-        """Return the ground resolution in meters/pixel at the given latitude.
-
-        Due to stretching towards the poles in the simple-cylindrical
-        projection, pixels have higher meter resolution near the equator.
-        This simple function calculates the latitude-dependent mpp resolution.
-
-        Parameters
-        ----------
-        lat: int or float
-            Latitude (Default is 0, the equator).
-
-        Examples
-        --------
-        >>> import os.path as p
-        >>> datadir = p.join(p.dirname(p.abspath('__file__')), 'examples')
-        >>> dsfile = p.join(datadir, 'moon.tif')
-        >>> ds = CraterpyDataset(dsfile, radius=1737)
-        >>> '{:.0f}'.format(ds.calc_mpp())
-        '7579.1'
-        >>> '{:.0f}'.format(ds.calc_mpp(50))
-        '4871.7'
-        """
-        circ = 2*np.pi*1000*self.radius*np.cos(lat)  # circumference at lat [m]
-        npix = 360*self.ppd  # number of pixels in one circumference [pix]
-        return circ/npix  # number of meters in one pixel at lat [m]/[pix]
 
     def _get_geotiff_info(self):
         """Get geotiff args from gdal.Datast.GetGeoTransform() method.
@@ -154,7 +127,111 @@ class CraterpyDataset(object):
         ppd = 1/dpp if dpp else xsize/(elon-wlon)
         return nlat, slat, wlon, elon, radius, ppd
 
-    def _wrap360(self, minlon, maxlon, topind, height):
+    def calc_mpp(self, lat=0):
+        """Return the ground resolution in meters/pixel at the given latitude.
+
+        Due to stretching towards the poles in the simple-cylindrical
+        projection, mpp resolution is latitude-dependent.
+
+        Parameters
+        ----------
+        lat: int or float
+            Latitude (Default is 0, the equator).
+
+        Examples
+        --------
+        >>> import os.path as p
+        >>> datadir = p.join(p.dirname(p.abspath('__file__')), 'examples')
+        >>> dsfile = p.join(datadir, 'moon.tif')
+        >>> ds = CraterpyDataset(dsfile, radius=1737)
+        >>> '{:.0f}'.format(ds.calc_mpp())
+        '7579.1'
+        >>> '{:.0f}'.format(ds.calc_mpp(50))
+        '4871.7'
+        """
+        if abs(lat) > 90:
+            raise ValueError("Latitude out of bounds")
+        # calculate circumference at lat in [m], divide by num pixels
+        circ = 1000*2*np.pi*self.radius*np.cos(lat*np.pi/180)
+        npix = 360*self.ppd  # num pixels in one circumference [pix]
+        return circ/npix  # num meters in one pixel at lat [m]/[pix]
+
+    def inbounds(self, lat, lon):
+        """Return True if (lat, lon) point in Dataset bounds.
+
+        Parameters
+        ----------
+        lat : int or float
+            Latitude [degrees].
+        lon : int or float
+            Longitude [degrees].
+
+        Examples
+        --------
+        >>> ds = CraterpyDataset(dsfile, nlat=20, slat=0, wlon=10, elon=20)
+        >>> ds.inbounds(10, 15)
+        True
+        >>> ds.inbounds(0, 10)
+        True
+        >>> ds.inbounds(10, 40)
+        False
+        """
+        return ((self.slat <= lat <= self.nlat) and
+                (self.wlon <= lon <= self.elon))
+
+    def is_global(self):
+        """
+        Check if dataset has 360 degrees of longitude.
+
+        Examples
+        --------
+        >>> import os.path as p
+        >>> datadir = p.join(p.dirname(p.abspath('__file__')), 'examples')
+        >>> dsfile = p.join(datadir, 'moon.tif')
+        >>> ds = CraterpyDataset(dsfile, radius=1737)
+        >>> ds.is_global()
+        True
+        """
+        return np.isclose(self.elon, self.wlon + 360)
+
+    def get_roi(self, minlon, maxlon, minlat, maxlat):
+        """Return numpy array of data specified by its geographical bounds
+
+        Parameters
+        ----------
+        minlon : int or float
+            Western longitude bound [degrees].
+        maxlon : int or float
+            Eastern longitude bound [degrees].
+        minlat : int or float
+            Southern latitude bound [degrees].
+        maxlat : int or float
+            Northern latitude bound [degrees].
+
+        Returns
+        -------
+        roi : numpy 2D array
+            Numpy array specified by extent given.
+
+        Examples
+        --------
+        # TODO
+        """
+        if not (self.inbounds(minlon, minlat) and
+                self.inbounds(maxlat, maxlon)):
+            raise ImportError("Roi extent out of dataset bounds.")
+        topind = ch.deg2pix(self.nlat-maxlat, self.ppd)
+        height = ch.deg2pix(maxlat-minlat, self.ppd)
+        if self.is_global() and (minlon < self.wlon or maxlon > self.elon):
+            roi = self._wrap_roi_360(self, minlon, maxlon, topind, height)
+        else:
+            leftind = ch.deg2pix(minlon-self.wlon, self.ppd)
+            width = ch.deg2pix(maxlon-minlon, self.ppd)
+            roi = self.ReadAsArray(leftind, topind, width, height)
+        return roi
+
+
+def _wrap_roi_360(self, minlon, maxlon, topind, height):
         """Return roi that is split by the 360 degree edge of a global dataset.
 
         Read the left and right sub-arrays and then concatenate them into
@@ -190,54 +267,6 @@ class CraterpyDataset(object):
         right_roi = self.ReadAsArray(rightind, topind, rightwidth, height)
         return np.concatenate((left_roi, right_roi), axis=1)
 
-    def is_global(self):
-        """
-        Check if dataset has 360 degrees of longitude.
-
-        Examples
-        --------
-        >>> import os.path as p
-        >>> datadir = p.join(p.dirname(p.abspath('__file__')), 'examples')
-        >>> dsfile = p.join(datadir, 'moon.tif')
-        >>> ds = CraterpyDataset(dsfile, radius=1737)
-        >>> ds.is_global()
-        True
-        """
-        return np.isclose(self.elon, self.wlon + 360)
-
-    def get_roi(self, minlon, maxlon, minlat, maxlat):
-        """Return numpy array of data specified by its geographical bounds
-
-        Parameters
-        ----------
-        minlon : int or float
-            Western longitude bound [degrees].
-        maxlon : int or float
-            Eastern longitude bound [degrees].
-        minlat : int or float
-            Southern latitude bound [degrees].
-        maxlat : int or float
-            Northern latitude bound [degrees].
-
-        Returns
-        -------
-        roi : numpy 2D array
-            Numpy array specified by extent given.
-        
-        Examples
-        --------
-        # TODO
-        """
-
-        topind = ch.deg2pix(self.nlat-maxlat, self.ppd)
-        height = ch.deg2pix(maxlat-minlat, self.ppd)
-        if self.is_global() and (minlon < self.wlon or maxlon > self.elon):
-            roi = self._wrap360(self, minlon, maxlon, topind, height)
-        else:
-            leftind = ch.deg2pix(minlon-self.wlon, self.ppd)
-            width = ch.deg2pix(maxlon-minlon, self.ppd)
-            roi = self.ReadAsArray(leftind, topind, width, height)
-        return roi
 
 if __name__ == "__main__":
     import doctest

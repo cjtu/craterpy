@@ -1,93 +1,98 @@
 from __future__ import division, print_function, absolute_import
-import os
+import os.path as p
 import unittest
 import numpy as np
-import pandas as pd
 import gdal
-import acerim
-from acerim import aceclasses as ac
-
-DATA_PATH = os.path.join(acerim.__path__[0], 'sample')
+from craterpy.dataset import CraterpyDataset
 
 
-class TestAceDataset(unittest.TestCase):
-    """Test AceDataset object"""
-    test_dataset = os.path.join(DATA_PATH, 'moon.tif')
-    ads = ac.AceDataset(test_dataset, radius=1737)
+class TestCraterpyDataset(unittest.TestCase):
+    """Test CraterpyDataset object"""
+    def setUp(self):
+        import craterpy
+        self.data_path = p.join(craterpy.__path__[0], 'data')
+        self.moon_tif = p.join(self.data_path, 'moon.tif')
+        self.cds = CraterpyDataset(self.moon_tif, radius=1737)
 
     def test_file_import(self):
-        """Import test tif '/tests/moon.tif'"""
-        self.assertIsNotNone(self.ads)
+        """Test import"""
+        self.assertIsNotNone(CraterpyDataset(self.moon_tif))
 
     def test_import_gdal_Dataset(self):
-        """Test instantiating AceDataset from gdal.Dataset"""
-        gds = gdal.Open(self.test_dataset)
-        self.assertIsNotNone(ac.AceDataset(gds))
+        """Test importing from gdal.Dataset object"""
+        ds = gdal.Open(self.moon_tif)
+        self.assertIsNotNone(CraterpyDataset(ds))
 
     def test_import_error(self):
         """Test that importing invalid dataset fails"""
-        self.assertRaises(RuntimeError, ac.AceDataset, "Invalid_DS")
-        self.assertRaises(ImportError, ac.AceDataset, [1, 2])
+        self.assertRaises(RuntimeError, CraterpyDataset, "Invalid_DS")
+        self.assertRaises(RuntimeError, CraterpyDataset, [1, 2])
+
+    def test_set_attrs(self):
+        """Test supplying optional attributes to Craterpydataset"""
+        pass  # TODO: implement
 
     def test_get_gdalDataset_attrs(self):
         """Test that wrapped gdal Dataset attrs are accessible"""
-        pass
-
-    def test_get_AceDataset_attrs(self):
-        pass
+        pass  # TODO: implement
 
     def test_repr(self):
-        expected = 'AceDataset object with latitude (90.0, -90.0)N, '
-        expected += 'longitude (-180.0, 180.0)E, radius 1737 km, and '
+        expected = 'CraterpyDataset with extent (90.0N, -90.0N), '
+        expected += '(-180.0E, 180.0E), radius 1737 km, and '
         expected += 'resolution 4.0 ppd'
-        actual = self.ads.__repr__()
+        actual = self.cds.__repr__()
         self.assertEqual(actual, expected)
 
-    def test_is_global(self):
-        """Test .is_global method"""
-        is_global = ac.AceDataset(self.test_dataset,
-                                  wlon=0, elon=360).is_global()
-        self.assertTrue(is_global)
-
-        not_global = ac.AceDataset(self.test_dataset,
-                                   wlon=0, elon=180).is_global()
-        self.assertFalse(not_global)
-
-    def test_calc_mpp0(self):
-        """Test .calc_mpp method at equator"""
-        ads = self.ads
-        circum = 2*np.pi*ads.radius  # [m] circumference at lat=0
-        xpix = ads.RasterXSize  # [pix]
-        expected = circum/xpix  # [m/pix]
-        actual = ads.calc_mpp()
-        self.assertAlmostEqual(actual, expected, 5)
-
-    def test_calc_mpp50(self):
-        """Test .calc_mpp method at 50 degrees latitude"""
-        ads = self.ads
-        circum = 2*np.pi*np.cos(50*(np.pi/180))*ads.radius
-        xpix = ads.RasterXSize
-        expected = circum/xpix
-        actual = ads.calc_mpp(50)
-        self.assertAlmostEqual(actual, expected, 5)
-
-    def test_calc_mpp_gt90(self):
-        """Test if calc_mpp() fails above 90 or below -90 degrees latitude"""
-        ads = self.ads
-        self.assertRaises(ValueError, ads.calc_mpp, 90)
-        self.assertRaises(ValueError, ads.calc_mpp, 100)
-        self.assertRaises(ValueError, ads.calc_mpp, -100)
-
-    def test_get_info(self):
+    def test_get_geotiff_info(self):
         """Test _get_info() method for reading geotiff info"""
-        ads = self.ads
-        actual = ads._get_info()
+        actual = self.cds._get_geotiff_info()
         expected = (90.0, -90.0, -180.0, 180.0, 6378.137, 4.0)
         self.assertEqual(actual, expected)
 
+    def test_calc_mpp(self):
+        """Test .calc_mpp method"""
+        cds = self.cds
+        xpix = cds.RasterXSize  # [pix]
+        # Test at equator
+        expected = 1000*2*np.pi*cds.radius/xpix  # [m/pix] at lat=0
+        self.assertAlmostEqual(cds.calc_mpp(), expected, 5)
+        # Test at 50 degrees lat
+        lat = 50
+        expected = 1000*2*np.pi*cds.radius*np.cos(lat*np.pi/180)/xpix
+        self.assertAlmostEqual(cds.calc_mpp(lat), expected, 5)
+        # Test at -40 degrees lat
+        lat = -40
+        expected = 1000*2*np.pi*cds.radius*np.cos(lat*np.pi/180)/xpix
+        self.assertAlmostEqual(cds.calc_mpp(lat), expected, 5)
+        # Test at 90
+        self.assertAlmostEqual(cds.calc_mpp(90), 0)
+        # Test at out of bounds lat
+        lat = -91
+        self.assertRaises(ValueError, cds.calc_mpp, lat)
+
+    def test_inbounds(self):
+        """Test inbounds method"""
+        cds = CraterpyDataset(self.moon_tif, 90, -90, -180, 180)
+        self.assertTrue(cds.inbounds(50, 100))
+        self.assertTrue(cds.inbounds(-50.1, -100.5))
+        self.assertTrue(cds.inbounds(90.0, 180.0))
+        self.assertFalse(cds.inbounds(90.1, 100))
+        self.assertFalse(cds.inbounds(90.0, -180.5))
+
+    def test_is_global(self):
+        """Test .is_global method"""
+        is_global = CraterpyDataset(self.moon_tif, wlon=0,
+                                    elon=360).is_global()
+        self.assertTrue(is_global)
+
+        not_global = CraterpyDataset(self.moon_tif, wlon=0,
+                                     elon=180).is_global()
+        self.assertFalse(not_global)
+
     def test_get_roi(self):
         """Test get_roi method"""
-        pass
+        pass  # TODO: Implement
 
-    def test_wrap_lon(self):
-        pass
+    def test_wrap_roi_360(self):
+        """Test wrap_roi_360 method"""
+        pass  # TODO: implement

@@ -1,104 +1,60 @@
 """
-Suite of unittests for classes found in /acerim/acestats.py.
+Suite of unittests for functions found in /craterpy/acefunctions.py.
 """
 from __future__ import division, print_function, absolute_import
+import os.path as p
 import unittest
 import numpy as np
-from acerim import acestats as acs
+import pandas as pd
+from craterpy import stats as cs
+from craterpy.dataset import CraterpyDataset
 
 
-class Test_protected(unittest.TestCase):
-    """Test the protected functions in acestats.py"""
+class Test_quickstats_helpers(unittest.TestCase):
+    """Test quickstats.py helper functions"""
 
-    def test_listStats(self):
+    def test_list_quickstats(self):
         """Test the _listStats function"""
         expected = np.array(["maximum", "mean", "median"])
-        actual = acs._listStats()[:3]
+        actual = cs._list_quickstats()[:3]
         np.testing.assert_array_equal(actual, expected)
 
-    def test_getFunctions_single(self):
-        """Test the _getFunctions function with one stat specified"""
+    def test_get_quickstats_fuctions_single(self):
+        """Test the _get_quickstats_functions function with one stat"""
         expected_name = "maximum"
-        stat_func = acs._getFunctions("maximum")
+        stat_func = cs._get_quickstats_functions("maximum")
         actual_name = stat_func[0][0]
         actual_func = stat_func[0][1]
         self.assertEqual(actual_name, expected_name)
         self.assertEqual(callable(actual_func), True)
 
-    def test_getFunctions_multi(self):
-        """Test the _getFunctions function with multiple stats specified"""
-        expected_names = ["maximum", "mean", "median"]
-        stats_funcs = acs._getFunctions(("maximum", "mean", "median"))
+    def test_get_quickstats_fuctions_multi(self):
+        """Test the _get_quickstats_functions function with list of stats"""
+        expected_names = ["maximum", "mean"]
+        stats_funcs = cs._get_quickstats_functions(["maximum", "mean"])
         actual_names = [pair[0] for pair in stats_funcs]
         funcs_callable = [callable(pair[1]) for pair in stats_funcs]
         self.assertEqual(actual_names, expected_names)
-        self.assertEqual(funcs_callable, [True, True, True])
+        self.assertEqual(funcs_callable, [True, True])
 
-    def test_getFuctions_undefined_stat(self):
-        """Test that _getFunctions raises Exception if passed undefined stat"""
-        self.assertRaises(ValueError, acs._getFunctions, "Unknown_Stat")
+    def test_get_quickstats_fuctions_undefined(self):
+        """Test that undefined stat raises Exception"""
+        self.assertRaises(ValueError, cs._get_quickstats_functions, "NotAStat")
 
 
-class Test_ace_stats(unittest.TestCase):
-    """Test the basic stats found in acestats.py"""
-    data_arr = np.array([4, 4, 8, 3, 4, -1, 0, -5, 1, -10, 3])
+# Test Compute Stats
+class Test_compute_stats(unittest.TestCase):
+    """Test computeStats function"""
+    def setUp(self):
+        import craterpy
+        self.data_path = p.join(craterpy.__path__[0], 'data')
+        self.crater_csv = p.join(self.data_path, 'craters.csv')
+        self.moon_tif = p.join(self.data_path, 'moon.tif')
+        self.df = pd.read_csv(self.crater_csv)
+        self.ads = CraterpyDataset(self.moon_tif, radius=1737)
 
-    def test_size(self):
-        """Test acestats.size function"""
-        expected = 11
-        actual = acs.size(self.data_arr)
-        self.assertEqual(actual, expected)
-
-    def test_mean(self):
-        """Test acestats.mean function"""
-        expected = 1.0
-        actual = acs.mean(self.data_arr)
-        self.assertEqual(actual, expected)
-
-    def test_median(self):
-        """Test acestats.median function"""
-        expected = 3.0
-        actual = acs.median(self.data_arr)
-        self.assertEqual(actual, expected)
-
-    def test_mode(self):
-        """Test acestats.mode function"""
-        expected = 4.0
-        actual = acs.mode(self.data_arr)
-        self.assertEqual(actual, expected)
-
-    def test_std(self):
-        """Test acestats.std function"""
-        expected = 4.9598387
-        actual = acs.std(self.data_arr)
-        self.assertAlmostEqual(actual, expected)
-
-    def test_maximum(self):
-        """Test acestats.maximum function"""
-        expected = 8.0
-        actual = acs.maximum(self.data_arr)
-        self.assertEqual(actual, expected)
-
-    def test_minimum(self):
-        """Test acestats.minimum function"""
-        expected = -10.0
-        actual = acs.minimum(self.data_arr)
-        self.assertEqual(actual, expected)
-
-    def test_q1(self):
-        """Test acestats.q1 function"""
-        expected = -0.5
-        actual = acs.q1(self.data_arr)
-        self.assertEqual(actual, expected)
-
-    def test_q3(self):
-        """Test acestats.q3 function"""
-        expected = 4
-        actual = acs.q3(self.data_arr)
-        self.assertEqual(actual, expected)
-
-    def test_pct95(self):
-        """Test acestats.pct95 function"""
-        expected = 6
-        actual = acs.pct95(self.data_arr)
-        self.assertEqual(actual, expected)
+    def test_first_mean(self):
+        """Test mean on first crater in cdf"""
+        # af.compute_stats(self.cdf, self.ads, 'mean', self.cdf.index[0:5])
+        # TODO: fix this test (choose appropriate indices)
+        pass

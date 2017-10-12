@@ -30,9 +30,7 @@ def circle_mask(shape, radius, center=None):
            [False,  True,  True],
            [False, False,  True]], dtype=bool)
     """
-    if center is None:  # Center circle on center of roi
-        center = np.array(shape)/2 - 0.5
-    cy, cx = center
+    cy, cx = center if center else np.array(shape)/2 - 0.5
     height, width = shape
     x = np.arange(width) - cx
     y = np.arange(height).reshape(-1, 1) - cy
@@ -71,9 +69,7 @@ def ellipse_mask(shape, ysize, xsize, center=None):
            [False,  True,  True,  True,  True],
            [False, False, False,  True, False]], dtype=bool)
     """
-    if center is None:  # Center ellipse on center of roi
-        center = np.array(shape)/2 - 0.5
-    cy, cx = center
+    cy, cx = center if center else np.array(shape)/2 - 0.5
     height, width = shape
     y, x = np.ogrid[-cy:height-cy, -cx:width-cx]
     return (x*x)/(xsize*xsize) + (y*y)/(ysize*ysize) <= 1
