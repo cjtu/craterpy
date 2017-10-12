@@ -1,5 +1,5 @@
 craterpy |TravisBadge|_ |AppveyorBadge|_ |RtdBadge|_ |PyPiBadge|_ |CodecovBadge|_ |ZenodoBadge|_
-==============================================================================================
+================================================================================================
 .. |ZenodoBadge| image:: https://zenodo.org/badge/88457986.svg
 .. _ZenodoBadge: https://zenodo.org/badge/latestdoi/88457986
 
@@ -22,9 +22,9 @@ craterpy |TravisBadge|_ |AppveyorBadge|_ |RtdBadge|_ |PyPiBadge|_ |CodecovBadge|
 Overview
 --------
 
-Welcome to **craterpy** (formerly ACERIM), your one-stop shop to crater data science in Python!
+Welcome to **craterpy** (formerly *ACERIM*), your one-stop shop to crater data science in Python!
 
-Please note: this package is in the alpha stage of development. You can direct any questions to Christian at cj.taiudovicic@gmail.com. Feature requests and bugs tracking will be hosted on the GitHub `bug tracker <craterpy/bugtacker>`_.
+This package is in the alpha stage of development. You can direct any questions to Christian at cj.taiudovicic@gmail.com. Bug reports and feature requests can be opened as `issues <https://github.com/cjtu/craterpy/issues>`_ on GitHub.
 
 You can use craterpy to:
 
@@ -37,25 +37,17 @@ Example
 -------
 A code-snippet and plot is worth a thousand words::
 
-import pandas as pd
-import craterpy as cp
-df = pd.DataFrame("craters.csv", index)
-ds = cp.Dataset("moon.tif")
-rois = cp.get_roi(ds, df["Crisium"], plot_roi=True)
+  import pandas as pd
+  import craterpy as cp
+  df = pd.DataFrame("craters.csv", index)
+  ds = cp.Dataset("moon.tif")
+  rois = cp.get_roi(ds, df["Crisium"], plot_roi=True)
 
-..image:: get_roi.png
+*Images coming soon*
 
-cp.compute_stats(ds, df, rois).head()
+New users should start with the IPython notebook `tutorial <https://nbviewer.jupyter.org/github/cjtu/craterpy/blob/master/craterpy/sample/tutorial.ipynb>`_ for typical usage with examples.
 
-..image:: compute_stats.png
-
-cp.ejecta_profiles(ds, df, rois, spacing=0.1)
-
-..image:: ejecta_profiles.png
-
-New users should start with the IPython notebook at `tutorial <https://nbviewer.jupyter.org/github/cjtu/craterpy/blob/master/craterpy/sample/tutorial.ipynb>`_ for typical usage with examples.
-
-**Note**: While craterpy is a tool used to query image data, it does reproject it. This package **only acepts image data in simple-cylindrical (Plate Caree) projection**. Many tools exist to reproject your data. To do so in Python, we suggest checking out `GDAL <http://www.gdal.org/>`_.
+**Note**: While craterpy is a tool used to query image data, it does reproject it. This package currently **only accepts image data in simple-cylindrical (Plate Caree) projection**. To reproject your images in Python, we suggest checking out `GDAL <http://www.gdal.org/>`_.
 
 
 Dependencies
@@ -73,11 +65,13 @@ craterpy supports python versions 2.7, 3.4 and 3.5. It depends on:
 Quick Installation with Anaconda
 --------------------------------
 
-We reccommend the `Anaconda <https://www.continuum.io/Anaconda-Overview>`_ package manager. See `Continuum Analytics <https://www.continuum.io/downloads>`_ for installation instructions.
+We recommend using the `Anaconda <https://www.anaconda.com/distribution/>`_ package manager for data science in Python. 
 
-The following section will describe how to create and activate a conda virtual environment to run ACERIM. For more on Anaconda virtual environments, see `Managing Environments <https://conda.io/docs/using/envs>`_. 
+First `install Anaconda <https://www.anaconda.com/download/>`_.
 
-With *anaconda and gdal installed*, open a terminal window and create a new conda environment with the following command (replace **your_env_name** and choose desired python version):: 
+Then create a conda virtual environment (See `Managing Environments <https://conda.io/docs/using/envs>`_ for more info). Replace your_env_name, and set python equal to a compatible version listed in `Dependencies`_
+
+:: 
 
   conda create --name your_env_name python=3.5
 
@@ -95,19 +89,19 @@ Install the latest craterpy release with pip::
 
 Now that you have craterpy installed, head over to the `tutorial <https://nbviewer.jupyter.org/github/cjtu/craterpy/blob/master/craterpy/sample/tutorial.ipynb>`_ to get started!
 
-**Note**: Remember to activate your virtual environment each time you use ACERIM.
+**Note**: Remember to activate your virtual environment each time you use craterpy.
 
 
 Forking this repository
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-You can fork craterpy from `GitHub <https://github.com/cjtu/>`_. You can then clone your forked version, navigate to the root directory and install craterpy with:
+You can fork craterpy from `GitHub <https://github.com/cjtu/>`_. You can then clone your fork locally, navigate to the root directory and install craterpy with:
 
 ::
 
   python setup.py install
 
-
+**Warning**: This method installs the latest version of craterpy which may not be production stable. Installing from pip guarantees the previous stable release.
 
 Documentation
 -------------
@@ -115,28 +109,31 @@ Documentation
 Full documentation is available at `readthedocs <https://readthedocs.org/projects/craterpy/>`_.
 
 
-Support and Bug Reporting
--------------------------
+Support
+-------
 
-Bugs will be tracked at `craterpy bug tracker <craterpy/bugtacker>`_. General questions can be directed to Christian at cj.taiudovicic@gmail.com.
+Issues are tracked on GitHub at `craterpy issues <https://github.com/cjtu/craterpy/issues>`_. Feel free to open an issue about a bug, feature request, or general question about using craterpy! This will help guide the development process. All other inquiries can be directed to Christian at cj.taiudovicic@gmail.com.
 
 
 Citing ACERIM
 -------------
 
-For convenience, this project uses the OSI-certified MIT open access liscence for warranty-free ease of use and distribution. The author simply asks that you cite the project. The citable DOI can be found at Zenodo by clicking the badge below. To read more about citable code, check out `Zenodo <http://help.zenodo.org/features>`_.
+For convenience, this project uses the `MIT Liscence <https://github.com/cjtu/craterpy/blob/master/LICENSE.txt>`_ for warranty-free ease of use and distribution. The author simply asks that you cite the project. The `citable DOI <https://zenodo.org/badge/latestdoi/88457986>`_ can be found at Zenodo by clicking the badge below.
 
 .. image:: https://zenodo.org/badge/88457986.svg
     :target: https://zenodo.org/badge/latestdoi/88457986
+
+To read more about citable code, check out `Zenodo <http://help.zenodo.org/features>`_.
 
 
 Contributing
 ------------
 
-craterpy is seeking contributers of all skill levels! Please read CONTRIBUTING.rst if you are interested in supporting craterpy. Feel free to check the bug tracker for open issues or get in touch with Christian at cj.taiudovicic@gmail.com if you have any questions.
+We are seeking contributers of all skill levels! If you are interested, please start by reading CONTRIBUTING.rst. Then you can check out the `issue tracker <https://github.com/cjtu/craterpy/issues>`_ for open issues or get in touch with Christian at cj.taiudovicic@gmail.com if you have questions about how to get started.
 
 
 License
 -------
 
-Copyright (c) 2017- Christian Tai Udovicic. Released under the MIT license. This software comes with no warranties. See LICENSE.txt for details.
+Copyright (c) 2017- Christian Tai Udovicic. Released under the MIT license. This software comes with no warranties. See `LICENSE <https://github.com/cjtu/craterpy/blob/master/LICENSE.txt>`_ for details.
+ 
