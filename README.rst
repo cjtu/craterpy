@@ -61,7 +61,7 @@ New users should start with the IPython notebook at `tutorial <https://nbviewer.
 Dependencies
 ------------
 
-craterpy supports python versions 2.7, 3.3 and 3.4. It depends on:
+craterpy supports python versions 2.7, 3.4 and 3.5. It depends on:
 
   - numpy
   - scipy
