@@ -1,6 +1,6 @@
 [run]
 branch = True
-source = acerim
+source = craterpy
 omit =
     *tests/*
     *setup.py

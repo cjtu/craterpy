@@ -1,49 +1,67 @@
-ACERIM |TravisBadge|_ |AppveyorBadge|_ |RtdBadge|_ |PyPiBadge|_ |CodecovBadge|_ |ZenodoBadge|_
+craterpy |TravisBadge|_ |AppveyorBadge|_ |RtdBadge|_ |PyPiBadge|_ |CodecovBadge|_ |ZenodoBadge|_
 ==============================================================================================
 .. |ZenodoBadge| image:: https://zenodo.org/badge/88457986.svg
 .. _ZenodoBadge: https://zenodo.org/badge/latestdoi/88457986
 
-.. |TravisBadge| image:: https://travis-ci.org/cjtu/acerim.svg?branch=master
-.. _TravisBadge: https://travis-ci.org/cjtu/acerim
+.. |TravisBadge| image:: https://travis-ci.org/cjtu/craterpy.svg?branch=master
+.. _TravisBadge: https://travis-ci.org/cjtu/craterpy
 
 .. |AppveyorBadge| image:: https://ci.appveyor.com/api/projects/status/7r7f4lbj6kgguhtw/branch/master?svg=true
-.. _AppveyorBadge: https://ci.appveyor.com/project/cjtu/acerim/branch/master
+.. _AppveyorBadge: https://ci.appveyor.com/project/cjtu/craterpy/branch/master
 
-.. |RtdBadge| image:: http://readthedocs.org/projects/acerim/badge/?version=latest
-.. _RtdBadge: http://acerim.readthedocs.io/en/latest/?badge=latest
+.. |RtdBadge| image:: http://readthedocs.org/projects/craterpy/badge/?version=latest
+.. _RtdBadge: http://craterpy.readthedocs.io/en/latest/?badge=latest
 
-.. |PyPiBadge| image:: https://badge.fury.io/py/acerim.svg
-.. _PyPiBadge: https://badge.fury.io/py/acerim
+.. |PyPiBadge| image:: https://badge.fury.io/py/craterpy.svg
+.. _PyPiBadge: https://badge.fury.io/py/craterpy
 
-.. |CodecovBadge| image:: https://codecov.io/gh/cjtu/acerim/branch/master/graph/badge.svg
-.. _CodecovBadge: https://codecov.io/gh/cjtu/acerim
+.. |CodecovBadge| image:: https://codecov.io/gh/cjtu/craterpy/branch/master/graph/badge.svg
+.. _CodecovBadge: https://codecov.io/gh/cjtu/craterpy
+
 
 Overview
 --------
 
-Welcome to ACERIM!
+Welcome to **craterpy** (formerly ACERIM), your one-stop shop to crater data science in Python!
 
-Please note: this package is actively under development. You can direct any questions or report any bugs to Christian at cj.taiudovicic@gmail.com. 
+Please note: this package is in the alpha stage of development. You can direct any questions to Christian at cj.taiudovicic@gmail.com. Feature requests and bugs tracking will be hosted on the GitHub `bug tracker <craterpy/bugtacker>`_.
 
-The Automated Crater Ejecta Region of Interest Mapper (ACERIM) is a python package for planetary scientists that simplifies crater data analysis. If you have image data and a list of crater locations, ACERIM will help you extract data from the interior or ejecta of those craters and analyze the images with your choice of statistics.
+You can use craterpy to:
 
-Use ACERIM if you want to do one or more of the following:
+  - import tabular crater data into DataFrames (extends pandas),
+  - load image data into efficient Dataset objects (extends gdal),
+  - easily extract, mask, filter, plot, and compute stats on crater image data.
 
-  - import crater databases and image datasets into easily queried python DataFrames,
-  - extract image data from regions around craters or other features given lat, lon and radius,
-  - mask your data arays (e.g. to remove pixels within a crater floor or to exact pixels on the ejecta blanket),
-  - compute statistics on the extracted image data,
-  - save and plot images and statistics.
 
-New users can head to the `Tutorial Jupyter notebook <https://nbviewer.jupyter.org/github/cjtu/acerim/blob/master/acerim/sample/Tutorial.ipynb>`_ for a step-by-step walkthrough (with sample data) of how to use ACERIM in a research workflow.
+Example
+-------
+A code-snippet and plot is worth a thousand words::
 
-Note: This package was written with the Moon in mind, but is applicable to any cratered planetary body. However, ACERIM currently only supports image data in the simple cylindrical projection. For assistance reprojecting images to simple cylindrical format in python, see `GDAL <http://www.gdal.org/>`_.
+import pandas as pd
+import craterpy as cp
+df = pd.DataFrame("craters.csv", index)
+ds = cp.Dataset("moon.tif")
+rois = cp.get_roi(ds, df["Crisium"], plot_roi=True)
+
+..image:: get_roi.png
+
+cp.compute_stats(ds, df, rois).head()
+
+..image:: compute_stats.png
+
+cp.ejecta_profiles(ds, df, rois, spacing=0.1)
+
+..image:: ejecta_profiles.png
+
+New users should start with the IPython notebook at `tutorial <https://nbviewer.jupyter.org/github/cjtu/craterpy/blob/master/craterpy/sample/tutorial.ipynb>`_ for typical usage with examples.
+
+**Note**: While craterpy is a tool used to query image data, it does reproject it. This package **only acepts image data in simple-cylindrical (Plate Caree) projection**. Many tools exist to reproject your data. To do so in Python, we suggest checking out `GDAL <http://www.gdal.org/>`_.
 
 
 Dependencies
 ------------
 
-ACERIM is compatible with python versions 2.7, 3.4 and 3.5. It requires the following packages:
+craterpy supports python versions 2.7, 3.4 and 3.5. It depends on:
 
   - numpy
   - scipy
@@ -52,19 +70,10 @@ ACERIM is compatible with python versions 2.7, 3.4 and 3.5. It requires the foll
   - gdal=2.1.0
 
 
-Installation
-------------
-
-**Warning**: Acerim depends on the GDAL (Geospatial Data Abstraction Library) python package which requires certain C++ binaries. It is recommended that you follow the `gdal installation instructions <https://pypi.python.org/pypi/GDAL>`_ before installing ACERIM.
-
-
 Quick Installation with Anaconda
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+--------------------------------
 
-The simplest way to install ACERIM is with `Anaconda <https://www.continuum.io/Anaconda-Overview>`_. See `Continuum Analytics <https://www.continuum.io/downloads>`_ for installation instructions.  Anaconda is useful because it:
-
-1) Provides easy to use virtual environments, and
-2) Resolves package dependencies before install.
+We reccommend the `Anaconda <https://www.continuum.io/Anaconda-Overview>`_ package manager. See `Continuum Analytics <https://www.continuum.io/downloads>`_ for installation instructions.
 
 The following section will describe how to create and activate a conda virtual environment to run ACERIM. For more on Anaconda virtual environments, see `Managing Environments <https://conda.io/docs/using/envs>`_. 
 
@@ -72,7 +81,7 @@ With *anaconda and gdal installed*, open a terminal window and create a new cond
 
   conda create --name your_env_name python=3.5
 
-Activate the environment (OS X, Unix, or powershell users may need the *source*)::
+Activate the environment (OS X, Unix, or powershell users may need to use *source*)::
 
   (source) activate your_env_name
 
@@ -80,89 +89,51 @@ Now install the dependencies. Ensure to specify the gdal and libgdal versions to
 
   conda install numpy scipy pandas matplotlib gdal=2.1.0 libgdal=2.1.0
 
-With the environment active, install the latest stable release of ACERIM from the Cheese Shop (Python Package Index) using pip (python install package)::
+Install the latest craterpy release with pip::
 
-  pip install acerim
+  pip install craterpy
 
-<<<<<<< HEAD
-If the installer completes without any errors, you can test that ACERIM and its dependencies are successfully install. If the following command runs error-free, then ACERIM was successfully installed!
-
-::
-
-  python -c "import acerim"
-
-Now that you have ACERIM installed, head over to the `Tutorial <https://nbviewer.jupyter.org/github/cjtu/acerim/blob/master/acerim/sample/Tutorial.ipynb>`_ to get started!
+Now that you have craterpy installed, head over to the `tutorial <https://nbviewer.jupyter.org/github/cjtu/craterpy/blob/master/craterpy/sample/tutorial.ipynb>`_ to get started!
 
 **Note**: Remember to activate your virtual environment each time you use ACERIM.
 
 
-Cloning this repository
+Forking this repository
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-You can clone this repository by navigating to your target directory and issuing the command::
+You can fork craterpy from `GitHub <https://github.com/cjtu/>`_. You can then clone your forked version, navigate to the root directory and install craterpy with:
 
-  git clone https://github.com/cjtu/acerim.git
-
-If you then switch to the *acerim* root directory and activate your environment, you can install the package from its source using::
+::
 
   python setup.py install
 
 
 
-Organization
-------------
+Documentation
+-------------
 
-The project has the following structure::
-
-    acerim/
-      |- acerim/
-         |- aceclasses.py
-         |- acefunctions.py
-         |- acestats.py
-         |- sample
-            |- craters.csv
-            |- moon.tif
-            |- Tutorial
-         |- tests
-            |- test_classes.py
-            |- test_functions.py
-         |- version.py
-      |- docs/
-      |- LICENSE.txt
-      |- README.rst
-      |- setup.py
-      |- setup.cfg
-
-The main modules are located in **acerim/acerim/**. To get started, see the examples given in `Tutorial <https://github.com/cjtu/acerim/blob/master/acerim/sample/Tutorial.ipynb>`_. API documentation is available at `readthedocs <https://readthedocs.org/projects/acerim/>`_.
-
-
-Testing ACERIM
---------------
-
-A suite of unittests are located in the **/acerim/tests**. They use the sample data included in **/acerim/sample**. To troubleshoot possible errors you can install the pytest module and run it.::
-
-  conda install pytest
-
-Then from the root acerim directory::
-
-    py.test
-
-A summary of test results will appear in the shell. 
+Full documentation is available at `readthedocs <https://readthedocs.org/projects/craterpy/>`_.
 
 
 Support and Bug Reporting
 -------------------------
 
-Any bugs or errata can be reported to Christian at cj.taiudovicic@gmail.com. Please include your operating system and details of your python environment (e.g. using conda list).
+Bugs will be tracked at `craterpy bug tracker <craterpy/bugtacker>`_. General questions can be directed to Christian at cj.taiudovicic@gmail.com.
 
 
 Citing ACERIM
 -------------
 
-For convenience, this project uses the OSI-certified MIT open access liscence for warranty-free ease of use and distribution. The author simply asks that you cite the project. The citable DOI can be found at Zenodo by clicking the button below. To read more about citable code, check out `Zenodo <http://help.zenodo.org/features>`_.
+For convenience, this project uses the OSI-certified MIT open access liscence for warranty-free ease of use and distribution. The author simply asks that you cite the project. The citable DOI can be found at Zenodo by clicking the badge below. To read more about citable code, check out `Zenodo <http://help.zenodo.org/features>`_.
 
 .. image:: https://zenodo.org/badge/88457986.svg
     :target: https://zenodo.org/badge/latestdoi/88457986
+
+
+Contributing
+------------
+
+craterpy is seeking contributers of all skill levels! Please read CONTRIBUTING.rst if you are interested in supporting craterpy. Feel free to check the bug tracker for open issues or get in touch with Christian at cj.taiudovicic@gmail.com if you have any questions.
 
 
 License

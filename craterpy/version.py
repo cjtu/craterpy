@@ -3,7 +3,7 @@ string of the form "X.Y.Z" (major.minor.maintenance). Versions still in
 development append 'dev0' (e.g., "X.Y.Zdev0").
 """
 _major = 0
-_minor = 1
+_minor = 2
 _maintenance = '1'  # use '' for new major/minor release; int for 1+
 _extra = ''  # NEVER release with dev, use '' for full release
 
