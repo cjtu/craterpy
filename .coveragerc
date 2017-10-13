@@ -2,6 +2,7 @@
 branch = True
 source = craterpy
 omit =
+    *examples/*
     *tests/*
     *setup.py
     *version.py
