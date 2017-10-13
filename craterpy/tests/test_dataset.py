@@ -34,7 +34,9 @@ class TestCraterpyDataset(unittest.TestCase):
 
     def test_get_gdalDataset_attrs(self):
         """Test that wrapped gdal Dataset attrs are accessible"""
-        pass  # TODO: implement
+        self.assertIsNotNone(self.cds.GetRasterBand(1))
+        with self.assertRaises(AttributeError):
+            self.cds.lat
 
     def test_repr(self):
         expected = 'CraterpyDataset with extent (90.0N, -90.0N), '
@@ -76,7 +78,7 @@ class TestCraterpyDataset(unittest.TestCase):
         cds = CraterpyDataset(self.moon_tif, 20, -20, 10, 180)
         self.assertTrue(cds.inbounds(10, 15))
         self.assertTrue(cds.inbounds(20, 20))
-        self.assertFalse(cds.inbounds(0, 200))        
+        self.assertFalse(cds.inbounds(0, 200))
         # Global
         cds = CraterpyDataset(self.moon_tif, 90, -90, -180, 180)
         self.assertTrue(cds.inbounds(50, 100))
@@ -84,7 +86,6 @@ class TestCraterpyDataset(unittest.TestCase):
         self.assertTrue(cds.inbounds(90.0, 180.0))
         self.assertTrue(cds.inbounds(90.0, -180.5))
         self.assertFalse(cds.inbounds(90.1, 100))
-
 
     def test_is_global(self):
         """Test .is_global method"""
@@ -95,10 +96,17 @@ class TestCraterpyDataset(unittest.TestCase):
                                      elon=180).is_global()
         self.assertFalse(not_global)
 
-    def test_get_roi(self):
-        """Test get_roi method"""
-        pass  # TODO: Implement
-
     def test_wrap_roi_360(self):
         """Test wrap_roi_360 method"""
         pass  # TODO: implement
+
+    def test_get_roi(self):
+        """Test get_roi method"""
+        extent = (0, 10, 0, 91)
+        self.assertRaises(ImportError, self.cds.get_roi, *extent)
+        extent = (170, 190, -10, 10)
+        actual = self.cds.get_roi(*extent)
+        # TODO: Finish this
+        extent = (-190, 170, -10, 10)
+        actual = self.cds.get_roi(*extent)
+        # TODO: Finish this

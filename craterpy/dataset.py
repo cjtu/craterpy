@@ -223,55 +223,54 @@ class CraterpyDataset(object):
         --------
         # TODO
         """
-        if not (self.inbounds(minlon, minlat) and
+        if not (self.inbounds(minlat, minlon) and
                 self.inbounds(maxlat, maxlon)):
             raise ImportError("Roi extent out of dataset bounds.")
         topind = ch.deg2pix(self.nlat-maxlat, self.ppd)
         height = ch.deg2pix(maxlat-minlat, self.ppd)
         if self.is_global() and (minlon < self.wlon or maxlon > self.elon):
-            roi = self._wrap_roi_360(self, minlon, maxlon, topind, height)
+            roi = self._wrap_roi_360(minlon, maxlon, topind, height)
         else:
             leftind = ch.deg2pix(minlon-self.wlon, self.ppd)
             width = ch.deg2pix(maxlon-minlon, self.ppd)
             roi = self.ReadAsArray(leftind, topind, width, height)
         return roi
 
+    def _wrap_roi_360(self, minlon, maxlon, topind, height):
+            """Return roi that is split by the 360 degree edge of a global dataset.
 
-def _wrap_roi_360(self, minlon, maxlon, topind, height):
-        """Return roi that is split by the 360 degree edge of a global dataset.
+            Read the left and right sub-arrays and then concatenate them into
+            the full roi.
 
-        Read the left and right sub-arrays and then concatenate them into
-        the full roi.
+            Parameters
+            ----------
+            minlon : int or float
+                Western longitude bound [degrees].
+            maxlon : int or float
+                Eastern longitude bound [degrees].
+            topind : int
+                Top index of returned roi.
+            height : int
+                Height of returned roi.
 
-        Parameters
-        ----------
-        minlon : int or float
-            Western longitude bound [degrees].
-        maxlon : int or float
-            Eastern longitude bound [degrees].
-        topind : int
-            Top index of returned roi.
-        height : int
-            Height of returned roi.
-
-        Returns
-        --------
-        roi: 2Darray
-            Concatenated roi wrapped around lon bound.
-        """
-        if minlon < self.wlon:
-            leftind = ch.deg2pix(minlon-(self.wlon-360))
-            leftwidth = ch.deg2pix(self.wlon - minlon, self.ppd)
-            rightind = 0
-            rightwidth = ch.deg2pix(maxlon - self.wlon, self.ppd)
-        elif maxlon > self.elon:
-            leftind = ch.deg2pix(self.elon-minlon)
-            leftwidth = ch.deg2pix(self.elon - minlon, self.ppd)
-            rightind = 0
-            rightwidth = ch.deg2pix(maxlon - self.elon, self.ppd)
-        left_roi = self.ReadAsArray(leftind, topind, leftwidth, height)
-        right_roi = self.ReadAsArray(rightind, topind, rightwidth, height)
-        return np.concatenate((left_roi, right_roi), axis=1)
+            Returns
+            --------
+            roi: 2Darray
+                Concatenated roi wrapped around lon bound.
+            """
+            if minlon < self.wlon:
+                leftind = ch.deg2pix(minlon-(self.wlon-360), self.ppd)
+                leftwidth = ch.deg2pix(self.wlon - minlon, self.ppd)
+                rightind = 0
+                rightwidth = ch.deg2pix(maxlon - self.wlon, self.ppd)
+            elif maxlon > self.elon:
+                leftind = ch.deg2pix(self.elon - minlon, self.ppd)
+                leftwidth = ch.deg2pix(self.elon - minlon, self.ppd)
+                rightind = 0
+                rightwidth = ch.deg2pix(maxlon - self.elon, self.ppd)
+            left_roi = self.ReadAsArray(leftind, topind, leftwidth, height)
+            right_roi = self.ReadAsArray(rightind, topind, rightwidth, height)
+            return np.concatenate((left_roi, right_roi), axis=1)
 
 
 if __name__ == "__main__":
