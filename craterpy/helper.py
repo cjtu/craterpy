@@ -9,19 +9,8 @@ def deg2pix(degrees, ppd):
     return int(degrees*ppd)
 
 
-def deg2rad(theta):
-    """Convert degrees to radians.
-
-    Examples
-    --------
-    >>> deg2rad(180)
-    3.141592653589793
-    """
-    return theta * (np.pi / 180)
-
-
 def get_ind(value, array):
-    """Return closest index (rounded down) of a value from array."""
+    """Return closest index of a value from array."""
     ind = np.abs(array-value).argmin()
     return int(ind)
 
@@ -49,10 +38,9 @@ def greatcircdist(lat1, lon1, lat2, lon2, radius):
     if not all(map(inglobal, (lat1, lon1), (lat2, lon2))):
         raise ValueError("Latitude or longitude out of bounds.")
     # Convert degrees to radians
-    lat1, lon1, lat2, lon2 = map(deg2rad, [lat1, lon1, lat2, lon2])
+    lat1, lon1, lat2, lon2 = np.radians([lat1, lon1, lat2, lon2])
     # Haversine
-    dlat = lat2 - lat1
-    dlon = lon2 - lon1
+    dlat, dlon = abs(lat2 - lat1), abs(lon2 - lon1)
     a = np.sin(dlat/2)**2 + np.cos(lat1)*np.cos(lat2)*np.sin(dlon/2)**2
     theta = 2 * np.arcsin(np.sqrt(a))
     return radius*theta
@@ -93,9 +81,9 @@ def findcol(df, names):
 
     Examples
     --------
-    >>> df = pd.DataFrame({'Lat' : [10, -20., 80.0],
-                           'Lon' : [14, -40.1, 317.2],
-                           'Diam' : [2, 12., 23.7]})
+    >>> df = pd.DataFrame({'Lat': [10, -20., 80.0],
+                           'Lon': [14, -40.1, 317.2],
+                           'Diam': [2, 12., 23.7]})
     >>> findcol(df, ['Latitude', 'Lat'])
     'Lat'
     >>> findcol(df, ['Radius'])
@@ -104,12 +92,11 @@ def findcol(df, names):
     """
     if isinstance(names, str):
         names = [names]
-    dfcols = df.columns.values
-    findcol = [name.strip().lower() == col.strip().lower()
-               for name in names
-               for col in dfcols]
-    if any(findcol):
-        return dfcols[np.where(findcol)[0][0]]
+    cols = df.columns.values
+    for name in names:
+        for col in cols:
+            if name.strip().lower() == col.strip().lower():
+                return col
     return None
 
 
@@ -117,12 +104,11 @@ def diam2radius(df, diamcol=None):
     """Return dataframe with diameter column converted to radius."""
     if not diamcol:
         diamcol = findcol(df, ['diam', 'diameter'])
-        print(diamcol)
     df.update(df[diamcol]/2)
     df.rename(columns={diamcol: "Radius"}, inplace=True)
     return df
 
 
-def downshift_lon(df):
-    """Shift longitudes from (0, 360) -> (-180, 180) convention."""
-    pass
+# def downshift_lon(df):
+#    """Shift longitudes from (0, 360) -> (-180, 180) convention."""
+#    pass
