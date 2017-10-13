@@ -5,7 +5,7 @@ from __future__ import division, print_function, absolute_import
 import unittest
 import numpy as np
 import pandas as pd
-import pandas.testing as pdt
+import pandas.util.testing as pdt
 from craterpy import helper as ch
 
 
