@@ -4,7 +4,7 @@ from __future__ import division, print_function, absolute_import
 import matplotlib.pyplot as plt
 
 
-def plot_CraterRoi(croi, figsize=((8, 8)), title=None,
+def plot_CraterRoi(croi, figsize=((4, 4)), title=None,
                    vmin=None, vmax=None, cmap='gray', **kwargs):
     """Plot 2D CraterRoi.
 
@@ -17,9 +17,9 @@ def plot_CraterRoi(croi, figsize=((8, 8)), title=None,
     roi : CraterRoi object
         2D CraterRoi to plot.
     figsize : tuple
-        Length and width of plot in inches (default 8in x 8in).
+        Length and width of plot in inches (default 4in x 4in).
     title : str
-        Plot title (default 'CraterRoi').
+        Plot title.
     vmin : int or float
         Minimum pixel data value for plotting.
     vmax : int or float
@@ -35,7 +35,7 @@ def plot_CraterRoi(croi, figsize=((8, 8)), title=None,
     if not title:
         title = "CraterRoi at ({}, {})".format(croi.lat, croi.lon)
     plt.figure(title, figsize=figsize)
-    plt.imshow(croi, extent=croi.extent, cmap=cmap, vmin=vmin, vmax=vmax,
+    plt.imshow(croi.roi, extent=croi.extent, cmap=cmap, vmin=vmin, vmax=vmax,
                **kwargs)
     plt.title(title)
     plt.xlabel('Longitude (degrees)')

@@ -18,3 +18,15 @@ class TestCraterRoi(unittest.TestCase):
         """Test import"""
         roi = CraterRoi(self.cds, 0, 0, 100)
         self.assertIsNotNone(roi)
+        
+    def test_get_extent(self):
+        """Test _get_extent"""
+        roi = CraterRoi(self.cds, 0, 0, 16)
+        actual = roi._get_extent()
+        expected = (-1.05553, 1.05553, -1.05553, 1.05553)
+        self.assertAlmostEqual(actual, expected, 4)
+        roi = CraterRoi(self.cds, 20, 20, 16)
+        actual = roi._get_extent()
+        expected = (18.87672, 21.12328, 18.94446, 21.05553)
+        self.assertAlmostEqual(actual, expected, 4)
+        

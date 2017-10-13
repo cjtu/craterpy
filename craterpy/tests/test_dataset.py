@@ -72,19 +72,25 @@ class TestCraterpyDataset(unittest.TestCase):
 
     def test_inbounds(self):
         """Test inbounds method"""
+        # Non-global
+        cds = CraterpyDataset(self.moon_tif, 20, -20, 10, 180)
+        self.assertTrue(cds.inbounds(10, 15))
+        self.assertTrue(cds.inbounds(20, 20))
+        self.assertFalse(cds.inbounds(0, 200))        
+        # Global
         cds = CraterpyDataset(self.moon_tif, 90, -90, -180, 180)
         self.assertTrue(cds.inbounds(50, 100))
         self.assertTrue(cds.inbounds(-50.1, -100.5))
         self.assertTrue(cds.inbounds(90.0, 180.0))
+        self.assertTrue(cds.inbounds(90.0, -180.5))
         self.assertFalse(cds.inbounds(90.1, 100))
-        self.assertFalse(cds.inbounds(90.0, -180.5))
+
 
     def test_is_global(self):
         """Test .is_global method"""
         is_global = CraterpyDataset(self.moon_tif, wlon=0,
                                     elon=360).is_global()
         self.assertTrue(is_global)
-
         not_global = CraterpyDataset(self.moon_tif, wlon=0,
                                      elon=180).is_global()
         self.assertFalse(not_global)

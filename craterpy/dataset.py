@@ -171,13 +171,19 @@ class CraterpyDataset(object):
         >>> ds = CraterpyDataset(dsfile, nlat=20, slat=0, wlon=10, elon=20)
         >>> ds.inbounds(10, 15)
         True
-        >>> ds.inbounds(0, 10)
-        True
-        >>> ds.inbounds(10, 40)
+        >>> ds.inbounds(10, 200)
         False
+        >>> ds = CraterpyDataset(dsfile, nlat=20, slat=0, wlon=-180, elon=180)
+        >>> ds.inbounds(10, 15)
+        True
+        >>> ds.inbounds(10, 200)
+        True
         """
-        return ((self.slat <= lat <= self.nlat) and
-                (self.wlon <= lon <= self.elon))
+        if self.is_global():
+            return self.slat <= lat <= self.nlat
+        else:
+            return ((self.slat <= lat <= self.nlat) and
+                    (self.wlon <= lon <= self.elon))
 
     def is_global(self):
         """

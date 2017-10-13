@@ -79,9 +79,9 @@ class CraterRoi:
                           self.cds.ppd)
         height = ch.km2deg(2*self.wsize*self.rad, self.cds.calc_mpp(),
                            self.cds.ppd)
-        minlon = self.lon-(height/2)
+        minlon = self.lon-(width/2)
         maxlon = minlon + width
-        minlat = self.lat-(width/2)
+        minlat = self.lat-(height/2)
         maxlat = minlat + height
         return (minlon, maxlon, minlat, maxlat)
 
