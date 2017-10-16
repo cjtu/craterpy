@@ -1,64 +1,111 @@
-Contibuting to craterpy
-=======================
+How to contribute to craterpy
+=============================
+Thank you for your interest in contributing to craterpy!
 
-Questions about contributing can be sent to Christian at cj.taiudovicic@gmail.com. This file is largely modeled after scikit-learn's `CONTRIBUTING <https://github.com/scikit-learn/scikit-learn/blob/master/CONTRIBUTING.md>`_.
+Who can contribute?
+-------------------
+*Anyone!* This project is as much a tool to learn about open source science as it is a tool to improve planetary data science workflows. If you've never contributed to open source before, great! Drop us a line! If you're an expert hacker and think we're doing everything wrong, awesome! We want to hear from you too! 
 
-How to Contribute
------------------
-The preferred workflow for contributing is to fork the `main repository <https://github.com/cjtu/craterpy>`_ on GitHub, clone, and develop on a branch. When you are ready, submit a pull request to the main repository. Steps:
+Why contribute?
+---------------
+If you're interested in any of the following: 
 
-1. Fork the `project repository <https://github.com/cjtu/craterpy>`_ by clicking on the 'Fork' button near the top right of the page. This creates a copy of the code under your GitHub user account. For more details on how to fork a repository see `this guide <https://help.github.com/articles/fork-a-repo/>`_.
+- planets
+- science
+- open source
+- contributing to active research
+- learning in a supportive environment
 
-2. Clone your fork of the craterpy repo from your GitHub account to your local disk::
+Or you already use craterpy and want to make it better for everyone!
 
-   $ git clone git@github.com:YourLogin/craterpy.git
-   $ cd craterpy
+Where to start?
+---------------
+A good place to start is by scanning the `issue tracker`_ and seeing if there is something that you are interested in taking on. Drop a comment on an issue to let us know that you want to work on it, or leave a question if something needs to be clarified.
 
-3. Create a ``feature`` branch to hold your development changes::
+.. _`issue tracker`: https://github.com/cjtu/craterpy/issues
 
-   $ git checkout -b my-feature
+How to get started?
+-------------------
+If you made it this far and you're still interested, that's great! Here are four simple steps to get started contributing to craterpy:
 
-   Always use a ``feature`` branch. It's good practice to never work on the ``master`` branch!
+1. Fork the `main repository`_ by clicking the link and clicking the Fork button in the upper right corner (read about `forking`_).
 
-4. Develop the feature on your feature branch. Add changed files using ``git add`` and then ``git commit`` files::
+2. Clone the forked repository to your machine (Git must be `installed`_). :: 
+   
+    git clone https://https://github.com/your_username/craterpy.git
+    cd craterpy
 
-   $ git add modified_files
-   $ git commit
+3. Set up a conda virtual environment from the ``.environment.yml`` (requires `Anaconda`_). ::
 
-   to record your changes in Git, then push the changes to your GitHub account with::
+    conda env create -f .environment.yml
 
-   $ git push -u origin my-feature
+   on Windows::
 
-5. Follow `these instructions <https://help.github.com/articles/creating-a-pull-request-from-a-fork>`_ to create a pull request from your fork. This will send an email to the committers.
+    activate craterpy-dev
+    python setup.py -q install
 
-(If any of the above is unfamiliar to you, please look up the
-`Git documentation <https://git-scm.com/documentation>`_, or ask a friend or another contributor for help.)
+   on UNIX/Mac users::
 
-Pull Request Checklist
-----------------------
-Please check that your contribution complies with the following rules before submitting a pull request:
+    source activate craterpy-dev
+    python setup.py -q install
 
--  If your pull request addresses an issue, mention the issue number in the pull request description. This will make sure a link back to the original issue is created.
+4. Make a feature branch to be your working branch. Choose any name you like. ::
+   
+    git checkout -b feature-xyz
 
--  All methods should have informative docstrings with sample usage presented as doctests when appropriate.
+Now that your dev environment is set up, you can start making contributions! If you haven't already, check out the `issue tracker`_ for suggestions on where to get started.
 
-- New functionality should add (and pass) high coverage test cases to the ``tests/`` folder. See included tests for reference.
+.. _`main repository`: https://github.com/cjtu/craterpy
+.. _`forking`: https://guides.github.com/activities/forking/
+.. _`installed`: https://git-scm.com/downloads
+.. _`Anaconda`: https://www.anaconda.com/download/
 
--  When adding additional functionality, provide an example script in the ``examples/`` folder. Have a look at other examples for reference.
+When and how to submit contributions?
+-------------------------------------
+Contributions are merged into the master branch via the dreaded **pull request**. These aren't actually that scary, and will go smoothest if you can answer yes to all of the following questions:
 
-Filing bugs
+- Is my contribution small and self-contained?
+
+- Does my contribution pass all unittests when I run `py.test` from the root directory?
+
+- Does my contribution pass all style tests when I run `flake8`?
+
+- If my contribution adds new class(es), function(s) and/or method(s), do they all have descriptive docstrings?
+
+- If my contribution adds new functionality, did I add good test cases to the `tests/` folder? Do these pass `py.test --cov` with close to 100% coverage?
+
+If you answered yes to all of the above, you're probably good to go! Read the next section and open a Pull Request!
+
+Submitting a Pull Request
+-------------------------
+Three simple steps:
+
+1. When you are happy with your contributions, commit them to your feature branch and then push them to your forked repository (if you run into trouble, check out this great guide to `git commands`_.
+
+2. Go to `pulls <https://github.com/cjtu/craterpy/pulls>`_ and click the "New pull request" button.
+
+3. Click "compare across forks", then use the drop-downs to choose:
+   
+   - `base fork : cjtu.craterpy`
+   - `base : master`
+   - `head fork : your-user/craterpy`
+   - `compare : your-feature-branch`.
+
+4. Click "Create pull request" and describe your contribution in the box provided. If you are addressing an issue, reference it by number in the title to auto link it (e.g. "Solves #12" would be a great title if you solved a bug detailed in issue 12).
+
+.. _`git commands`: http://git.huit.harvard.edu/guide/
+
+You did it!
 -----------
-We use GitHub issues to track all bugs and feature requests; feel free to open an issue if you have found a bug or wish to see a feature implemented.
+At this point, you've sucessfully submitted a pull request to craterpy! Sit tight while a collaborator reviews your contribution. We might ask you to clarify or update something, but if you followed this guide then we should be able to merge your contribution in no time!
 
-Please check that your issue complies with the following rules before submitting:
+What if I'm stuck on something or having doubts about getting started?
+----------------------------------------------------------------------
+Email Christian at cj.taiudovicic@gmail.com. Seriously. If you made it this far, I want to hear from you!
 
--  Verify that your issue is not being currently addressed by other
-   `issues <https://github.com/cjtu/craterpy/issues?q=>`_ or `pull requests <https://github.com/cjtu/craterpy/pulls?q=>`_.
+Code of Conduct
+---------------
+This community is governed by a `code of conduct`_. This is an inclusive community and attitudes or behaviours that make other members feel unsafe or uncomfortable will not be tolerated.
 
--  Please ensure all code snippets and error messages are formatted in
-   appropriate code blocks. See `Creating and highlighting code blocks <https://help.github.com/articles/creating-and-highlighting-code-blocks>`_.
-
-New contributor tips
---------------------
-
-A great way to start contributing to craterpy is to pick an item from the list of `Easy issues <https://github.com/cjtu/craterpy/labels/easy>`_ in the issue tracker. Resolving these issues allow you to start contributing to the project without much prior knowledge.
+Happy contributing and have a great day!
+----------------------------------------

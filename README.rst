@@ -6,7 +6,7 @@ craterpy |TravisBadge|_ |AppveyorBadge|_ |RtdBadge|_ |PyPiBadge|_ |CodecovBadge|
 .. |TravisBadge| image:: https://travis-ci.org/cjtu/craterpy.svg?branch=master
 .. _TravisBadge: https://travis-ci.org/cjtu/craterpy
 
-.. |AppveyorBadge| image:: https://ci.appveyor.com/api/projects/status/7r7f4lbj6kgguhtw/branch/master?svg=true
+.. |AppveyorBadge| image:: https://ci.appveyor.com/api/projects/status/kns2v4vn07r6h078?svg=true
 .. _AppveyorBadge: https://ci.appveyor.com/project/cjtu/craterpy/branch/master
 
 .. |RtdBadge| image:: http://readthedocs.org/projects/craterpy/badge/?version=latest
@@ -22,16 +22,17 @@ craterpy |TravisBadge|_ |AppveyorBadge|_ |RtdBadge|_ |PyPiBadge|_ |CodecovBadge|
 Overview
 --------
 
-Welcome to **craterpy** (formerly *ACERIM*), your one-stop shop to crater data science in Python!
+Welcome to craterpy (formerly *ACERIM*), your one-stop shop to crater data science in Python!
 
-This package is in the alpha stage of development. You can direct any questions to Christian at cj.taiudovicic@gmail.com. Bug reports and feature requests can be opened as `issues <https://github.com/cjtu/craterpy/issues>`_ on GitHub.
+This package is in the alpha stage of development. You can direct any questions to Christian at cj.taiudovicic@gmail.com. Bug reports and feature requests can be opened as issues at the `issue tracker`_ on GitHub.
 
 You can use craterpy to:
 
-  - import tabular crater data into DataFrames (extends pandas),
-  - load image data into efficient Dataset objects (extends gdal),
-  - easily extract, mask, filter, plot, and compute stats on crater image data.
+  - work with tables of crater data in Python (using pandas),
+  - load and manipulate image data in Python (using gdal),
+  - easily extract, mask, filter, plot, and compute stats on craters located in your images.
 
+.. `issue tracker`_: https://github.com/cjtu/craterpy/issues
 
 Example
 -------
@@ -47,13 +48,15 @@ A code-snippet and plot is worth a thousand words::
 
 New users should start with the IPython notebook `tutorial <https://nbviewer.jupyter.org/github/cjtu/craterpy/blob/master/craterpy/sample/tutorial.ipynb>`_ for typical usage with examples.
 
-**Note**: While craterpy is a tool used to query image data, it does reproject it. This package currently **only accepts image data in simple-cylindrical (Plate Caree) projection**. To reproject your images in Python, we suggest checking out `GDAL <http://www.gdal.org/>`_.
+**Note**: While craterpy read in image data, it does not reproject it. This package currently **only accepts image data in simple-cylindrical (Plate Caree) projection**. If your data is in another projection, please reproject it to simple-cylindrical before importing it with craterpy (check out `GDAL <http://www.gdal.org/>`_). If you would like add reprojection functionality, consider `contributing`_.
+
+.. _`contributing`: https://github.com/cjtu/craterpy/blob/master/CONTRIBUTING.rst
 
 
 Dependencies
 ------------
 
-craterpy supports python versions 2.7, 3.4 and 3.5. It depends on:
+craterpy supports python versions 2.7, 3.4 and 3.5. It explicitly requires:
 
   - numpy
   - scipy
@@ -65,7 +68,7 @@ craterpy supports python versions 2.7, 3.4 and 3.5. It depends on:
 Quick Installation with Anaconda
 --------------------------------
 
-We recommend using the `Anaconda <https://www.anaconda.com/distribution/>`_ package manager for data science in Python. 
+We recommend using the `Anaconda <https://www.anaconda.com/distribution/>`_ package manager to work with craterpy. 
 
 First `install Anaconda <https://www.anaconda.com/download/>`_.
 
@@ -106,19 +109,26 @@ You can fork craterpy from `GitHub <https://github.com/cjtu/>`_. You can then cl
 Documentation
 -------------
 
-Full documentation is available at `readthedocs <https://readthedocs.org/projects/craterpy/>`_.
+API documentation is available at `readthedocs <https://readthedocs.org/projects/craterpy/>`_.
 
 
-Support
--------
+Contributing
+------------
+There are two major ways you can help improve craterpy:
 
-Issues are tracked on GitHub at `craterpy issues <https://github.com/cjtu/craterpy/issues>`_. Feel free to open an issue about a bug, feature request, or general question about using craterpy! This will help guide the development process. All other inquiries can be directed to Christian at cj.taiudovicic@gmail.com.
+Bug Reporting and Feature Requests
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+You can report bugs or request new features on the `issue tracker <https://github.com/cjtu/craterpy/issues>`_. If you are reporting a bug, please give a detailed description about how it came up and what your build environment is (e.g. with ``conda list``). 
+
+Becoming a contributor
+^^^^^^^^^^^^^^^^^^^^^^
+We are looking for new contributors! If you are interested in open source and want to join a supportive learning environment - or if you want to use craterpy and make it better for everyone - consider contributing to the project. See `contributing`_ for details on how to get started!
 
 
 Citing ACERIM
 -------------
 
-For convenience, this project uses the `MIT Liscence <https://github.com/cjtu/craterpy/blob/master/LICENSE.txt>`_ for warranty-free ease of use and distribution. The author simply asks that you cite the project. The `citable DOI <https://zenodo.org/badge/latestdoi/88457986>`_ can be found at Zenodo by clicking the badge below.
+For convenience, this project uses the `MIT Licence <https://github.com/cjtu/craterpy/blob/master/LICENSE.txt>`_ for warranty-free ease of use and distribution. The author simply asks that you cite the project when using it in published research. The `citable DOI <https://zenodo.org/badge/latestdoi/88457986>`_ can be found at Zenodo by clicking the badge below.
 
 .. image:: https://zenodo.org/badge/88457986.svg
     :target: https://zenodo.org/badge/latestdoi/88457986
@@ -126,10 +136,9 @@ For convenience, this project uses the `MIT Liscence <https://github.com/cjtu/cr
 To read more about citable code, check out `Zenodo <http://help.zenodo.org/features>`_.
 
 
-Contributing
-------------
-
-We are seeking contributers of all skill levels! If you are interested, please start by reading CONTRIBUTING.rst. Then you can check out the `issue tracker <https://github.com/cjtu/craterpy/issues>`_ for open issues or get in touch with Christian at cj.taiudovicic@gmail.com if you have questions about how to get started.
+Contact
+-------
+If you have comments/question/concerns or just want to get in touch, you can email Christian at cj.taiudovicic@gmail.com or follow `@TaiUdovicic <https://twitter.com/TaiUdovicic>`_ on Twitter.
 
 
 License
