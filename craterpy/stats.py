@@ -6,6 +6,7 @@ import pandas as pd
 import scipy.optimize as opt
 from craterpy import quickstats as qs
 from craterpy import masking, plotting
+from craterpy.exceptions import CraterValueError
 
 
 # quickstats helpers
@@ -40,9 +41,9 @@ def _get_quickstats_functions(statlist=None):
     elif isinstance(statlist, str):  # or isinstance(statlist, basestring):
         statlist = [statlist]
     invalid_stats = [stat for stat in statlist if stat not in qs_list]
-    if invalid_stats:  # TODO: define custom Exception
-        raise ValueError('The following stats are not defined ' +
-                         'in quickstats.py: {}'.format(invalid_stats))
+    if invalid_stats:
+        raise CraterValueError('The following stats are not defined ' +
+                               'in quickstats.py: {}'.format(invalid_stats))
     return [[stat, qs.__dict__[stat]] for stat in statlist]
 
 

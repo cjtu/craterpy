@@ -1,5 +1,6 @@
 """Contains the CraterpyDataset object which wraps gdal.Dataset."""
 from __future__ import division, print_function, absolute_import
+from craterpy.exceptions import CraterAttributeError, DataImportError, LatLongOutOfBoundsError
 import numpy as np
 import gdal
 import craterpy.helper as ch
@@ -79,7 +80,7 @@ class CraterpyDataset(object):
                 else:  # Not callable so must be attribute
                     return func
             except AttributeError:
-                raise AttributeError('Object has no attribute {}'.format(name))
+                raise CraterAttributeError('Object has no attribute {}'.format(name))
 
     def __repr__(self):
         """Representation of CraterpyDataset with attribute info"""
@@ -150,7 +151,7 @@ class CraterpyDataset(object):
         '4871.7'
         """
         if abs(lat) > 90:
-            raise ValueError("Latitude out of bounds")
+            raise LatLongOutOfBoundsError("Latitude out of bounds")
         # calculate circumference at lat in [m], divide by num pixels
         circ = 1000*2*np.pi*self.radius*np.cos(lat*np.pi/180)
         npix = 360*self.ppd  # num pixels in one circumference [pix]
@@ -225,7 +226,7 @@ class CraterpyDataset(object):
         """
         if not (self.inbounds(minlat, minlon) and
                 self.inbounds(maxlat, maxlon)):
-            raise ImportError("Roi extent out of dataset bounds.")
+            raise DataImportError("Roi extent out of dataset bounds.")
         topind = ch.deg2pix(self.nlat-maxlat, self.ppd)
         height = ch.deg2pix(maxlat-minlat, self.ppd)
         if self.is_global() and (minlon < self.wlon or maxlon > self.elon):
