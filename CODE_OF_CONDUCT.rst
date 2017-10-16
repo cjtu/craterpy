@@ -1,21 +1,10 @@
 Craterpy Code of Conduct
 ========================
 
-0. D.B.A.A
-----------
-
-I hope that these guidelines go without saying for anyone that would contribute to this community. One rule can sum most of it up: **D.B.A.A.**
-
-Don't be an a**hole.
-
-::
-
-- Christian
-
 1. Purpose
 ----------
 
-A primary goal of **Craterpy** is to be inclusive to the largest number of contributors, with the most varied and diverse backgrounds possible. As such, we are committed to providing a friendly, safe and welcoming environment for all, regardless of gender, sexual orientation, ability, ethnicity, socioeconomic status, and religion (or lack thereof).
+A primary goal of craterpy is to be inclusive to the largest number of contributors, with the most varied and diverse backgrounds possible. As such, we are committed to providing a friendly, safe and welcoming environment for all, regardless of gender, sexual orientation, ability, ethnicity, socioeconomic status, and religion (or lack thereof).
 
 This code of conduct outlines our expectations for all those who participate in our community, as well as the consequences for unacceptable behavior.
 
@@ -88,9 +77,9 @@ Contact Christian at `cj.taiudovicic@gmail.com <cj.taiudovicic@gmail.com>`_.
 9. License and attribution
 ---------------------------
 
-The Citizen Code of Conduct is distributed by [Stumptown Syndicate](http://stumptownsyndicate.org) under a [Creative Commons Attribution-ShareAlike license](http://creativecommons.org/licenses/by-sa/3.0/). 
+The Citizen Code of Conduct is distributed by `Stumptown Syndicate <http://stumptownsyndicate.org>`_ under a `Creative Commons Attribution-ShareAlike license <http://creativecommons.org/licenses/by-sa/3.0/>`_. 
 
-Portions of text derived from the [Django Code of Conduct](https://www.djangoproject.com/conduct/) and the [Geek Feminism Anti-Harassment Policy](http://geekfeminism.wikia.com/wiki/Conference_anti-harassment/Policy).
+Portions of text derived from the `Django Code of Conduct <https://www.djangoproject.com/conduct/>`_ and the `Geek Feminism Anti-Harassment Policy <http://geekfeminism.wikia.com/wiki/Conference_anti-harassment/Policy>`_.
 
 Revised by Christian on 12 October 2017.
 
@@ -100,4 +89,4 @@ _Revision 2.2. Posted 4 February 2016._
 
 _Revision 2.1. Posted 23 June 2014._
 
-_Revision 2.0, adopted by the [Stumptown Syndicate](http://stumptownsyndicate.org) board on 10 January 2013. Posted 17 March 2013._
+_Revision 2.0, adopted by the `Stumptown Syndicate`_ board on 10 January 2013. Posted 17 March 2013._

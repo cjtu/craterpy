@@ -66,13 +66,13 @@ Contributions are merged into the master branch via the dreaded **pull request**
 
 - Is my contribution small and self-contained?
 
-- Does my contribution pass all unittests when I run `py.test` from the root directory?
+- Does my contribution pass all unittests when I run ``py.test`` from the root directory?
 
-- Does my contribution pass all style tests when I run `flake8`?
+- Does my contribution pass all style tests when I run ``flake8``?
 
 - If my contribution adds new class(es), function(s) and/or method(s), do they all have descriptive docstrings?
 
-- If my contribution adds new functionality, did I add good test cases to the `tests/` folder? Do these pass `py.test --cov` with close to 100% coverage?
+- If my contribution adds new functionality, did I add good test cases to the ``tests/`` folder? Do these pass ``py.test --cov`` with close to 100% coverage?
 
 If you answered yes to all of the above, you're probably good to go! Read the next section and open a Pull Request!
 
@@ -80,7 +80,7 @@ Submitting a Pull Request
 -------------------------
 Three simple steps:
 
-1. When you are happy with your contributions, commit them to your feature branch and then push them to your forked repository (if you run into trouble, check out this great guide to `git commands`_.
+1. When you are happy with your contributions, commit them to your feature branch and then push them to your forked repository (if you run into trouble, check out this great guide to `git commands`_).
 
 2. Go to `pulls <https://github.com/cjtu/craterpy/pulls>`_ and click the "New pull request" button.
 
@@ -91,7 +91,7 @@ Three simple steps:
    - `head fork : your-user/craterpy`
    - `compare : your-feature-branch`.
 
-4. Click "Create pull request" and describe your contribution in the box provided. If you are addressing an issue, reference it by number in the title to auto link it (e.g. "Solves #12" would be a great title if you solved a bug detailed in issue 12).
+4. Click "Create pull request" and describe your contribution in the box provided. If you are addressing an issue on the `issue tracker`_, reference it by number in the pull request title to auto reference it (e.g. "Solves #12" would be a great title if you solved a bug detailed in issue 12).
 
 .. _`git commands`: http://git.huit.harvard.edu/guide/
 
@@ -101,11 +101,13 @@ At this point, you've sucessfully submitted a pull request to craterpy! Sit tigh
 
 What if I'm stuck on something or having doubts about getting started?
 ----------------------------------------------------------------------
-Email Christian at cj.taiudovicic@gmail.com. Seriously. If you made it this far, I want to hear from you!
+Email Christian at cj.taiudovicic@gmail.com. Seriously. If you made it this far, we want to hear from you!
 
 Code of Conduct
 ---------------
 This community is governed by a `code of conduct`_. This is an inclusive community and attitudes or behaviours that make other members feel unsafe or uncomfortable will not be tolerated.
 
+.. _`code of conduct`: https://github.com/cjtu/craterpy/blob/master/CODE_OF_CONDUCT.rst
+
 Happy contributing and have a great day!
-----------------------------------------
+========================================
