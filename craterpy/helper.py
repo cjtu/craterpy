@@ -100,6 +100,17 @@ def findcol(df, names):
     return None
 
 
+def get_crater_cols(df):
+    """Return name of latitude, longitude, and radius columns from df"""
+    latcol = findcol(df, ['Latitude', 'Lat'])
+    loncol = findcol(df, ['Longitude', 'Lon'])
+    radcol = findcol(df, ['Radius', 'Rad'])
+    if not all((latcol, loncol, radcol)):
+        e = "Unable to read latitude, longitude and/or radius from DataFrame"
+        raise RuntimeError(e)
+    return latcol, loncol, radcol
+
+
 def diam2radius(df, diamcol=None):
     """Return dataframe with diameter column converted to radius."""
     if not diamcol:

@@ -5,8 +5,9 @@ import scipy as sp
 import pandas as pd
 import scipy.optimize as opt
 from craterpy import quickstats as qs
+from craterpy import helper as ch
 from craterpy import masking, plotting
-
+from craterpy.roi import CraterRoi
 
 # quickstats helpers
 def _list_quickstats():
@@ -47,7 +48,7 @@ def _get_quickstats_functions(statlist=None):
 
 
 # Main craterpy stat functions
-def ejecta_profile_stats(cdf, cds, ejrad=2, rspacing=0.25, stats=None,
+def ejecta_profile_stats(df, cds, ejrad=2, rspacing=0.25, stats=None,
                          plot_roi=False, vmin=None, vmax=None, strict=False,
                          plot_stats=False, savepath=None, timer=False, dt=60):
     """Compute stat profiles across ejecta blankets by computing stats in a
@@ -68,7 +69,7 @@ def ejecta_profile_stats(cdf, cds, ejrad=2, rspacing=0.25, stats=None,
 
     Example
     -------
-    >>> compute_ejecta_profile_stats(my_cdf, my_ads, 2, 0.25, stats=['mean',
+    >>> compute_ejecta_profile_stats(my_df, my_cds, 2, 0.25, stats=['mean',
                                     'median','maximum'],savepath='/tmp/')
 
     /tmp/index1_ejecta_stats.csv
@@ -89,37 +90,35 @@ def ejecta_profile_stats(cdf, cds, ejrad=2, rspacing=0.25, stats=None,
     if stats is None:
         stats = _list_quickstats()
     stat_dict = {}
-    for ind in cdf.index:  # Main CraterDataFrame loop
-        lat = cdf.loc[ind, cdf.latcol]
-        lon = cdf.loc[ind, cdf.loncol]
-        rad = cdf.loc[ind, cdf.radcol]
+    latcol, loncol, radcol = ch.get_crater_cols(df)
+    for i in df.index:  # Main DataFrame loop
+        lat, lon, rad = df.loc[i, latcol], df.loc[i, loncol], df.loc[i, radcol]
         try:
-            roi, extent = cds.get_roi(lat, lon, rad, ejrad, get_extent=True)
+            croi = CraterRoi(cds, lat, lon, rad, ejrad)
             ring_array = np.arange(1, ejrad+rspacing, rspacing)  # inner radius
             ring_darray = ring_array*rad  # convert inner radius to km
             stat_df = pd.DataFrame(index=ring_array[:-1], columns=stats)
             for i in range(len(ring_array)-1):  # Loop through radii
                 rad_inner = ring_darray[i]
                 rad_outer = ring_darray[i+1]
-                mask = masking.crater_ring_mask(cds, roi, lat, lon, rad_inner,
+                mask = masking.crater_ring_mask(cds, croi, lat, lon, rad_inner,
                                                 rad_outer)
-                roi_masked = mask_where(roi, ~mask)
-                filtered_roi = filter_roi(roi_masked, vmin, vmax, strict)
-                roi_notnan = filtered_roi[~np.isnan(filtered_roi)]
+                ejecta_roi = croi.mask(~mask).filter(vmin, vmax, strict)
+                ejecta_roi = ejecta_roi[~np.isnan(ejecta_roi)]
                 for stat, function in _get_quickstats_functions(stats):
-                    stat_df.loc[ring_array[i], stat] = function(roi_notnan)
+                    stat_df.loc[ring_array[i], stat] = function(ejecta_roi)
                 if plot_roi:
-                    cds.plot_roi(filtered_roi, extent=extent)
-            stat_dict[ind] = stat_df
+                    ejecta_roi.plot()
+            stat_dict[i] = stat_df
             if plot_stats:
-                plotting.plot_ejecta_stats(stat_df)
+                plotting.plot_ejecta_profile_stats(stat_df)
             if savepath:
-                stat_df.to_csv(savename.format(ind))
+                stat_df.to_csv(savename.format(i))
         except ImportError as e:  # Catches and prints out of bounds exceptions
             print(e, ". Skipping....")
         if timer:  # Print a status update approx every dt seconds
-            if (timer() - Tnow > dt) or (count == len(cdf)):
-                update = 'Finished crater {} out of {}'.format(count, len(cdf))
+            if (timer() - Tnow > dt) or (count == len(df)):
+                update = 'Finished crater {} out of {}'.format(count, len(df))
                 elapsed = timer()-Tstart
                 update += '\n  Time elapsed: \
                           {}h:{}m:{}s'.format(int(elapsed//3600),
@@ -131,17 +130,17 @@ def ejecta_profile_stats(cdf, cds, ejrad=2, rspacing=0.25, stats=None,
     return stat_dict
 
 
-def ejecta_stats(cdf, cds, ejrad=2, stats=None, plot=False, vmin=None,
-                 vmax=None, strict=False):
+def ejecta_stats(df, cds, ejrad=2, stats=None, plot=False, vmin=float('-inf'),
+                 vmax=float('inf'), strict=False):
     """Compute the specified stats from acestats.py on a circular ejecta ROI
     extending ejsize crater radii from the crater center. Return results as
-    CraterDataFrame with stats appended as extra columns.
+    DataFrame with stats appended as extra columns.
 
     Parameters
     ----------
-    cdf : CraterDataFrame object
+    df : pandas.DataFrame object
         Contains the crater locations and sizes to locate ROIs in aceDS. Also
-        form the basis of the returned CraterDataFrame
+        form the basis of the returned DataFrame
     cds : CraterpyDataset object
         CraterpyDataset of image data used to compute stats.
     ejrad : int, float
@@ -162,32 +161,31 @@ def ejecta_stats(cdf, cds, ejrad=2, stats=None, plot=False, vmin=None,
 
     Returns
     -------
-    CraterDataFrame
-        Same length as cdf with stats included as new columns.
+    DataFrame
+        Copy of df with stats appended as new columns.
     """
     # If stats and index not provided, assume use all stats and all rows in cdf
     if stats is None:
         stats = _list_quickstats()
-    # Initialize return CraterDataframe with stats as individual columns
-    ret_cdf = cdf
+    # Initialize return Dataframe with stats as individual columns
+    ret_df = df.copy()
     for stat in stats:
-        ret_cdf.loc[:, stat] = ret_cdf.index
+        ret_df.loc[:, stat] = ret_df.index
+    latcol, loncol, radcol = ch.get_crater_cols(df)
     # Main computation loop
-    for i in cdf.index:
+    for i in df.index:
         # Get lat, lon, rad and compute roi for current crater
-        lat = cdf.loc[i, cdf.latcol]
-        lon = cdf.loc[i, cdf.loncol]
-        rad = cdf.loc[i, cdf.radcol]
-        roi, extent = cds.get_roi(lat, lon, rad, ejrad, get_extent=True)
-        mask = masking.crater_ring_mask(cds, roi, lat, lon, rad, rad*ejrad)
-        roi_masked = mask_where(roi, ~mask)  # ~mask keeps the ring interior
-        filtered_roi = filter_roi(roi_masked, vmin, vmax, strict)
-        roi_notnan = filtered_roi[~np.isnan(filtered_roi)]  # Collapses to 1D
+        lat, lon, rad = df.loc[i, latcol], df.loc[i, loncol], df.loc[i, radcol]
+        croi = CraterRoi(cds, lat, lon, rad, ejrad)
+        mask = masking.crater_ring_mask(croi, rad, rad*ejrad)
+        croi.filter(vmin, vmax, strict)
+        croi.mask(~mask)
+        data_arr = croi.roi[~np.isnan(croi.roi)]  # Collapses to 1D
         for stat, function in _get_quickstats_functions(stats):
-            ret_cdf.loc[i, stat] = function(roi_notnan)
+            ret_df.loc[i, stat] = function(data_arr)
         if plot:  # plot filtered and masked roi
-            cds.plot_roi(filtered_roi, extent=extent)
-    return ret_cdf
+            croi.plot()
+    return ret_df
 
 
 # Other statistics
@@ -215,91 +213,3 @@ def histogram(roi, bins, hmin=None, hmax=None, skew=False, verbose=False,
     if verbose:
         print(output)
     return ret
-
-
-# Ejecta profile stats
-def fit_exp(x, y, PLOT_EXP=False):
-    """
-    Return an exponential that has been fit to data using scipy.curvefit().
-    If plot is True, plot the data and the fit.
-    """
-    def exp_eval(x, a, b, c):
-        """
-        Return exponential of x with a,b,c parameters.
-        """
-        return a * np.exp(-b * x) + c
-
-    def plot_exp(x, y, exp):
-        pass  # TODO: implement this
-
-    try:
-        p_opt, cov = opt.curve_fit(exp_eval, x, y)
-    except:
-        RuntimeError
-        return None
-    if PLOT_EXP:
-        plot_exp(x, y, exp_eval(x, *p_opt))
-    return p_opt
-
-
-def fit_gauss(data, PLOT_GAUSS=False):
-    """
-    Return parameters of a Gaussian that has been fit to data using least
-    squares fitting. If plot=True, plot the histogram and fit of the data.
-    """
-    def gauss(x, p):
-        """
-        Return Gaussian with mean = p[0], standard deviation = p[1].
-        """
-        return 1.0/(p[1]*np.sqrt(2*np.pi))*np.exp(-(x-p[0])**2/(2*p[1]**2))
-
-    def errorfn(p, x, y):
-        """Compute distance from gaussian to y."""
-        gauss(x, p) - y
-
-    def plot_gauss(bins, n, gauss):
-        pass  # TODO: implement this
-
-    data = data[data > 0]
-    n, bins = np.histogram(data, bins='fd', density=True)
-    p0 = [0, 1]  # initial parameter guess
-    p, success = opt.leastsq(errorfn, p0[:], args=(bins[:-1], n))
-    if PLOT_GAUSS:
-        plot_gauss(bins, n, gauss(bins, p))
-    return p
-
-
-def fit_pow(xdata, ydata, p0, plot=False, cid=''):
-    """
-    Return a power law curve fit of y using a least squares fit.
-    """
-    def residuals(p, x, y):
-        return ydata - pow_eval(p, x)
-
-    def pow_eval(p, x):
-        return p[0] + p[1] * (x**p[2])
-
-    pfinal, success = opt.leastsq(residuals, p0, args=(xdata, ydata))
-    xarr = np.arange(xdata[0], xdata[-1], 0.1)
-    return xarr, pow_eval(pfinal, xarr)
-
-
-def fit_pow_linear(xdata, ydata, p0, plot=False, cid=''):
-    """
-    Return a power law curve fit of y by converting to linear data using
-    logarithms and then performing a linear least squares fit.
-    """
-    def fit_line(p, x):
-        return p[0] + p[1] * x
-
-    def residuals(p, x, y):
-        return ydata - fit_line(p, x)
-
-    def pow_eval(x, amp, index):
-        return amp * (x**index)
-
-    logx = np.log(xdata)
-    logy = np.log(ydata)
-    pfinal, success = opt.leastsq(residuals, p0, args=(logx, logy))
-
-    return pow_eval(xdata, pfinal[0], pfinal[1])

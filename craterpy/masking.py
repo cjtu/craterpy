@@ -161,8 +161,8 @@ def crater_ring_mask(croi, rmin, rmax):
     rmax_pixwidth = ch.km2pix(rmax, croi.cds.calc_mpp(croi.lat))
     rmin_pixheight = ch.km2pix(rmin, croi.cds.calc_mpp())
     rmin_pixwidth = ch.km2pix(rmin, croi.cds.calc_mpp(croi.lat))
-    outer = ellipse_mask(croi.roi.shape, rmax_pixwidth, rmax_pixheight)
-    inner = ellipse_mask(croi.roi.shape, rmin_pixwidth, rmin_pixheight)
+    outer = ellipse_mask(croi.roi.shape, rmax_pixheight, rmax_pixwidth)
+    inner = ellipse_mask(croi.roi.shape, rmin_pixheight, rmin_pixwidth)
     return outer * ~inner
 
 

@@ -2,6 +2,7 @@
 from __future__ import division, print_function, absolute_import
 import numpy as np
 import craterpy.helper as ch
+from craterpy.plotting import plot_CraterRoi
 
 
 class CraterRoi:
@@ -47,7 +48,7 @@ class CraterRoi:
     >>> cds = CraterpyDataset(dsfile, radius=1737)
     >>> croi = CraterRoi(cds, -27.2, 80.9, 207)  # Humboldt crater
     """
-    def __init__(self, cds, lat, lon, rad, wsize=2, plot=False):
+    def __init__(self, cds, lat, lon, rad, wsize=1, plot=False):
         self.cds = cds
         self.lat = lat
         self.lon = lon
@@ -59,7 +60,9 @@ class CraterRoi:
             self.plot()
 
     def __repr__(self):
-        pass
+        return "CraterRoi at ({}N, {}E) with radius {} km".format(self.lat,
+                                                                  self.lon,
+                                                                  self.rad)
 
     def _get_extent(self):
         """Return the bounds of this roi in degrees.
@@ -128,7 +131,7 @@ class CraterRoi:
         fillvalue : int or float
             Number to fill in filtered values (default np.nan).
         """
-        roi = self.copy()
+        roi = self.roi.copy()
         nanmask = ~np.isnan(roi)  # build nanmask with pre-existing nans
         if not strict:
             nanmask[nanmask] &= roi[nanmask] > vmax  # Add values > vmax
@@ -137,7 +140,8 @@ class CraterRoi:
             nanmask[nanmask] &= roi[nanmask] >= vmax
             nanmask[nanmask] &= roi[nanmask] <= vmin
         roi[nanmask] = fillvalue
-        self = roi
+        self.roi = roi
+        return
 
     def mask(self, mask, outside=False, fillvalue=np.nan):
         """Fill pixels in bool mask from masking.py with fillvalue.
@@ -160,5 +164,4 @@ class CraterRoi:
 
     def plot(self, *args, **kwargs):
         """Plot this CraterRoi. See plotting.plot_CraterRoi()"""
-        from craterpy.plotting import plot_CraterRoi
         plot_CraterRoi(self, *args, **kwargs)

@@ -35,8 +35,7 @@ def plot_CraterRoi(croi, figsize=((4, 4)), title=None,
     if not title:
         title = "CraterRoi at ({}, {})".format(croi.lat, croi.lon)
     plt.figure(title, figsize=figsize)
-    plt.imshow(croi.roi, extent=croi.extent, cmap=cmap, vmin=vmin, vmax=vmax,
-               **kwargs)
+    plt.imshow(croi.roi, extent=croi.extent, cmap=cmap, **kwargs)
     plt.title(title)
     plt.xlabel('Longitude (degrees)')
     plt.ylabel('Latitude (degrees)')

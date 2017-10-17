@@ -24,9 +24,9 @@ class TestCraterRoi(unittest.TestCase):
         """Test _get_extent"""
         roi = CraterRoi(self.cds, 0, 0, 16)
         actual = roi._get_extent()
-        expected = (-1.05553, 1.05553, -1.05553, 1.05553)
+        expected = (-0.5278, 0.5278, -0.5278, 0.5278)
         np.testing.assert_almost_equal(actual, expected, 4)
         roi = CraterRoi(self.cds, 20, 20, 16)
         actual = roi._get_extent()
-        expected = (18.87672, 21.12328, 18.94446, 21.05553)
+        expected = (19.4384, 20.5616, 19.4722, 20.5278)
         np.testing.assert_almost_equal(actual, expected, 4)

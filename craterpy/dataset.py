@@ -152,7 +152,7 @@ class CraterpyDataset(object):
         if abs(lat) > 90:
             raise ValueError("Latitude out of bounds")
         # calculate circumference at lat in [m], divide by num pixels
-        circ = 1000*2*np.pi*self.radius*np.cos(lat*np.pi/180)
+        circ = 1000*2*np.pi*self.radius*np.cos(np.radians(lat))
         npix = 360*self.ppd  # num pixels in one circumference [pix]
         return circ/npix  # num meters in one pixel at lat [m]/[pix]
 
@@ -223,7 +223,7 @@ class CraterpyDataset(object):
         --------
         # TODO
         """
-        if not (self.inbounds(minlat, minlon) and
+        if (not self.inbounds(minlat, minlon) or not
                 self.inbounds(maxlat, maxlon)):
             raise ImportError("Roi extent out of dataset bounds.")
         topind = ch.deg2pix(self.nlat-maxlat, self.ppd)
@@ -234,7 +234,7 @@ class CraterpyDataset(object):
             leftind = ch.deg2pix(minlon-self.wlon, self.ppd)
             width = ch.deg2pix(maxlon-minlon, self.ppd)
             roi = self.ReadAsArray(leftind, topind, width, height)
-        return roi
+        return roi.astype(float)
 
     def _wrap_roi_360(self, minlon, maxlon, topind, height):
             """Return roi that is split by the 360 degree edge of a global dataset.
