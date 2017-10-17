@@ -45,7 +45,7 @@ A code-snippet and plot is worth a thousand words::
                        'Lon': [-94.7, 61.0, 104.0],
                        'Rad': [147.0, 66.0, 82.3]})
     moon = dataset.CraterpyDataset("moon.tif")
-    cs.ejecta_stats(df, moon, 4, ['mean', 'median', 'std'], plot=True)
+    stat_df = cs.ejecta_stats(df, moon, 4, ['mean', 'median', 'std'], plot=True)
     
 
 .. image:: /craterpy/data/_images/readme_crater_ejecta.png
