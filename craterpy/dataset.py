@@ -1,5 +1,6 @@
 """Contains the CraterpyDataset object which wraps gdal.Dataset."""
 from __future__ import division, print_function, absolute_import
+from craterpy.exceptions import DataImportError
 import numpy as np
 import gdal
 import craterpy.helper as ch
@@ -225,7 +226,7 @@ class CraterpyDataset(object):
         """
         if (not self.inbounds(minlat, minlon) or not
                 self.inbounds(maxlat, maxlon)):
-            raise ImportError("Roi extent out of dataset bounds.")
+            raise DataImportError("Roi extent out of dataset bounds.")
         topind = ch.deg2pix(self.nlat-maxlat, self.ppd)
         height = ch.deg2pix(maxlat-minlat, self.ppd)
         if self.is_global() and (minlon < self.wlon or maxlon > self.elon):

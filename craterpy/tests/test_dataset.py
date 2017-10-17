@@ -4,6 +4,7 @@ import unittest
 import numpy as np
 import gdal
 from craterpy.dataset import CraterpyDataset
+from craterpy.exceptions import DataImportError
 
 
 class TestCraterpyDataset(unittest.TestCase):
@@ -103,7 +104,7 @@ class TestCraterpyDataset(unittest.TestCase):
     def test_get_roi(self):
         """Test get_roi method"""
         extent = (0, 10, 0, 91)
-        self.assertRaises(ImportError, self.cds.get_roi, *extent)
+        self.assertRaises(DataImportError, self.cds.get_roi, *extent)
         extent = (170, 190, -10, 10)
         actual = self.cds.get_roi(*extent)
         # TODO: Finish this
