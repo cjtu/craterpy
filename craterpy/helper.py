@@ -1,6 +1,5 @@
 """This file contains various helper functions for craterpy"""
 from __future__ import division, print_function, absolute_import
-from craterpy.exceptions import LatLongOutOfBoundsError
 import numpy as np
 
 
@@ -37,7 +36,7 @@ def greatcircdist(lat1, lon1, lat2, lon2, radius):
     2887.259950607111
     """
     if not all(map(inglobal, (lat1, lon1), (lat2, lon2))):
-        raise LatLongOutOfBoundsError("Latitude or longitude out of bounds.")
+        raise ValueError("Latitude or longitude out of bounds.")
     # Convert degrees to radians
     lat1, lon1, lat2, lon2 = np.radians([lat1, lon1, lat2, lon2])
     # Haversine
