@@ -38,18 +38,30 @@ Example
 -------
 A code-snippet and plot is worth a thousand words::
 
-  import pandas as pd
-  import craterpy as cp
-  df = pd.DataFrame("craters.csv", index)
-  ds = cp.Dataset("moon.tif")
-  rois = cp.get_roi(ds, df["Crisium"], plot_roi=True)
+    import pandas as pd
+    from craterpy import dataset, stats
+    df = pd.DataFrame({'Name': ["Orientale", "Langrenus", "Compton"],
+                       'Lat': [-19.9, -8.86, 55.9],
+                       'Lon': [-94.7, 61.0, 104.0],
+                       'Rad': [147.0, 66.0, 82.3]})
+    moon = dataset.CraterpyDataset("moon.tif")
+    cs.ejecta_stats(df, moon, 4, ['mean', 'median', 'std'], plot=True)
+    
 
-*Images coming soon*
+..image:: /craterpy/data/_images/readme_crater_ejecta.png
 
-New users should start with the IPython notebook `tutorial <https://nbviewer.jupyter.org/github/cjtu/craterpy/blob/master/craterpy/sample/tutorial.ipynb>`_ for typical usage with examples.
+::
 
-**Note**: While craterpy read in image data, it does not reproject it. This package currently **only accepts image data in simple-cylindrical (Plate Caree) projection**. If your data is in another projection, please reproject it to simple-cylindrical before importing it with craterpy (check out `GDAL <http://www.gdal.org/>`_). If you would like add reprojection functionality, consider `contributing`_.
+  stats_df.head()
 
+..image:: /craterpy/data/_images/readme_stat_df.png
+
+
+New users should start with the IPython notebook `tutorial`_ for typical usage with examples.
+
+**Note**: This package currently **only accepts image data in simple-cylindrical (Plate Caree) projection**. If your data is in another projection, please reproject it to simple-cylindrical before importing it with craterpy (check out `GDAL <http://www.gdal.org/>`_). If you would like add reprojection functionality to craterpy, consider `Contributing`_.
+
+.. _`tutorial`: https://gist.github.com/cjtu/560f121049b342aa0b2bf70e038358b7
 .. _`contributing`: https://github.com/cjtu/craterpy/blob/master/CONTRIBUTING.rst
 
 
@@ -90,7 +102,7 @@ Install the latest craterpy release with pip::
 
   pip install craterpy
 
-Now that you have craterpy installed, head over to the `tutorial <https://nbviewer.jupyter.org/github/cjtu/craterpy/blob/master/craterpy/sample/tutorial.ipynb>`_ to get started!
+Now that you have craterpy installed, head over to the `tutorial`_ to get started!
 
 **Note**: Remember to activate your virtual environment each time you use craterpy.
 
