@@ -48,13 +48,13 @@ A code-snippet and plot is worth a thousand words::
     cs.ejecta_stats(df, moon, 4, ['mean', 'median', 'std'], plot=True)
     
 
-..image:: /craterpy/data/_images/readme_crater_ejecta.png
+.. image:: /craterpy/data/_images/readme_crater_ejecta.png
 
 ::
 
   stats_df.head()
 
-..image:: /craterpy/data/_images/readme_stat_df.png
+.. image:: /craterpy/data/_images/readme_stat_df.png
 
 
 New users should start with the IPython notebook `tutorial`_ for typical usage with examples.
