@@ -12,4 +12,4 @@ _static
 build/
 dist/
 *.sublime*
-*.ipynb_checkpoints*
+*.ipynb*
