@@ -27,7 +27,7 @@ env:
 before_install:
   # Deactivate travis provided environment
   - deactivate
-  - .travis/before_install.sh
+  - .travis/before_install2.sh
 
 install:
   # Create and activate conda environment
