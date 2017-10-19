@@ -147,20 +147,20 @@ We are looking for new contributors! If you are interested in open source and wa
 
 Development Environment
 """""""""""""""""""""""
-The suggested development environment is specified in `.environment.yml`. It can be built automatically in a new conda environment in a few simple steps:
+The development environment is specified in `.environment.yml`. It can be built automatically in a new conda environment in a few simple steps:
 
-1. Fork the `craterpy on GitHub`_.
-2. Create the ``craterpy-dev`` environment with::
+1. Fork `craterpy on GitHub`_.
+2. Create the ``craterpy-dev`` environment::
 
     conda env create -f .environment.yml
 
-3. Activate the dev environment with (ignore "source" on Windows)::
+3. Activate the dev environment (omit "source" on Windows)::
 
     source activate craterpy-env
 
 4. Test the environment with ``conda list``, then hack away!
 
-The dev environment comes pre-installed with craterpy and all of its dependencies, as well as some handy libraries like ``pytest``, ``pytest-cov``, and ``flake8``.
+The dev environment comes with craterpy and its dependencies, as well as some handy libraries like ``pytest``, ``pytest-cov``, and ``flake8``.
 
 Updating .environment.yml
 """""""""""""""""""""""""
@@ -190,3 +190,7 @@ License
 
 Copyright (c) 2017- Christian Tai Udovicic. Released under the MIT license. This software comes with no warranties. See `LICENSE <https://github.com/cjtu/craterpy/blob/master/LICENSE.txt>`_ for details.
 
+
+Contributors
+------------
+Craterpy was developed with the aid of `these wonderful people <https://github.com/cjtu/craterpy/graphs/contributors>`_!
