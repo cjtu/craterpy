@@ -17,12 +17,12 @@ matrix:
     - os: osx
       language: generic
       env: TRAVIS_PYTHON_VERSION=3.4
-
+    - os: osx
+      language: generic
+      env: TRAVIS_PYTHON_VERSION=3.5
 
 env:
   global:
-  - CONDA_DEPS_27=false
-  - CONDA_DEPS_35=false
   - COVERAGE=true  # Coverage support with codecov
   - FLAKE8=false  # Flake8 style checker
 
@@ -31,19 +31,18 @@ before_install:
   - ./travis/before_install.sh
 
 install:
-  # Create and activate conda environment
+  # Activate conda environment tes-env created in before_install.sh
   - export PATH=$HOME/miniconda/bin:$PATH
   - source activate test-env
-  # Install non gdal dependencies
-  - conda install pytest pytest-cov numpy scipy matplotlib pandas
-  # Install gdal, libgdal and explicitly state versions to avoid mismatch bug
-  - conda install gdal=2.1.0 libgdal=2.1.0
-  # Upload test coverage stats with codecov
+  # Install from conda-forge
+  - conda install -c conda-forge pytest pytest-cov gdal pandas numpy scipy matplotlib
+  # Install codecov API
   - pip install codecov
+  # Install craterpy
   - python setup.py install
 
 script:
-  # Use the --cov flag to pytest-cov to run coverage stats
+  # Run tests with the --cov flag to check coverage
   - py.test --cov=./
     
 after_success:
