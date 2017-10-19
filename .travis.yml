@@ -5,6 +5,12 @@ matrix:
     - os: linux
       sudo: required
       python: 2.7
+    - os: linux
+      sudo: required
+      python: 3.4
+    - os: linux
+      sudo: required
+      python: 3.5
     - os: osx
       language: generic
       env: TRAVIS_PYTHON_VERSION=2.7
@@ -22,13 +28,11 @@ env:
 
 
 before_install:
-  # Deactivate travis provided environment
-  - deactivate
   - ./travis/before_install.sh
 
 install:
   # Create and activate conda environment
-  - PATH=$HOME/miniconda/bin:$PATH
+  - export PATH=$HOME/miniconda/bin:$PATH
   - source activate test-env
   # Install non gdal dependencies
   - conda install pytest pytest-cov numpy scipy matplotlib pandas
