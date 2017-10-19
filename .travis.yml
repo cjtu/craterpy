@@ -24,11 +24,11 @@ env:
 before_install:
   # Deactivate travis provided environment
   - deactivate
-  - ./travis/before_install2.sh
+  - ./travis/before_install.sh
 
 install:
   # Create and activate conda environment
-  - conda create -q -n test-env python=$TRAVIS_PYTHON_VERSION
+  - PATH=$HOME/miniconda/bin:$PATH
   - source activate test-env
   # Install non gdal dependencies
   - conda install pytest pytest-cov numpy scipy matplotlib pandas
