@@ -97,7 +97,7 @@ Quick Installation with Anaconda
 
     source activate your_env_name
 
-4. Install the dependencies (via`conda-forge`_)::
+4. Install the dependencies (via `conda-forge`_)::
 
     conda install -c conda-forge numpy scipy matplotlib pandas gdal
 
