@@ -7,19 +7,19 @@ matrix:
       python: 2.7
     - os: linux
       sudo: required
-      python: 3.4
+      python: 3.5
     - os: linux
       sudo: required
-      python: 3.5
+      python: 3.6
     - os: osx
       language: generic
       env: TRAVIS_PYTHON_VERSION=2.7
     - os: osx
       language: generic
-      env: TRAVIS_PYTHON_VERSION=3.4
+      env: TRAVIS_PYTHON_VERSION=3.5
     - os: osx
       language: generic
-      env: TRAVIS_PYTHON_VERSION=3.5
+      env: TRAVIS_PYTHON_VERSION=3.6
 
 env:
   global:
@@ -35,16 +35,14 @@ install:
   - export PATH=$HOME/miniconda/bin:$PATH
   - source activate test-env
   # Install from conda-forge
-  - conda install -c conda-forge pytest pytest-cov gdal pandas numpy scipy matplotlib
-  # Install codecov API
-  - pip install codecov
+  - conda install -c conda-forge pytest pytest-cov codecov gdal pandas numpy scipy matplotlib
   # Install craterpy
   - python setup.py install
 
 script:
   # Run tests with the --cov flag to check coverage
   - py.test --cov=./
-    
+
 after_success:
   # Tries to upload coverage to codecov, but does not fail build if upload fails
   - if [[ "$COVERAGE" == "true" ]]; then
