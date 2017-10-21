@@ -62,7 +62,6 @@ New users should start with the IPython notebook `tutorial`_ for typical usage w
 
 .. _`tutorial`: https://gist.github.com/cjtu/560f121049b342aa0b2bf70e038358b7
 .. _`GDAL`: http://www.gdal.org/
-.. _`contributing`: https://github.com/cjtu/craterpy/blob/master/CONTRIBUTING.rst
 
 
 Requires
@@ -70,13 +69,13 @@ Requires
 craterpy currently supports the following python versions on Linux, OS X and Windows:
 
 - 2.7
-- 3.4
 - 3.5
+- 3.6
 
 It's core dependencies are:
 
 - pandas
-- gdal
+- gdal=2.2.2
 - numpy
 - scipy
 - matplotlib
@@ -90,29 +89,30 @@ Quick Installation with Anaconda
 
 1. `Install Anaconda <https://www.anaconda.com/download/>`_.
 
-2. Open a terminal window and create a conda virtual environment (name it anything you like, and set the python version to a compatible version in `Requires`_)::
+2. Open a terminal window and create a `conda virtual environment`_ (name it anything you like, and set the python version to a compatible version in `Requires`_)::
 
-    conda create --name your_env_name python=3.5
+    conda create --name your_env_name python=3.6
 
-3. Activate the environment (Windows users can omit "source")::
+3. Activate the environment (on Windows, omit "source")::
 
     source activate your_env_name
 
-4. Now install the dependencies::
+4. Install the dependencies (via`conda-forge`_)::
 
-    conda install numpy scipy pandas matplotlib gdal=2.1.0 libgdal=2.1.0
+    conda install -c conda-forge numpy scipy matplotlib pandas gdal
 
 5. Install craterpy with pip::
 
     pip install craterpy
 
-6. Check your installation with ``conda list``.
+6. Check that your installation succeeded with ``conda list``.
 
 Now that you have craterpy installed, head over to the `tutorial`_ to get started!
 
 **Note**: Remember to activate your virtual environment each time you use craterpy.
 
-.. _`Managing Environments`: https://conda.io/docs/using/envs
+.. _`conda virtual environment`: https://conda.io/docs/using/envs
+.. _`conda-forge`: https://conda-forge.org/
 
 Installing from a fork
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -143,24 +143,34 @@ You can report bugs or request new features on the `issue tracker <https://githu
 
 Becoming a contributor
 ^^^^^^^^^^^^^^^^^^^^^^
-We are looking for new contributors! If you are interested in open source and want to join a supportive learning environment - or if you want to use craterpy and make it better for everyone - consider contributing to the project. See `contributing`_ for details on how to get started!
+craterpy is seeking new contributors! If you are interested in open source and want to join a supportive learning environment - or if you want to extend craterpy to suit your own crater analysis - consider contributing to the project! See `CONTRIBUTING.rst`_ for details on how to get started.
+
+.. _`CONTRIBUTING.rst`: https://github.com/cjtu/craterpy/blob/master/CONTRIBUTING.rst
 
 Development Environment
 """""""""""""""""""""""
-The suggested development environment is specified in `.environment.yml`. It can be built automatically in a new conda environment in a few simple steps:
+The development environment is specified in `.environment.yml`. It can be built automatically in a new conda environment in a few simple steps:
 
-1. Fork the `craterpy on GitHub`_.
-2. Create the ``craterpy-dev`` environment with::
+1. Fork `craterpy on GitHub`_.
+
+2. Clone your fork, then cd into your local craterpy repository.
+
+3. Create the ``craterpy-dev`` environment with::
 
     conda env create -f .environment.yml
 
-3. Activate the dev environment with (ignore "source" on Windows)::
+4. Activate the dev environment with (ignore "source" on Windows)::
 
     source activate craterpy-env
 
-4. Test the environment with ``conda list``, then hack away!
+5. Test the environment with::
 
-The dev environment comes pre-installed with craterpy and all of its dependencies, as well as some handy libraries like ``pytest``, ``pytest-cov``, and ``flake8``.
+    py.test craterpy
+
+6. Hack away!
+
+The dev environment comes pre-installed with craterpy and all of its dependencies, as well as some handy libraries like ``pytest``, ``pytest-cov``, and ``flake8``. Read more about testing, covereage and style in `CONTRIBUTING.rst`_.
+
 
 Updating .environment.yml
 """""""""""""""""""""""""
