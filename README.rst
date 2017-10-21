@@ -200,3 +200,7 @@ License
 
 Copyright (c) 2017- Christian Tai Udovicic. Released under the MIT license. This software comes with no warranties. See `LICENSE <https://github.com/cjtu/craterpy/blob/master/LICENSE.txt>`_ for details.
 
+
+Contributors
+------------
+Craterpy was developed with the aid of `these wonderful people <https://github.com/cjtu/craterpy/graphs/contributors>`_!
