@@ -4,11 +4,11 @@ Thank you for your interest in contributing to craterpy!
 
 Who can contribute?
 -------------------
-*Anyone!* This project is as much a tool to learn about open source science as it is a tool to improve planetary data science workflows. If you've never contributed to open source before, great! Drop us a line! If you're an expert hacker and think we're doing everything wrong, awesome! We want to hear from you too! 
+*Anyone!* This project is as much a tool to learn about open source science as it is a tool to improve planetary data science workflows. If you've never contributed to open source before, great! Drop us a line! If you're an expert hacker and think we're doing everything wrong, awesome! We want to hear from you too!
 
 Why contribute?
 ---------------
-If you're interested in any of the following: 
+If you're interested in any of the following:
 
 - planets
 - science
@@ -30,12 +30,16 @@ If you made it this far and you're still interested, that's great! Here are four
 
 1. Fork the `main repository`_ by clicking the link and clicking the Fork button in the upper right corner (read about `forking`_).
 
-2. Clone the forked repository to your machine (Git must be `installed`_). :: 
-   
-    git clone https://https://github.com/your_username/craterpy.git
+2. Clone the forked repository to your machine (Git must be `installed`_). ::
+
+    git clone https://github.com/your_username/craterpy.git
     cd craterpy
 
-3. Set up a conda virtual environment from the ``.environment.yml`` (requires `Anaconda`_). ::
+3. Make the conda-forge channels available ::
+
+   conda config --add channels conda-forge
+
+4. Set up a conda virtual environment from the ``.environment.yml`` (requires `Anaconda`_). ::
 
     conda env create -f .environment.yml
 
@@ -49,8 +53,8 @@ If you made it this far and you're still interested, that's great! Here are four
     source activate craterpy-dev
     python setup.py -q install
 
-4. Make a feature branch to be your working branch. Choose any name you like. ::
-   
+5. Make a feature branch to be your working branch. Choose any name you like. ::
+
     git checkout -b feature-xyz
 
 Now that your dev environment is set up, you can start making contributions! If you haven't already, check out the `issue tracker`_ for suggestions on where to get started.
@@ -85,7 +89,7 @@ Three simple steps:
 2. Go to `pulls <https://github.com/cjtu/craterpy/pulls>`_ and click the "New pull request" button.
 
 3. Click "compare across forks", then use the drop-downs to choose:
-   
+
    - `base fork : cjtu.craterpy`
    - `base : master`
    - `head fork : your-user/craterpy`
