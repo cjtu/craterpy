@@ -3,7 +3,6 @@ import inspect
 import numpy as np
 import scipy as sp
 import pandas as pd
-import scipy.optimize as opt
 from craterpy import quickstats as qs
 from craterpy import helper as ch
 from craterpy import masking, plotting
@@ -130,6 +129,76 @@ def ejecta_profile_stats(df, cds, ejrad=2, rspacing=0.25, stats=None,
     return stat_dict
 
 
+def compute_stats(df, cds, stats=[], plot=False, vmin=float('-inf'),
+                  vmax=float('inf'), strict=False, maskfunc=None,
+                  mask_out=False, ejrad=None):
+    """Computes stats on craters in df with image data from cds.
+    """
+    # If stats and index not provided, assume use all stats and all rows in cdf
+    if not stats:
+        stats = _list_quickstats()
+    # Initialize return Dataframe with stats as individual columns
+    ret_df = df.copy()
+    for stat in stats:
+        ret_df.loc[:, stat] = ret_df.index
+    latcol, loncol, radcol = ch.get_crater_cols(df)
+    # Main computation loop
+    for i in df.index:
+        # Get lat, lon, rad and compute roi for current crater
+        lat, lon, rad = df.loc[i, latcol], df.loc[i, loncol], df.loc[i, radcol]
+        croi = CraterRoi(cds, lat, lon, rad, ejrad)
+        croi.filter(vmin, vmax, strict)
+        if maskfunc:
+            if maskfunc == "crater":
+                mask = masking.crater_floor_mask(croi)
+            elif maskfunc == "ejecta":
+                mask = masking.crater_ring_mask(croi, rad, rad*ejrad)
+            croi.mask(mask, mask_out)
+        data_arr = croi.roi[~np.isnan(croi.roi)]  # Collapses to 1D
+        for stat, function in _get_quickstats_functions(stats):
+            ret_df.loc[i, stat] = function(data_arr)
+        if plot:  # plot filtered and masked roi
+            croi.plot()
+    return ret_df
+
+
+def crater_stats(df, cds, stats=None, plot=False, vmin=float('-inf'),
+                 vmax=float('inf'), strict=False):
+    """Computes stats on all craters in df using image data from cds
+
+    Crater latitude, longitude, and radius are read in from df. All stats are
+    computed assuming a circular crater centered on (lat, lon). Stats must be
+    present in quickstats.py.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame object
+        Contains the crater locations and sizes to locate ROIs in aceDS. Also
+        form the basis of the returned DataFrame
+    cds : CraterpyDataset object
+        CraterpyDataset of image data used to compute stats.
+    stats : Array-like of str
+        Indicates the stat names to compute. Stat functions must be defined in
+        acestats.py. Default: all stats in acestats.py.
+    plot : bool
+        Plot the ejecta ROI.
+    vmin : int, float
+        The minimum valid image pixel value. Filter all values lower.
+    vmax : int, float
+        The maximum valid image pixel value. Filter all values higher.
+    strict : bool
+        How strict the (vmin, vmax) range is. If true, exclude values <= vmin
+        and values >= vmax, if they are specified.
+
+    Returns
+    -------
+    DataFrame
+        Copy of df with stats appended as new columns.
+    """
+    return compute_stats(df, cds, stats, plot, vmin, vmax, strict,
+                         maskfunc="crater", mask_out=True)
+
+
 def ejecta_stats(df, cds, ejrad=2, stats=None, plot=False, vmin=float('-inf'),
                  vmax=float('inf'), strict=False):
     """Compute the specified stats from acestats.py on a circular ejecta ROI
@@ -164,28 +233,31 @@ def ejecta_stats(df, cds, ejrad=2, stats=None, plot=False, vmin=float('-inf'),
     DataFrame
         Copy of df with stats appended as new columns.
     """
+    return compute_stats(df, cds, stats, plot, vmin, vmax, strict,
+                         maskfunc="ejecta", mask_out=True, ejrad=ejrad)
+
     # If stats and index not provided, assume use all stats and all rows in cdf
-    if stats is None:
-        stats = _list_quickstats()
-    # Initialize return Dataframe with stats as individual columns
-    ret_df = df.copy()
-    for stat in stats:
-        ret_df.loc[:, stat] = ret_df.index
-    latcol, loncol, radcol = ch.get_crater_cols(df)
-    # Main computation loop
-    for i in df.index:
-        # Get lat, lon, rad and compute roi for current crater
-        lat, lon, rad = df.loc[i, latcol], df.loc[i, loncol], df.loc[i, radcol]
-        croi = CraterRoi(cds, lat, lon, rad, ejrad)
-        mask = masking.crater_ring_mask(croi, rad, rad*ejrad)
-        croi.filter(vmin, vmax, strict)
-        croi.mask(~mask)
-        data_arr = croi.roi[~np.isnan(croi.roi)]  # Collapses to 1D
-        for stat, function in _get_quickstats_functions(stats):
-            ret_df.loc[i, stat] = function(data_arr)
-        if plot:  # plot filtered and masked roi
-            croi.plot()
-    return ret_df
+    # if stats is None:
+    #     stats = _list_quickstats()
+    # # Initialize return Dataframe with stats as individual columns
+    # ret_df = df.copy()
+    # for stat in stats:
+    #     ret_df.loc[:, stat] = ret_df.index
+    # latcol, loncol, radcol = ch.get_crater_cols(df)
+    # # Main computation loop
+    # for i in df.index:
+    #     # Get lat, lon, rad and compute roi for current crater
+    #     lat, lon, rad = df.loc[i, latcol], df.loc[i, loncol], df.loc[i, radcol]
+    #     croi = CraterRoi(cds, lat, lon, rad, ejrad)
+    #     mask = masking.crater_ring_mask(croi, rad, rad*ejrad)
+    #     croi.filter(vmin, vmax, strict)
+    #     croi.mask(~mask)
+    #     data_arr = croi.roi[~np.isnan(croi.roi)]  # Collapses to 1D
+    #     for stat, function in _get_quickstats_functions(stats):
+    #         ret_df.loc[i, stat] = function(data_arr)
+    #     if plot:  # plot filtered and masked roi
+    #         croi.plot()
+    # return ret_df
 
 
 # Other statistics

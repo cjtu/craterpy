@@ -159,6 +159,8 @@ class CraterRoi:
         --------
 
         """
+        if outside:
+            mask = ~mask
         self.roi[np.where(mask)] = fillvalue
         return self.roi
 
