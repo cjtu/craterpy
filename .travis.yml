@@ -35,7 +35,7 @@ install:
   - export PATH=$HOME/miniconda/bin:$PATH
   - source activate test-env
   # Install from conda-forge
-  - conda install -c pytz conda-forge pytest pytest-cov codecov gdal pandas numpy scipy matplotlib
+  - conda install -c conda-forge pytz pytest pytest-cov codecov gdal pandas numpy scipy matplotlib
   # Install craterpy
   - python setup.py install
 
