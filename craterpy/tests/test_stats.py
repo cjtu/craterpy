@@ -51,10 +51,22 @@ class Test_compute_stats(unittest.TestCase):
         self.crater_csv = p.join(self.data_path, 'craters.csv')
         self.moon_tif = p.join(self.data_path, 'moon.tif')
         self.df = pd.read_csv(self.crater_csv)
-        self.ads = CraterpyDataset(self.moon_tif, radius=1737)
+        self.cds = CraterpyDataset(self.moon_tif, radius=1737)
 
-    def test_first_mean(self):
-        """Test mean on first crater in cdf"""
-        # af.compute_stats(self.cdf, self.ads, 'mean', self.cdf.index[0:5])
-        # TODO: fix this test (choose appropriate indices)
+    def test_one_crater_one_stat(self):
+        """Test mean on first crater in df"""
+        # af.compute_stats(self.df, self.cds, 'mean', self.cdf.index[0:5])
+        # TODO: implement
+        pass
+
+    def test_one_crater_many_stats(self):
+        pass
+
+    def test_many_craters_many_stats(self):
+        pass
+
+    def test_crater_stats(self):
+        pass
+
+    def test_ejecta_stats(self):
         pass
