@@ -146,17 +146,24 @@ def compute_stats(df, cds, stats=[], plot=False, vmin=float('-inf'),
     for i in df.index:
         # Get lat, lon, rad and compute roi for current crater
         lat, lon, rad = df.loc[i, latcol], df.loc[i, loncol], df.loc[i, radcol]
-        croi = CraterRoi(cds, lat, lon, rad, ejrad)
-        croi.filter(vmin, vmax, strict)
-        if maskfunc:
-            if maskfunc == "crater":
-                mask = masking.crater_floor_mask(croi)
-            elif maskfunc == "ejecta":
-                mask = masking.crater_ring_mask(croi, rad, rad*ejrad)
-            croi.mask(mask, mask_out)
-        data_arr = croi.roi[~np.isnan(croi.roi)]  # Collapses to 1D
-        for stat, function in _get_quickstats_functions(stats):
-            ret_df.loc[i, stat] = function(data_arr)
+        try:
+            print(lat, lon, rad)
+            croi = CraterRoi(cds, lat, lon, rad, ejrad)
+        
+            croi.filter(vmin, vmax, strict)
+            if maskfunc:
+                if maskfunc == "crater":
+                    mask = masking.crater_floor_mask(croi)
+                elif maskfunc == "ejecta":
+                    mask = masking.crater_ring_mask(croi, rad, rad*ejrad)
+                croi.mask(mask, mask_out)
+            data_arr = croi.roi[~np.isnan(croi.roi)]  # Collapses to 1D
+            for stat, function in _get_quickstats_functions(stats):
+                ret_df.loc[i, stat] = function(data_arr)
+        except Exception as e:
+            print(e)
+            print(lat, lon, rad)
+            break
         if plot:  # plot filtered and masked roi
             croi.plot()
     return ret_df

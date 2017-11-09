@@ -116,8 +116,13 @@ class CraterRoi:
             return self.cds.get_roi(*self.extent)
 
     def filter(self, vmin=float('-inf'), vmax=float('inf'), strict=False,
-               fillvalue=np.nan):
-        """Replaces values outside the range (vmin, vmax) with fillvalue.
+               nodata=np.nan):
+        """Filter roi to the inclusive range [vmin, vmax].
+
+        You can specify only vmin or vmax if only a lower bound/upper bound is
+        required. Set strict to True to exclude vmin and vmax, i.e. keep data
+        in the exclusive interval (vmin, vmax). The nodata value replaces
+        filtered pixels. It defaults to np.nan.
 
         Parameters
         ----------
@@ -128,19 +133,24 @@ class CraterRoi:
         strict : bool
             Keep values strictly greater and strictly less than vmin, vmax
             (default False).
-        fillvalue : int or float
+        nodata : int or float
             Number to fill in filtered values (default np.nan).
+
+        Examples
+        --------
+        >>> croi.filter(0, 1)  # keep data in range (0 < data < 1)
+        >>> croi.filter(0, 1, True)  # keep data in range ( <= data <= 1)
+        >>> croi.filter(vmax=20)  # keep data < 20
         """
-        roi = self.roi.copy()
-        nanmask = ~np.isnan(roi)  # build nanmask with pre-existing nans
-        if not strict:
-            nanmask[nanmask] &= roi[nanmask] > vmax  # Add values > vmax
-            nanmask[nanmask] &= roi[nanmask] < vmin  # Add values < vmin
-        else:  # if strict, also exclude values equal to vmin, vmax
-            nanmask[nanmask] &= roi[nanmask] >= vmax
-            nanmask[nanmask] &= roi[nanmask] <= vmin
-        roi[nanmask] = fillvalue
-        self.roi = roi
+        mask = np.isfinite(self.roi)  # filter pre-existing nans and infs
+        if strict:
+            # Mask includes pixels >= vmin and <= vmax
+            mask[mask] = mask[mask] & ((self.roi[mask] >= vmin) &
+                                       (self.roi[mask] <= vmax))
+        else:
+            mask[mask] = mask[mask] & ((self.roi[mask] > vmin) &
+                                       (self.roi[mask] < vmax))
+        self.roi[~mask] = nodata  # set invalid pixels (~mask) with nodata
         return
 
     def mask(self, mask, outside=False, fillvalue=np.nan):
@@ -162,7 +172,7 @@ class CraterRoi:
         if outside:
             mask = ~mask
         self.roi[np.where(mask)] = fillvalue
-        return self.roi
+        return
 
     def plot(self, *args, **kwargs):
         """Plot this CraterRoi. See plotting.plot_CraterRoi()"""
