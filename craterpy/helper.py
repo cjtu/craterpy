@@ -35,8 +35,6 @@ def greatcircdist(lat1, lon1, lat2, lon2, radius):
     >>> greatcircdist(36.12, -86.67, 33.94, -118.40, 6372.8)
     2887.259950607111
     """
-    if not all(map(inglobal, (lat1, lon1), (lat2, lon2))):
-        raise ValueError("Latitude or longitude out of bounds.")
     # Convert degrees to radians
     lat1, lon1, lat2, lon2 = np.radians([lat1, lon1, lat2, lon2])
     # Haversine
