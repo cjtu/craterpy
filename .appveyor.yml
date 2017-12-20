@@ -16,10 +16,12 @@ install:
   - "set PATH=%MINICONDA%;%MINICONDA%\\Scripts;%PATH%"
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q conda
+  - conda config --add channels conda-forge
   - conda info -a
   - "conda create -q -n test-environment python=%PYTHON_VERSION%"
   - activate test-environment
-  - conda install -c conda-forge pytest numpy scipy matplotlib pandas gdal
+  - conda install --yes --file requirements_conda.txt
+  - conda list
   - python setup.py install
 
 test_script:

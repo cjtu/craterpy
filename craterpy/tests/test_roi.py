@@ -47,12 +47,12 @@ class TestCraterRoi(unittest.TestCase):
     #     roi.filter(0, 50, strict=True)
     #     self.assertTrue(np.nanmax(roi.roi) < 50)
 
-    def test_mask(self):
-        shape, rad = self.roi.roi.shape, self.roi.rad
-        mask = circle_mask(shape, rad)
-        masked_roi = self.roi.mask(mask)
-        self.assertTrue(np.isnan(masked_roi[shape[0]//2, shape[1]//2]))
-        self.assertTrue(np.isnan(self.roi.roi[shape[0]//2, shape[1]//2]))
+    # def test_mask(self):
+    #     shape, rad = self.roi.roi.shape, self.roi.rad
+    #     mask = circle_mask(shape, rad)
+    #     masked_roi = self.roi.mask(mask)
+    #     self.assertTrue(np.isnan(masked_roi[shape[0]//2, shape[1]//2]))
+    #     self.assertTrue(np.isnan(self.roi.roi[shape[0]//2, shape[1]//2]))
 
     # def test_plot(self):
     #     self.assertIsNotNone(self.roi.plot())

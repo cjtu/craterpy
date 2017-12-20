@@ -34,14 +34,18 @@ install:
   # Activate conda environment tes-env created in before_install.sh
   - export PATH=$HOME/miniconda/bin:$PATH
   - source activate test-env
-  # Install from conda-forge
-  - conda install -c conda-forge pytz pytest pytest-cov codecov gdal pandas numpy scipy matplotlib
+  # Install from file
+  - conda install --yes --file requirements_conda.txt
+  - conda list
   # Install craterpy
   - python setup.py install
 
 script:
   # Run tests with the --cov flag to check coverage
-  - py.test --cov=./
+  - if  [[ "$COVERAGE" == "true" ]]; then
+    conda install --yes pytest-cov codecov;
+    py.test --cov=./;
+    fi
 
 after_success:
   # Tries to upload coverage to codecov, but does not fail build if upload fails

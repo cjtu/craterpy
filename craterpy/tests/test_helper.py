@@ -52,8 +52,6 @@ class Test_geo_helpers(unittest.TestCase):
 
     def test_greatcircdist(self):
         """Test greatcircdist"""
-        self.assertRaises(ValueError, ch.greatcircdist, 91, 0, 0, 0, 1000)
-        self.assertRaises(ValueError, ch.greatcircdist, 0, 190, 0, 0, 1000)
         actual = ch.greatcircdist(36.12, -86.67, 33.94, -118.40, 6372.8)
         expected = 2887.259950607111
         self.assertAlmostEqual(actual, expected)

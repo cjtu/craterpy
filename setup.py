@@ -57,11 +57,11 @@ KEYWORDS = 'python crater data analysis planetary science'
 PLATFORMS = 'OS Independent'
 PACKAGES = find_packages(exclude=['tests'])
 PACKAGE_DATA = {'': ['*.csv', '*.tif']}
-INSTALL_REQUIRES = ['numpy>=1.13',
-                    'scipy>=0.19',
-                    'pandas>=0.20',
-                    'matplotlib>=2.0',
-                    'gdal>=2.1']
+INSTALL_REQUIRES = ['numpy',
+                    'scipy',
+                    'pandas',
+                    'matplotlib',
+                    'gdal']
 # PYTHON_REQUIRES = '>=2.7, <=3.3'
 EXTRAS_REQUIRE = None  # {'test': ['pytest'], 'cite': ['duecredit'],}
 
