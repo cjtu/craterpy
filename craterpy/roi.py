@@ -145,11 +145,11 @@ class CraterRoi:
         mask = np.isfinite(self.roi)  # filter pre-existing nans and infs
         if strict:
             # Mask includes pixels >= vmin and <= vmax
-            mask[mask] = mask[mask] & ((self.roi[mask] >= vmin) &
-                                       (self.roi[mask] <= vmax))
-        else:
             mask[mask] = mask[mask] & ((self.roi[mask] > vmin) &
                                        (self.roi[mask] < vmax))
+        else:
+            mask[mask] = mask[mask] & ((self.roi[mask] >= vmin) &
+                                       (self.roi[mask] <= vmax))
         self.roi[~mask] = nodata  # set invalid pixels (~mask) with nodata
         return
 
@@ -177,3 +177,7 @@ class CraterRoi:
     def plot(self, *args, **kwargs):
         """Plot this CraterRoi. See plotting.plot_CraterRoi()"""
         plot_CraterRoi(self, *args, **kwargs)
+
+    def save(self, fname):
+        """Save roi to file given by fname"""
+        np.savetxt(fname, self.roi, delimiter=",")

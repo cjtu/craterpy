@@ -73,8 +73,11 @@ def ellipse_mask(shape, ysize, xsize, center=None):
     cy, cx = center if center else np.array(shape)/2 - 0.5
     height, width = shape
     y, x = np.ogrid[-cy:height-cy, -cx:width-cx]
-    return (x*x)/(xsize*xsize) + (y*y)/(ysize*ysize) <= 1
-
+    if (xsize != 0) and (ysize != 0):
+        mask = (x*x)/(xsize*xsize) + (y*y)/(ysize*ysize) <= 1
+    else:
+        mask = np.array((x+y)*0, dtype=bool)
+    return mask
 
 def ring_mask(shape, rmin, rmax, center=None):
     """Return bool array of True in a circular ring from rmin to rmax.
@@ -115,13 +118,15 @@ def ring_mask(shape, rmin, rmax, center=None):
     return outer*~inner
 
 
-def crater_floor_mask(croi):
+def crater_floor_mask(croi, buffer=1):
     """Return bool mask of interior of a crater in a CraterRoi.
 
     Parameters
     ----------
     croi : CraterRoi
         Crater region of interest specifying crater to mask
+    buffer: int or float
+        Extra buffer around crater rim to mask (multiplicative factor of crad)
 
     Returns
     -------
@@ -130,8 +135,8 @@ def crater_floor_mask(croi):
     Examples
     --------
     """
-    pixwidth = ch.km2pix(croi.rad, croi.cds.calc_mpp(croi.lat))
-    pixheight = ch.km2pix(croi.rad, croi.cds.calc_mpp())
+    pixwidth = ch.km2pix(croi.rad*buffer, croi.cds.calc_mpp(croi.lat))
+    pixheight = ch.km2pix(croi.rad*buffer, croi.cds.calc_mpp())
     return ellipse_mask(croi.roi.shape, pixwidth, pixheight)
 
 
