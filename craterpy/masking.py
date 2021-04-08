@@ -137,7 +137,7 @@ def crater_floor_mask(croi, buffer=1):
     """
     pixwidth = ch.km2pix(croi.rad*buffer, croi.cds.calc_mpp(croi.lat))
     pixheight = ch.km2pix(croi.rad*buffer, croi.cds.calc_mpp())
-    return ellipse_mask(croi.roi.shape, pixwidth, pixheight)
+    return ellipse_mask(croi.roi.shape, pixheight, pixwidth)
 
 
 def crater_ring_mask(croi, rmin, rmax):
