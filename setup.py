@@ -36,6 +36,7 @@ NAME = 'craterpy'
 VERSION = get_version()
 DESCRIPTION = 'A package for impact crater data science.'
 LONG_DESCRIPTION = get_readme()
+LONG_DESCRIPTION_CONTENT_TYPE = 'text/x-rst'
 AUTHOR = 'Christian Tai Udovicic'
 AUTHOR_EMAIL = 'cj.taiudovicic@gmail.com'
 MAINTAINER = AUTHOR
@@ -81,6 +82,7 @@ setup(
     version=VERSION,
     description=DESCRIPTION,
     long_description=LONG_DESCRIPTION,
+    long_description_content_type=LONG_DESCRIPTION_CONTENT_TYPE,
     maintainer=MAINTAINER,
     maintainer_email=MAINTAINER_EMAIL,
     url=URL,

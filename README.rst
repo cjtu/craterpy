@@ -1,13 +1,7 @@
-craterpy |TravisBadge|_ |AppveyorBadge|_ |RtdBadge|_ |PyPiBadge|_ |CodecovBadge|_ |ZenodoBadge|_
+craterpy |RtdBadge|_ |PyPiBadge|_ |CodecovBadge|_ |ZenodoBadge|_
 ================================================================================================
 .. |ZenodoBadge| image:: https://zenodo.org/badge/88457986.svg
 .. _ZenodoBadge: https://zenodo.org/badge/latestdoi/88457986
-
-.. |TravisBadge| image:: https://travis-ci.org/cjtu/craterpy.svg?branch=master
-.. _TravisBadge: https://travis-ci.org/cjtu/craterpy
-
-.. |AppveyorBadge| image:: https://ci.appveyor.com/api/projects/status/kns2v4vn07r6h078?svg=true
-.. _AppveyorBadge: https://ci.appveyor.com/project/cjtu/craterpy/branch/master
 
 .. |RtdBadge| image:: http://readthedocs.org/projects/craterpy/badge/?version=latest
 .. _RtdBadge: http://craterpy.readthedocs.io/en/latest/?badge=latest
@@ -15,7 +9,7 @@ craterpy |TravisBadge|_ |AppveyorBadge|_ |RtdBadge|_ |PyPiBadge|_ |CodecovBadge|
 .. |PyPiBadge| image:: https://badge.fury.io/py/craterpy.svg
 .. _PyPiBadge: https://badge.fury.io/py/craterpy
 
-.. |CodecovBadge| image:: https://codecov.io/gh/cjtu/craterpy/branch/master/graph/badge.svg
+.. |CodecovBadge| image:: https://codecov.io/gh/cjtu/craterpy/branch/master/graph/badge.svg?token=9K567x0YUJ
 .. _CodecovBadge: https://codecov.io/gh/cjtu/craterpy
 
 
@@ -198,7 +192,7 @@ If you have comments/question/concerns or just want to get in touch, you can ema
 License
 -------
 
-Copyright (c) 2017- Christian Tai Udovicic. Released under the MIT license. This software comes with no warranties. See `LICENSE <https://github.com/cjtu/craterpy/blob/master/LICENSE.txt>`_ for details.
+Copyright (c) 2021- Christian Tai Udovicic. Released under the MIT license. This software comes with no warranties. See `LICENSE <https://github.com/cjtu/craterpy/blob/master/LICENSE.txt>`_ for details.
 
 
 Contributors

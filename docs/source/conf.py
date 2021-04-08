@@ -51,7 +51,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'craterpy'
-copyright = '2017, Christian Tai Udovicic'
+copyright = '2021, Christian Tai Udovicic'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the

@@ -1,6 +1,4 @@
+version: 0.3
+
 conda:
     file: docs/environment.yml
-
-python:
-    version: 2.7
-    pip_install: false
