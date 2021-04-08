@@ -4,6 +4,15 @@ import numpy as np
 
 
 # Geospatial helpers
+def lon360(lon):
+    """Return longitude in range [0, 360)."""
+    return ((lon + 180) % 360) + 180
+
+
+def lon180(lon):
+    """Return longitude in range (-180, 180]."""
+    return ((lon + 180) % 360) - 180
+    
 def deg2pix(degrees, ppd):
     """Return degrees converted to pixels at ppd pixels/degree."""
     return int(degrees*ppd)

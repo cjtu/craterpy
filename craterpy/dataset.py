@@ -55,6 +55,7 @@ class CraterpyDataset(object):
         else:
             self.gdalDataset = gdal.Open(dataset)
 
+
         args = [nlat, slat, wlon, elon, radius, ppd]
         attrs = ['nlat', 'slat', 'wlon', 'elon', 'radius', 'ppd']
         geotags = self._get_geotiff_info()  # Attempt to read geotiff tags

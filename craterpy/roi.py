@@ -51,7 +51,10 @@ class CraterRoi:
     def __init__(self, cds, lat, lon, rad, wsize=1, plot=False):
         self.cds = cds
         self.lat = lat
-        self.lon = lon
+        if self.cds.wlon < 0:
+            self.lon = ch.lon180(lon)
+        else:
+            self.lon = ch.lon360(lon)
         self.rad = rad
         self.wsize = wsize
         self.extent = self._get_extent()
