@@ -55,6 +55,7 @@ class CraterpyDataset(object):
         else:
             self.gdalDataset = gdal.Open(dataset)
 
+
         args = [nlat, slat, wlon, elon, radius, ppd]
         attrs = ['nlat', 'slat', 'wlon', 'elon', 'radius', 'ppd']
         geotags = self._get_geotiff_info()  # Attempt to read geotiff tags
@@ -119,8 +120,8 @@ class CraterpyDataset(object):
         geotrans = self.GetGeoTransform()
         try:  # Try to get info assuming WKT format
             radius = 0.001*float(self.GetProjection().split(',')[3])
-        except IndexError:
-            print('Dataset radius not defined')
+        except Exception:
+            #print('Dataset radius not defined')
             radius = None
         wlon, dpp, nlat = (geotrans[0], geotrans[1], geotrans[3])
         elon = wlon + xsize*dpp

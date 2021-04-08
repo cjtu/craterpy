@@ -4,8 +4,7 @@ from __future__ import division, print_function, absolute_import
 import matplotlib.pyplot as plt
 
 
-def plot_CraterRoi(croi, figsize=((4, 4)), title=None,
-                   vmin=None, vmax=None, cmap='gray', **kwargs):
+def plot_CraterRoi(croi, figsize=((4, 4)), title=None, cmap='gray', **kwargs):
     """Plot 2D CraterRoi.
 
     The plot offers limited arguments for basic customization. It is further
@@ -20,10 +19,6 @@ def plot_CraterRoi(croi, figsize=((4, 4)), title=None,
         Length and width of plot in inches (default 4in x 4in).
     title : str
         Plot title.
-    vmin : int or float
-        Minimum pixel data value for plotting.
-    vmax : int or float
-        Maximum pixel data value for plotting.
     cmap : str
         Color map to plot (default 'gray'). See matplotlib.cm for full list.
 

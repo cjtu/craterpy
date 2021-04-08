@@ -129,9 +129,10 @@ def ejecta_profile_stats(df, cds, ejrad=2, rspacing=0.25, stats=None,
     return stat_dict
 
 
-def compute_stats(df, cds, stats=[], plot=False, vmin=float('-inf'),
-                  vmax=float('inf'), strict=False, maskfunc=None,
-                  mask_out=False, ejrad=None):
+def compute_stats(df, cds, stats=[], plot=False, save=False, prefix="",
+                  vmin=float('-inf'), vmax=float('inf'), strict=False, 
+                  maskfunc=None, mask_out=False, ejrad=None, buffer=1, 
+                  verbosity=1):
     """Computes stats on craters in df with image data from cds.
     """
     # If stats and index not provided, assume use all stats and all rows in cdf
@@ -147,30 +148,36 @@ def compute_stats(df, cds, stats=[], plot=False, vmin=float('-inf'),
         # Get lat, lon, rad and compute roi for current crater
         lat, lon, rad = df.loc[i, latcol], df.loc[i, loncol], df.loc[i, radcol]
         try:
-            print(lat, lon, rad)
+            # print(lat, lon, rad)
             croi = CraterRoi(cds, lat, lon, rad, ejrad)
-        
             croi.filter(vmin, vmax, strict)
             if maskfunc:
                 if maskfunc == "crater":
-                    mask = masking.crater_floor_mask(croi)
+                    mask = masking.crater_floor_mask(croi, buffer)
                 elif maskfunc == "ejecta":
-                    mask = masking.crater_ring_mask(croi, rad, rad*ejrad)
+                    mask = masking.crater_ring_mask(croi, rad*buffer, rad*ejrad)
                 croi.mask(mask, mask_out)
             data_arr = croi.roi[~np.isnan(croi.roi)]  # Collapses to 1D
             for stat, function in _get_quickstats_functions(stats):
                 ret_df.loc[i, stat] = function(data_arr)
+            if plot:  # plot filtered and masked roi
+                croi.plot()
+            if save: # save roi to csv: prefix_lat_lon_rad.csv
+                fname = "{}croi_{:.3f}_{:.3f}_{:.3f}.csv".format(prefix, lat, lon, rad)
+                croi.save(fname)
+
         except Exception as e:
-            print(e)
-            print(lat, lon, rad)
-            break
-        if plot:  # plot filtered and masked roi
-            croi.plot()
+            for stat, _ in _get_quickstats_functions(stats):
+                ret_df.loc[i, stat] = np.nan    
+            if verbosity:
+                print("Exception '{}' skipping crater at ({}, {}) \
+                       with radius {}".format(e,lat, lon, rad))
+            continue
     return ret_df
 
 
 def crater_stats(df, cds, stats=None, plot=False, vmin=float('-inf'),
-                 vmax=float('inf'), strict=False):
+                 vmax=float('inf'), strict=False, verbosity=1):
     """Computes stats on all craters in df using image data from cds
 
     Crater latitude, longitude, and radius are read in from df. All stats are
@@ -203,11 +210,12 @@ def crater_stats(df, cds, stats=None, plot=False, vmin=float('-inf'),
         Copy of df with stats appended as new columns.
     """
     return compute_stats(df, cds, stats, plot, vmin, vmax, strict,
-                         maskfunc="crater", mask_out=True)
+                         maskfunc="crater", mask_out=True, verbosity=verbosity)
 
 
-def ejecta_stats(df, cds, ejrad=2, stats=None, plot=False, vmin=float('-inf'),
-                 vmax=float('inf'), strict=False):
+def ejecta_stats(df, cds, ejrad=2, buffer=1, stats=None, plot=None, 
+                 save=None, prefix=None, vmin=float('-inf'), vmax=float('inf'), 
+                 strict=False, verbosity=1):
     """Compute the specified stats from acestats.py on a circular ejecta ROI
     extending ejsize crater radii from the crater center. Return results as
     DataFrame with stats appended as extra columns.
@@ -222,6 +230,9 @@ def ejecta_stats(df, cds, ejrad=2, stats=None, plot=False, vmin=float('-inf'),
     ejrad : int, float
         The radius of ejecta blanket measured in crater radii from the
         crater center to the ejecta extent.
+    buffer : int, float
+        Extra buffer around crater rim to mask (multiplicative factor of
+        crater radius). Defaults to 1 (no extra buffer).
     stats : Array-like of str
         Indicates the stat names to compute. Stat functions must be defined in
         acestats.py. Default: all stats in acestats.py.
@@ -240,8 +251,9 @@ def ejecta_stats(df, cds, ejrad=2, stats=None, plot=False, vmin=float('-inf'),
     DataFrame
         Copy of df with stats appended as new columns.
     """
-    return compute_stats(df, cds, stats, plot, vmin, vmax, strict,
-                         maskfunc="ejecta", mask_out=True, ejrad=ejrad)
+    return compute_stats(df, cds, stats, plot, save, prefix, vmin, vmax, 
+                         strict, maskfunc="ejecta", mask_out=True, ejrad=ejrad, 
+                         buffer=buffer, verbosity=verbosity)
 
     # If stats and index not provided, assume use all stats and all rows in cdf
     # if stats is None:

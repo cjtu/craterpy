@@ -44,6 +44,9 @@ def minimum(roi):
     """Return minimum pixel value in roi"""
     return np.min(roi)
 
+def pct5(roi):
+    """Return the 5th percentile (5/95) value of roi"""
+    return np.percentile(roi, 5)
 
 def q1(roi):
     """Return the first quartile value (25/75) of roi"""
