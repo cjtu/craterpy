@@ -9,14 +9,6 @@ Dataset Module
     :undoc-members:
     :show-inheritance:
 
-Functions Module
-----------------
-
-.. automodule:: craterpy.functions
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 Plotting Module
 ---------------
 

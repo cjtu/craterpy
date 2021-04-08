@@ -5,7 +5,8 @@ import matplotlib.pyplot as plt
 
 
 def plot_CraterRoi(croi, figsize=((4, 4)), title=None, cmap='gray', **kwargs):
-    """Plot 2D CraterRoi.
+    """
+    Plot 2D CraterRoi.
 
     The plot offers limited arguments for basic customization. It is further
     customizable by supplying valid matplotlib.imshow() keyword-arguments. See

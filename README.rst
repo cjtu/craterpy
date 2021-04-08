@@ -12,7 +12,6 @@ craterpy |RtdBadge|_ |PyPiBadge|_ |CodecovBadge|_ |ZenodoBadge|_
 .. |CodecovBadge| image:: https://codecov.io/gh/cjtu/craterpy/branch/master/graph/badge.svg?token=9K567x0YUJ
 .. _CodecovBadge: https://codecov.io/gh/cjtu/craterpy
 
-
 Overview
 --------
 Welcome to craterpy (formerly *ACERIM*), your one-stop shop to crater data science in Python!
@@ -62,7 +61,6 @@ Requires
 --------
 craterpy currently supports the following python versions on Linux, OS X and Windows:
 
-- 2.7
 - 3.5
 - 3.6
 

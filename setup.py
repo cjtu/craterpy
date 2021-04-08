@@ -49,8 +49,6 @@ CLASSIFIERS = ['Development Status :: 3 - Alpha',
                'Natural Language :: English',
                'Operating System :: OS Independent',
                'Topic :: Scientific/Engineering :: Astronomy',
-               'Programming Language :: Python :: 2',
-               'Programming Language :: Python :: 2.7',
                'Programming Language :: Python :: 3',
                'Programming Language :: Python :: 3.4',
                'Programming Language :: Python :: 3.5']
@@ -98,5 +96,5 @@ setup(
     extras_require=EXTRAS_REQUIRE,
     # python_requires=PYTHON_REQUIRES,
     cmdclass=CMDCLASS,
-    command_options=COMMAND_OPTIONS,
+    command_options=COMMAND_OPTIONS
 )
