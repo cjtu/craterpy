@@ -2,7 +2,7 @@ from __future__ import division, print_function, absolute_import
 import os.path as p
 import unittest
 import numpy as np
-import gdal
+import rasterio as rio
 from craterpy.dataset import CraterpyDataset
 from craterpy.exceptions import DataImportError
 
@@ -19,43 +19,37 @@ class TestCraterpyDataset(unittest.TestCase):
         """Test import"""
         self.assertIsNotNone(CraterpyDataset(self.moon_tif))
 
-    def test_import_gdal_Dataset(self):
-        """Test importing from gdal.Dataset object"""
-        ds = gdal.Open(self.moon_tif)
-        self.assertIsNotNone(CraterpyDataset(ds))
-
     def test_import_error(self):
         """Test that importing invalid dataset fails"""
-        self.assertRaises(RuntimeError, CraterpyDataset, "Invalid_DS")
-        self.assertRaises(RuntimeError, CraterpyDataset, [1, 2])
+        self.assertRaises(rio.errors.RasterioIOError, CraterpyDataset, "?")
 
     def test_set_attrs(self):
         """Test supplying optional attributes to Craterpydataset"""
         pass  # TODO: implement
 
-    def test_get_gdalDataset_attrs(self):
-        """Test that wrapped gdal Dataset attrs are accessible"""
-        self.assertIsNotNone(self.cds.GetRasterBand(1))
+    def test_get_rasterioDataset_attrs(self):
+        """Test that wrapped rasterio Dataset attrs are accessible"""
+        self.assertIsNotNone(self.cds.read(1))
         with self.assertRaises(AttributeError):
             self.cds.lat
 
     def test_repr(self):
         expected = 'CraterpyDataset with extent (90.0N, -90.0N), '
-        expected += '(-180.0E, 180.0E), radius 1737 km, and '
-        expected += 'resolution 4.0 ppd'
+        expected += '(-180.0E, 180.0E), radius 1737 km, '
+        expected += 'xres 4.0 ppd, and yres 4.0 ppd'
         actual = self.cds.__repr__()
         self.assertEqual(actual, expected)
 
     def test_get_geotiff_info(self):
         """Test _get_info() method for reading geotiff info"""
         actual = self.cds._get_geotiff_info()
-        expected = (90.0, -90.0, -180.0, 180.0, 6378.137, 4.0)
+        expected = (90.0, -90.0, -180.0, 180.0, 6378.137, 4.0, 4.0)
         self.assertEqual(actual, expected)
 
     def test_calc_mpp(self):
         """Test .calc_mpp method"""
         cds = self.cds
-        xpix = cds.RasterXSize  # [pix]
+        xpix = cds.width  # [pix]
         # Test at equator
         expected = 1000*2*np.pi*cds.radius/xpix  # [m/pix] at lat=0
         self.assertAlmostEqual(cds.calc_mpp(), expected, 5)

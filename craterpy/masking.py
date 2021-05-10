@@ -207,8 +207,8 @@ def polygon_mask(croi, poly_verts):
     x, y = np.meshgrid(np.arange(nlon), np.arange(nlat))
     x, y = x.flatten(), y.flatten()
     gridpoints = np.vstack((x, y)).T
-    poly_pix = [(ch.deg2pix(lon-minlon, croi.cds.ppd),
-                ch.deg2pix(lat-minlat, croi.cds.ppd))
+    poly_pix = [(ch.deg2pix(lon-minlon, croi.cds.xres),
+                ch.deg2pix(lat-minlat, croi.cds.yres))
                 for lon, lat in poly_verts]
     path = Path(poly_pix)
     mask = path.contains_points(gridpoints).reshape((nlat, nlon))

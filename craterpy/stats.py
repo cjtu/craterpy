@@ -1,7 +1,6 @@
 from __future__ import division, print_function, absolute_import
 import inspect
 import numpy as np
-import scipy as sp
 import pandas as pd
 from craterpy import quickstats as qs
 from craterpy import helper as ch
@@ -298,7 +297,7 @@ def histogram(roi, bins, hmin=None, hmax=None, skew=False, verbose=False,
               {} bins'.format(len(roi), len(roi_valid), len(roi_notnan),
                               len(bins))
     if skew:
-        skewness = sp.stats.skew(hist)
+        skewness = pd.DataFrame(roi.flatten).skew
         ret.append(skewness)
         output += ', {} skewness'.format(skewness)
     if verbose:

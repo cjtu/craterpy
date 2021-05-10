@@ -7,7 +7,6 @@ be input into a table, DataFrame, or written to a csv.
 """
 from __future__ import division, print_function, absolute_import
 import numpy as np
-import scipy.stats
 
 
 def size(roi):
@@ -27,7 +26,9 @@ def median(roi):
 
 def mode(roi):
     """Return the mode of roi"""
-    return scipy.stats.mode(roi, None)[0][0]
+    values, counts = np.unique(roi, return_counts=True)
+    m = counts.argmax()
+    return values[m]
 
 
 def std(roi):

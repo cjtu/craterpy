@@ -37,7 +37,7 @@ VERSION = get_version()
 DESCRIPTION = 'A package for impact crater data science.'
 LONG_DESCRIPTION = get_readme()
 LONG_DESCRIPTION_CONTENT_TYPE = 'text/x-rst'
-AUTHOR = 'Christian Tai Udovicic'
+AUTHOR = 'Christian J. Tai Udovicic'
 AUTHOR_EMAIL = 'cj.taiudovicic@gmail.com'
 MAINTAINER = AUTHOR
 MAINTAINER_EMAIL = AUTHOR_EMAIL
@@ -57,10 +57,9 @@ PLATFORMS = 'OS Independent'
 PACKAGES = find_packages(exclude=['tests'])
 PACKAGE_DATA = {'': ['*.csv', '*.tif']}
 INSTALL_REQUIRES = ['numpy',
-                    'scipy',
                     'pandas',
-                    'matplotlib',
-                    'gdal']
+                    'matplotlib'
+                    'rasterio']
 # PYTHON_REQUIRES = '>=2.7, <=3.3'
 EXTRAS_REQUIRE = None  # {'test': ['pytest'], 'cite': ['duecredit'],}
 

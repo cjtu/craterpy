@@ -6,7 +6,7 @@ import numpy as np
 # Geospatial helpers
 def lon360(lon):
     """Return longitude in range [0, 360)."""
-    return ((lon + 180) % 360) + 180
+    return ((lon + 360) % 360)
 
 
 def lon180(lon):

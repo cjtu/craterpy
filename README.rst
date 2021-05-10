@@ -21,7 +21,7 @@ This package is in the alpha stage of development. You can direct any questions 
 You can use craterpy to:
 
   - work with tables of crater data in Python (using pandas),
-  - load and manipulate image data in Python (using gdal),
+  - load and manipulate image data in Python (using rasterio),
   - easily extract, mask, filter, plot, and compute stats on craters located in your images.
 
 .. `issue tracker`_: https://github.com/cjtu/craterpy/issues
@@ -51,25 +51,20 @@ A code-snippet and plot is worth a thousand words::
 
 New users should start with the IPython notebook `tutorial`_ for typical usage with examples.
 
-**Note**: This package currently **only accepts image data in simple-cylindrical (Plate Caree) projection**. If your data is in another projection, please reproject it to simple-cylindrical before importing it with craterpy (check out `GDAL`_). If you would like add reprojection functionality to craterpy, consider `Contributing`_.
+**Note**: This package currently **only accepts image data in simple-cylindrical (Plate Caree) projection**. If your data is in another projection, please reproject it to simple-cylindrical before importing it with craterpy. If you would like add reprojection functionality to craterpy, consider `Contributing`_.
 
 .. _`tutorial`: https://gist.github.com/cjtu/560f121049b342aa0b2bf70e038358b7
-.. _`GDAL`: http://www.gdal.org/
 
 
 Requires
 --------
-craterpy currently supports the following python versions on Linux, OS X and Windows:
-
-- 3.5
-- 3.6
+craterpy requires python >3.7 and is tested on Linux, OS X and Bash on Windows.
 
 It's core dependencies are:
 
+- rasterio
 - pandas
-- gdal=2.2.2
 - numpy
-- scipy
 - matplotlib
 
 We recommend using the `Anaconda`_ package manager to install craterpy. Anaconda automatically resolves dependency conflicts and allows you to get virtual environments working quickly.
@@ -91,7 +86,7 @@ Quick Installation with Anaconda
 
 4. Install the dependencies (via `conda-forge`_)::
 
-    conda install -c conda-forge numpy scipy matplotlib pandas gdal
+    conda install -c conda-forge numpy matplotlib pandas rasterio
 
 5. Install craterpy with pip::
 
