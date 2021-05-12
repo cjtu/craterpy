@@ -1,10 +1,12 @@
-from __future__ import division, print_function, absolute_import
+"""Compute stats on CraterRoi objects."""
 import inspect
+import os.path as p
+from timeit import default_timer
 import numpy as np
 import pandas as pd
 from craterpy import quickstats as qs
 from craterpy import helper as ch
-from craterpy import masking, plotting
+from craterpy import masking
 from craterpy.roi import CraterRoi
 
 # quickstats helpers
@@ -40,15 +42,28 @@ def _get_quickstats_functions(statlist=None):
         statlist = [statlist]
     invalid_stats = [stat for stat in statlist if stat not in qs_list]
     if invalid_stats:
-        raise ValueError('The following stats are not defined ' +
-                         'in quickstats.py: {}'.format(invalid_stats))
+        raise ValueError(
+            "The following stats are not defined "
+            + "in quickstats.py: {}".format(invalid_stats)
+        )
     return [[stat, qs.__dict__[stat]] for stat in statlist]
 
 
 # Main craterpy stat functions
-def ejecta_profile_stats(df, cds, ejrad=2, rspacing=0.25, stats=None,
-                         plot_roi=False, vmin=None, vmax=None, strict=False,
-                         plot_stats=False, savepath=None, timer=False, dt=60):
+def ejecta_profile_stats(
+    df,
+    cds,
+    ejrad=2,
+    rspacing=0.25,
+    stats=None,
+    plot_roi=False,
+    vmin=None,
+    vmax=None,
+    strict=False,
+    savepath=None,
+    timer=False,
+    dt=60,
+):
     """Compute stat profiles across ejecta blankets by computing stats in a
     series of concentric rings beginning at the crater rim and extending to
     ejrad crater radii from the crater centre. Each ring is rspacing thick and
@@ -79,12 +94,10 @@ def ejecta_profile_stats(df, cds, ejrad=2, rspacing=0.25, stats=None,
 
     """
     if timer:
-        from timeit import default_timer as timer
-        Tstart, Tnow = timer(), timer()
+        Tstart, Tnow = default_timer(), default_timer()
         count = 1  # count craters
     if savepath:
-        import os.path as p
-        savename = p.join(savepath, '{}_ejpstats.csv')
+        savename = p.join(savepath, "{}_ejpstats.csv")
     if stats is None:
         stats = _list_quickstats()
     stat_dict = {}
@@ -93,49 +106,63 @@ def ejecta_profile_stats(df, cds, ejrad=2, rspacing=0.25, stats=None,
         lat, lon, rad = df.loc[i, latcol], df.loc[i, loncol], df.loc[i, radcol]
         try:
             croi = CraterRoi(cds, lat, lon, rad, ejrad)
-            ring_array = np.arange(1, ejrad+rspacing, rspacing)  # inner radius
-            ring_darray = ring_array*rad  # convert inner radius to km
+            ring_array = np.arange(
+                1, ejrad + rspacing, rspacing
+            )  # inner radius
+            ring_darray = ring_array * rad  # convert inner radius to km
             stat_df = pd.DataFrame(index=ring_array[:-1], columns=stats)
-            for i in range(len(ring_array)-1):  # Loop through radii
-                rad_inner = ring_darray[i]
-                rad_outer = ring_darray[i+1]
-                mask = masking.crater_ring_mask(cds, croi, lat, lon, rad_inner,
-                                                rad_outer)
+            for j in range(len(ring_array) - 1):  # Loop through radii
+                rad_inner = ring_darray[j]
+                rad_outer = ring_darray[j + 1]
+                mask = masking.crater_ring_mask(
+                    cds, croi, lat, lon, rad_inner, rad_outer
+                )
                 ejecta_roi = croi.mask(~mask).filter(vmin, vmax, strict)
                 ejecta_roi = ejecta_roi[~np.isnan(ejecta_roi)]
                 for stat, function in _get_quickstats_functions(stats):
-                    stat_df.loc[ring_array[i], stat] = function(ejecta_roi)
+                    stat_df.loc[ring_array[j], stat] = function(ejecta_roi)
                 if plot_roi:
                     ejecta_roi.plot()
             stat_dict[i] = stat_df
-            if plot_stats:
-                plotting.plot_ejecta_profile_stats(stat_df)
             if savepath:
                 stat_df.to_csv(savename.format(i))
         except ImportError as e:  # Catches and prints out of bounds exceptions
             print(e, ". Skipping....")
         if timer:  # Print a status update approx every dt seconds
-            if (timer() - Tnow > dt) or (count == len(df)):
-                update = 'Finished crater {} out of {}'.format(count, len(df))
-                elapsed = timer()-Tstart
-                update += '\n  Time elapsed: \
-                          {}h:{}m:{}s'.format(int(elapsed//3600),
-                                              int((elapsed % 3600)//60),
-                                              round((elapsed % 3600) % 60, 2))
+            if (default_timer() - Tnow > dt) or (count == len(df)):
+                update = "Finished crater {} out of {}".format(count, len(df))
+                elapsed = default_timer() - Tstart
+                update += "\n  Time elapsed: \
+                          {}h:{}m:{}s".format(
+                    int(elapsed // 3600),
+                    int((elapsed % 3600) // 60),
+                    round((elapsed % 3600) % 60, 2),
+                )
                 print(update)
-                Tnow = timer()
+                Tnow = default_timer()
             count += 1
     return stat_dict
 
 
-def compute_stats(df, cds, stats=[], plot=False, save=False, prefix="",
-                  vmin=float('-inf'), vmax=float('inf'), strict=False, 
-                  maskfunc=None, mask_out=False, ejrad=None, buffer=1, 
-                  verbosity=1):
-    """Computes stats on craters in df with image data from cds.
-    """
+def compute_stats(
+    df,
+    cds,
+    stats=None,
+    plot=False,
+    save=False,
+    prefix="",
+    vmin=float("-inf"),
+    vmax=float("inf"),
+    strict=False,
+    maskfunc=None,
+    mask_out=False,
+    ejrad=None,
+    buffer=1,
+    verbosity=1,
+):
+    """Computes stats on craters in df with image data from cds."""
     # If stats and index not provided, assume use all stats and all rows in cdf
-    if not stats:
+    if stats is None:
         stats = _list_quickstats()
     # Initialize return Dataframe with stats as individual columns
     ret_df = df.copy()
@@ -154,29 +181,45 @@ def compute_stats(df, cds, stats=[], plot=False, save=False, prefix="",
                 if maskfunc == "crater":
                     mask = masking.crater_floor_mask(croi, buffer)
                 elif maskfunc == "ejecta":
-                    mask = masking.crater_ring_mask(croi, rad*buffer, rad*ejrad)
+                    mask = masking.crater_ring_mask(
+                        croi, rad * buffer, rad * ejrad
+                    )
                 croi.mask(mask, mask_out)
             data_arr = croi.roi[~np.isnan(croi.roi)]  # Collapses to 1D
             for stat, function in _get_quickstats_functions(stats):
                 ret_df.loc[i, stat] = function(data_arr)
             if plot:  # plot filtered and masked roi
                 croi.plot()
-            if save: # save roi to csv: prefix_lat_lon_rad.csv
-                fname = "{}croi_{:.3f}_{:.3f}_{:.3f}.csv".format(prefix, lat, lon, rad)
+            if save:  # save roi to csv: prefix_lat_lon_rad.csv
+                fname = "{}croi_{:.3f}_{:.3f}_{:.3f}.csv".format(
+                    prefix, lat, lon, rad
+                )
                 croi.save(fname)
 
         except Exception as e:
             for stat, _ in _get_quickstats_functions(stats):
-                ret_df.loc[i, stat] = np.nan    
+                ret_df.loc[i, stat] = np.nan
             if verbosity:
-                print("Exception '{}' skipping crater at ({}, {}) \
-                       with radius {}".format(e,lat, lon, rad))
+                print(
+                    "Exception '{}' skipping crater at ({}, {}) \
+                       with radius {}".format(
+                        e, lat, lon, rad
+                    )
+                )
             continue
     return ret_df
 
 
-def crater_stats(df, cds, stats=None, plot=False, vmin=float('-inf'),
-                 vmax=float('inf'), strict=False, verbosity=1):
+def crater_stats(
+    df,
+    cds,
+    stats=None,
+    plot=False,
+    vmin=float("-inf"),
+    vmax=float("inf"),
+    strict=False,
+    verbosity=1,
+):
     """Computes stats on all craters in df using image data from cds
 
     Crater latitude, longitude, and radius are read in from df. All stats are
@@ -208,13 +251,34 @@ def crater_stats(df, cds, stats=None, plot=False, vmin=float('-inf'),
     DataFrame
         Copy of df with stats appended as new columns.
     """
-    return compute_stats(df, cds, stats, plot, vmin, vmax, strict,
-                         maskfunc="crater", mask_out=True, verbosity=verbosity)
+    return compute_stats(
+        df,
+        cds,
+        stats,
+        plot,
+        vmin,
+        vmax,
+        strict,
+        maskfunc="crater",
+        mask_out=True,
+        verbosity=verbosity,
+    )
 
 
-def ejecta_stats(df, cds, ejrad=2, buffer=1, stats=None, plot=None, 
-                 save=None, prefix=None, vmin=float('-inf'), vmax=float('inf'), 
-                 strict=False, verbosity=1):
+def ejecta_stats(
+    df,
+    cds,
+    ejrad=2,
+    buffer=1,
+    stats=None,
+    plot=None,
+    save=None,
+    prefix=None,
+    vmin=float("-inf"),
+    vmax=float("inf"),
+    strict=False,
+    verbosity=1,
+):
     """Compute the specified stats from acestats.py on a circular ejecta ROI
     extending ejsize crater radii from the crater center. Return results as
     DataFrame with stats appended as extra columns.
@@ -250,9 +314,22 @@ def ejecta_stats(df, cds, ejrad=2, buffer=1, stats=None, plot=None,
     DataFrame
         Copy of df with stats appended as new columns.
     """
-    return compute_stats(df, cds, stats, plot, save, prefix, vmin, vmax, 
-                         strict, maskfunc="ejecta", mask_out=True, ejrad=ejrad, 
-                         buffer=buffer, verbosity=verbosity)
+    return compute_stats(
+        df,
+        cds,
+        stats,
+        plot,
+        save,
+        prefix,
+        vmin,
+        vmax,
+        strict,
+        maskfunc="ejecta",
+        mask_out=True,
+        ejrad=ejrad,
+        buffer=buffer,
+        verbosity=verbosity,
+    )
 
     # If stats and index not provided, assume use all stats and all rows in cdf
     # if stats is None:
@@ -279,8 +356,9 @@ def ejecta_stats(df, cds, ejrad=2, buffer=1, stats=None, plot=None,
 
 
 # Other statistics
-def histogram(roi, bins, hmin=None, hmax=None, skew=False, verbose=False,
-              *args, **kwargs):
+def histogram(
+    roi, bins, hmin=None, hmax=None, skew=False, verbose=False, **kwargs
+):
     """
     Return histogram, bins of histogram computed on ROI. See np.histogram for
     full usage and optional parameters. Set verbose=True to print a summary of
@@ -288,18 +366,18 @@ def histogram(roi, bins, hmin=None, hmax=None, skew=False, verbose=False,
     """
     roi_notnan = roi[~np.isnan(roi)]
     roi_valid = roi_notnan[hmin <= roi_notnan <= hmax]
-    hist, bins = np.histogram(roi, bins=bins, hmin=hmin, hmax=hmax, *args,
-                              **kwargs)
+    hist, bins = np.histogram(roi, bins, range=(hmin, hmax), **kwargs)
     ret = [hist, bins]
-    output = 'Histogram with {} pixels total, \
+    output = "Histogram with {} pixels total, \
               {} pixels in [hmin, hmax] inclusive, \
               {} nan pixels excluded, \
-              {} bins'.format(len(roi), len(roi_valid), len(roi_notnan),
-                              len(bins))
+              {} bins".format(
+        len(roi), len(roi_valid), len(roi_notnan), len(bins)
+    )
     if skew:
         skewness = pd.DataFrame(roi.flatten).skew
         ret.append(skewness)
-        output += ', {} skewness'.format(skewness)
+        output += ", {} skewness".format(skewness)
     if verbose:
         print(output)
     return ret

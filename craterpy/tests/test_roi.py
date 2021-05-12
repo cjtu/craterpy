@@ -1,17 +1,18 @@
-from __future__ import division, print_function, absolute_import
+"""Unittest roi.py"""
 import os.path as p
 import unittest
 import numpy as np
+import craterpy
 from craterpy.dataset import CraterpyDataset
 from craterpy.roi import CraterRoi
-from craterpy.masking import circle_mask
+
 
 class TestCraterRoi(unittest.TestCase):
     """Test CraterpyDataset object"""
+
     def setUp(self):
-        import craterpy
-        self.data_path = p.join(craterpy.__path__[0], 'data')
-        self.moon_tif = p.join(self.data_path, 'moon.tif')
+        self.data_path = p.join(craterpy.__path__[0], "data")
+        self.moon_tif = p.join(self.data_path, "moon.tif")
         self.cds = CraterpyDataset(self.moon_tif, radius=1737)
         self.roi = CraterRoi(self.cds, 0, 0, 100)
 
@@ -32,6 +33,7 @@ class TestCraterRoi(unittest.TestCase):
         np.testing.assert_almost_equal(actual, expected, 4)
 
     def test_get_roi(self):
+        """Test get_roi"""
         roi = CraterRoi(self.cds, 0, 0, 50)
         arr = roi._get_roi()
         self.assertIsNotNone(arr)

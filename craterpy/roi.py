@@ -1,5 +1,4 @@
 """Contains the CraterRoi object"""
-from __future__ import division, print_function, absolute_import
 import numpy as np
 import craterpy.helper as ch
 from craterpy.plotting import plot_CraterRoi
@@ -48,6 +47,7 @@ class CraterRoi:
     >>> cds = CraterpyDataset(dsfile, radius=1737)
     >>> croi = CraterRoi(cds, -27.2, 80.9, 207)  # Humboldt crater
     """
+
     def __init__(self, cds, lat, lon, rad, wsize=1, plot=False):
         self.cds = cds
         self.lat = lat
@@ -63,9 +63,9 @@ class CraterRoi:
             self.plot()
 
     def __repr__(self):
-        return "CraterRoi at ({}N, {}E) with radius {} km".format(self.lat,
-                                                                  self.lon,
-                                                                  self.rad)
+        return "CraterRoi at ({}N, {}E) with radius {} km".format(
+            self.lat, self.lon, self.rad
+        )
 
     def _get_extent(self):
         """Return the bounds of this roi in degrees.
@@ -81,45 +81,54 @@ class CraterRoi:
         --------
 
         """
-        width = ch.km2deg(2*self.wsize*self.rad, self.cds.calc_mpp(self.lat),
-                          self.cds.xres)
-        height = ch.km2deg(2*self.wsize*self.rad, self.cds.calc_mpp(),
-                           self.cds.yres)
-        minlon = self.lon-(width/2)
+        width = ch.km2deg(
+            2 * self.wsize * self.rad,
+            self.cds.calc_mpp(self.lat),
+            self.cds.xres,
+        )
+        height = ch.km2deg(
+            2 * self.wsize * self.rad, self.cds.calc_mpp(), self.cds.yres
+        )
+        minlon = self.lon - (width / 2)
         maxlon = minlon + width
-        minlat = self.lat-(height/2)
+        minlat = self.lat - (height / 2)
         maxlat = minlat + height
         return (minlon, maxlon, minlat, maxlat)
 
     def _get_roi(self):
-            """Return 2D numpy array with data from self.cds.
+        """Return 2D numpy array with data from self.cds.
 
-            This roi is centered on (self.lat, self.lon). The window extends
-            wsize crater radii from the crater center.
+        This roi is centered on (self.lat, self.lon). The window extends
+        wsize crater radii from the crater center.
 
-            Use _wrap_lon() if cds roi crosses lon extent of global dataset.
+        Use _wrap_lon() if cds roi crosses lon extent of global dataset.
 
-            Parameters
-            ----------
-            mask_crater : bool
-                Masks the crater floor from the resulting ROI by replacing the
-                crater with an ellipse of NaN.
-            plot_roi : bool
-                Plots the returned ROI.
+        Parameters
+        ----------
+        mask_crater : bool
+            Masks the crater floor from the resulting ROI by replacing the
+            crater with an ellipse of NaN.
+        plot_roi : bool
+            Plots the returned ROI.
 
-            Returns
-            --------
-            roi: 2Darray
-                Numpy 2D array of data centered on the specified crater and
-                extending wsize*rad distance from the crater centre.
-            """
-            # If lon > 180, switch lon convention from (0, 360) -> (-180, 180)
-            if self.lon > 180:
-                self.lon -= 360
-            return self.cds.get_roi(*self.extent)
+        Returns
+        --------
+        roi: 2Darray
+            Numpy 2D array of data centered on the specified crater and
+            extending wsize*rad distance from the crater centre.
+        """
+        # If lon > 180, switch lon convention from (0, 360) -> (-180, 180)
+        if self.lon > 180:
+            self.lon -= 360
+        return self.cds.get_roi(*self.extent)
 
-    def filter(self, vmin=float('-inf'), vmax=float('inf'), strict=False,
-               nodata=np.nan):
+    def filter(
+        self,
+        vmin=float("-inf"),
+        vmax=float("inf"),
+        strict=False,
+        nodata=np.nan,
+    ):
         """Filter roi to the inclusive range [vmin, vmax].
 
         You can specify only vmin or vmax if only a lower bound/upper bound is
@@ -148,13 +157,14 @@ class CraterRoi:
         mask = np.isfinite(self.roi)  # filter pre-existing nans and infs
         if strict:
             # Mask includes pixels >= vmin and <= vmax
-            mask[mask] = mask[mask] & ((self.roi[mask] > vmin) &
-                                       (self.roi[mask] < vmax))
+            mask[mask] = mask[mask] & (
+                (self.roi[mask] > vmin) & (self.roi[mask] < vmax)
+            )
         else:
-            mask[mask] = mask[mask] & ((self.roi[mask] >= vmin) &
-                                       (self.roi[mask] <= vmax))
+            mask[mask] = mask[mask] & (
+                (self.roi[mask] >= vmin) & (self.roi[mask] <= vmax)
+            )
         self.roi[~mask] = nodata  # set invalid pixels (~mask) with nodata
-        return
 
     def mask(self, mask, outside=False, fillvalue=np.nan):
         """Fill pixels in bool mask from masking.py with fillvalue.
@@ -175,7 +185,6 @@ class CraterRoi:
         if outside:
             mask = ~mask
         self.roi[np.where(mask)] = fillvalue
-        return
 
     def plot(self, *args, **kwargs):
         """Plot this CraterRoi. See plotting.plot_CraterRoi()"""

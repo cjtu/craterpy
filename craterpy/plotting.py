@@ -1,10 +1,8 @@
-"""This file contains helper functions for plotting.
-"""
-from __future__ import division, print_function, absolute_import
+"""This file contains helper functions for plotting."""
 import matplotlib.pyplot as plt
 
 
-def plot_CraterRoi(croi, figsize=((4, 4)), title=None, cmap='gray', **kwargs):
+def plot_CraterRoi(croi, figsize=((4, 4)), title=None, cmap="gray", **kwargs):
     """
     Plot 2D CraterRoi.
 
@@ -33,23 +31,6 @@ def plot_CraterRoi(croi, figsize=((4, 4)), title=None, cmap='gray', **kwargs):
     plt.figure(title, figsize=figsize)
     plt.imshow(croi.roi, extent=croi.extent, cmap=cmap, **kwargs)
     plt.title(title)
-    plt.xlabel('Longitude (degrees)')
-    plt.ylabel('Latitude (degrees)')
+    plt.xlabel("Longitude (degrees)")
+    plt.ylabel("Latitude (degrees)")
     plt.show()
-
-
-def plot_ejecta_stats():
-    """Plot ejecta statistics.
-    """
-    pass  # TODO: implement this
-
-
-def plot_ejecta_profile_stats():
-    """Plot ejecta profile statistics.
-    """
-    pass  # TODO: implement this
-
-#
-# if __name__ == "__main__":
-#    import doctest
-#    doctest.testmod()

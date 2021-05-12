@@ -1,16 +1,15 @@
 """Contains the CraterpyDataset object which wraps rasterio."""
-from __future__ import division, print_function, absolute_import
-from craterpy.exceptions import DataImportError
+import warnings
 import numpy as np
 import rasterio as rio
 import craterpy.helper as ch
 
 
-class CraterpyDataset(object):
+class CraterpyDataset:
     """The CraterpyDataset reads in images with the rasterio dataset.
 
-    If the input file is georeferenced, the geographical bounds and transform 
-    will be read automatically. Otherwise, all attributes must be passed in the 
+    If the input file is georeferenced, the geographical bounds and transform
+    will be read automatically. Otherwise, all attributes must be passed in the
     constructor.
 
     Inherits all attributes and methods of rasterio.DatasetReader.
@@ -45,48 +44,65 @@ class CraterpyDataset(object):
     >>> ds.get_roi(-27.6, -27.0, 80.5, 81.1).shape
     (2, 2)
     """
-    def __init__(self, dataset, nlat=None, slat=None, wlon=None, elon=None,
-                 radius=None, ppd=None, nodata=None):
-        """Initialize CraterpyDataset object."""
-        self._rioDataset = rio.open(dataset)
 
-        args = [nlat, slat, wlon, elon, radius, ppd, ppd]
-        attrs = ['nlat', 'slat', 'wlon', 'elon', 'radius', 'xres', 'yres']
-        geotags = self._get_geotiff_info()  # Attempt to read geotiff tags
-        for arg, attr, geotag in zip(args, attrs, geotags):
-            if arg is None:  # Get missing attrs from geotiff tags
-                setattr(self, attr, geotag)
-            else:  # If argument is supplied, override geotiff tags
-                setattr(self, attr, arg)
-        if not hasattr(self, 'xres'):
+    def __init__(
+        self,
+        dataset,
+        nlat=None,
+        slat=None,
+        wlon=None,
+        elon=None,
+        radius=None,
+        xres=None,
+        yres=None,
+    ):
+        """Initialize CraterpyDataset object."""
+        with warnings.catch_warnings(record=True) as w:
+            self._rioDataset = rio.open(dataset)
+        if w and isinstance(w[0].message, rio.errors.NotGeoreferencedWarning):
+            self.transform = ()
+        args = [nlat, slat, wlon, elon, radius, xres, yres]
+        attrs = ["nlat", "slat", "wlon", "elon", "radius", "xres", "yres"]
+        if not self.transform and any(a is None for a in args[:4]):
+            msg = (
+                "No geotransform detected. Please specify nlat, slat,"
+                + "wlon, elon, and planet radius for CraterpyDataset."
+            )
+            raise ImportError(msg)
+        if self.transform:
+            geotags = self._get_geotiff_info()  # Attempt to read geotiff tags
+            for arg, attr, geotag in zip(args, attrs, geotags):
+                if arg is None:  # Get missing attrs from geotiff tags
+                    setattr(self, attr, geotag)
+                else:  # If argument is supplied, override geotiff tags
+                    setattr(self, attr, arg)
+        if not hasattr(self, "xres"):
             self.xres = self.width / (self.elon - self.wlon)
-        if not hasattr(self, 'yres'):
+        if not hasattr(self, "yres"):
             self.yres = self.xres
         self.latarr = np.linspace(self.nlat, self.slat, self.height)
         self.lonarr = np.linspace(self.wlon, self.elon, self.width)
 
     def __getattr__(self, name):
         """Wraps the self._rioDataset DatasetReader object."""
-        if name not in self.__dict__:  # Redirect if not in CraterpyDataset
-            try:
-                func = getattr(self.__dict__['_rioDataset'], name)
-                if callable(func):  # Call method
-                    def rioDataset_wrapper(*args, **kwargs):
-                        return func(*args, **kwargs)
-                    return rioDataset_wrapper
-                else:  # Not callable so must be attribute
-                    return func
-            except AttributeError:
-                msg = f'CraterpyDataset has no attribute {name}'
-                raise AttributeError(msg)
+        if name in self.__dict__:
+            return getattr(self, name)
+        return getattr(self._rioDataset, name)
 
     def __repr__(self):
         """Representation of CraterpyDataset with attribute info"""
-        attrs = (self.nlat, self.slat, self.wlon, self.elon,
-                 self.radius, self.xres, self.yres)
-        rep = 'CraterpyDataset with extent ({}N, {}N), '.format(*attrs[:2])
-        rep += '({}E, {}E), radius {} km, '.format(*attrs[2:5])
-        rep += 'xres {} ppd, and yres {} ppd'.format(*attrs[5:7])
+        attrs = (
+            self.nlat,
+            self.slat,
+            self.wlon,
+            self.elon,
+            self.radius,
+            self.xres,
+            self.yres,
+        )
+        rep = "CraterpyDataset with extent ({}N, {}N), ".format(*attrs[:2])
+        rep += "({}E, {}E), radius {} km, ".format(*attrs[2:5])
+        rep += "xres {} ppd, and yres {} ppd".format(*attrs[5:7])
         return rep
 
     def _get_geotiff_info(self):
@@ -119,23 +135,19 @@ class CraterpyDataset(object):
         (90.0, -90.0, -180.0, 180.0, 6378.137, 4.0, 4.0)
         """
         nlat = slat = wlon = elon = xres = yres = radius = None
-        try:
-            width, height = self.width, self.height
-            transform = self.transform
-            wlon, nlat = transform * (0, 0)
-            elon, slat = transform * (width, height)
-            xres = 1 / transform[0]
-            yres = -1 / transform[4]
-        except Exception as e:
-            print(e)
-        try:
-            # Get body radius assuming WKT format
-            rad_wkt = self.crs.wkt.split('SPHEROID')[1].split(',')[1]
-            radius = 0.001 * float(rad_wkt)
-        except Exception as e:
-            print(e)
-        return nlat, slat, wlon, elon, radius, xres, yres
+        # print(hasattr(self, 'transform'))
+        width, height = self.width, self.height
+        transform = self.transform
+        wlon, nlat = transform * (0, 0)
+        elon, slat = transform * (width, height)
+        xres = 1 / transform[0]
+        yres = -1 / transform[4]
 
+        if hasattr(self.crs, "wkt"):
+            # Get body radius assuming WKT format
+            rad_wkt = self.crs.wkt.split("SPHEROID")[1].split(",")[1]
+            radius = 0.001 * float(rad_wkt)
+        return nlat, slat, wlon, elon, radius, xres, yres
 
     def calc_mpp(self, lat=0):
         """Return the ground resolution in meters/pixel at the given latitude.
@@ -162,9 +174,9 @@ class CraterpyDataset(object):
         if abs(lat) > 90:
             raise ValueError("Latitude out of bounds")
         # calculate circumference at lat in [m], divide by num pixels
-        circ = 1000*2*np.pi*self.radius*np.cos(np.radians(lat))
-        npix = 360*self.xres  # num pixels in one circumference [pix]
-        return circ/npix  # num meters in one pixel at lat [m]/[pix]
+        circ = 1000 * 2 * np.pi * self.radius * np.cos(np.radians(lat))
+        npix = 360 * self.xres  # num pixels in one circumference [pix]
+        return circ / npix  # num meters in one pixel at lat [m]/[pix]
 
     def inbounds(self, lat, lon):
         """Return True if (lat, lon) point in Dataset bounds.
@@ -194,9 +206,9 @@ class CraterpyDataset(object):
         """
         if self.is_global():
             return self.slat <= lat <= self.nlat
-        else:
-            return ((self.slat <= lat <= self.nlat) and
-                    (self.wlon <= lon <= self.elon))
+        return (self.slat <= lat <= self.nlat) and (
+            self.wlon <= lon <= self.elon
+        )
 
     def is_global(self):
         """
@@ -241,59 +253,61 @@ class CraterpyDataset(object):
         >>> ds.get_roi(-27.6, -27.0, 80.5, 81.1).shape
         (2, 2)
         """
-        if (not self.inbounds(minlat, minlon) or not
-                self.inbounds(maxlat, maxlon)):
-            raise DataImportError("Roi extent out of dataset bounds.")
-        topind = ch.deg2pix(self.nlat-maxlat, self.yres)
-        height = ch.deg2pix(maxlat-minlat, self.yres)
+        if not self.inbounds(minlat, minlon) or not self.inbounds(
+            maxlat, maxlon
+        ):
+            raise ValueError("Roi extent out of dataset bounds.")
+        topind = ch.deg2pix(self.nlat - maxlat, self.yres)
+        height = ch.deg2pix(maxlat - minlat, self.yres)
         if self.is_global() and (minlon < self.wlon or maxlon > self.elon):
             roi = self._wrap_roi_360(minlon, maxlon, topind, height)
         else:
-            leftind = ch.deg2pix(minlon-self.wlon, self.xres)
-            width = ch.deg2pix(maxlon-minlon, self.xres)
+            leftind = ch.deg2pix(minlon - self.wlon, self.xres)
+            width = ch.deg2pix(maxlon - minlon, self.xres)
             w = rio.windows.Window(leftind, topind, width, height)
             roi = self.read(1, window=w)
         return roi.astype(float)
 
     def _wrap_roi_360(self, minlon, maxlon, topind, height):
-            """Return roi that is split by the 360 degree edge of a global dataset.
+        """Return roi that is split by the 360 degree edge of a global dataset.
 
-            Read the left and right sub-arrays and then concatenate them into
-            the full roi.
+        Read the left and right sub-arrays and then concatenate them into
+        the full roi.
 
-            Parameters
-            ----------
-            minlon : int or float
-                Western longitude bound [degrees].
-            maxlon : int or float
-                Eastern longitude bound [degrees].
-            topind : int
-                Top index of returned roi.
-            height : int
-                Height of returned roi.
+        Parameters
+        ----------
+        minlon : int or float
+            Western longitude bound [degrees].
+        maxlon : int or float
+            Eastern longitude bound [degrees].
+        topind : int
+            Top index of returned roi.
+        height : int
+            Height of returned roi.
 
-            Returns
-            --------
-            roi: 2Darray
-                Concatenated roi wrapped around lon bound.
-            """
-            if minlon < self.wlon:
-                leftind = ch.deg2pix(minlon-(self.wlon-360), self.xres)
-                leftwidth = ch.deg2pix(self.wlon - minlon, self.xres)
-                rightind = 0
-                rightwidth = ch.deg2pix(maxlon - self.wlon, self.xres)
-            elif maxlon > self.elon:
-                leftind = ch.deg2pix(self.elon - minlon, self.xres)
-                leftwidth = ch.deg2pix(self.elon - minlon, self.xres)
-                rightind = 0
-                rightwidth = ch.deg2pix(maxlon - self.elon, self.xres)
-            w_left = rio.windows.Window(leftind, topind, leftwidth, height)
-            w_right = rio.windows.Window(rightind, topind, rightwidth, height)
-            left_roi = self.read(1, window=w_left)
-            right_roi = self.read(1, window=w_right)
-            return np.concatenate((left_roi, right_roi), axis=1)
+        Returns
+        --------
+        roi: 2Darray
+            Concatenated roi wrapped around lon bound.
+        """
+        if minlon < self.wlon:
+            leftind = ch.deg2pix(minlon - (self.wlon - 360), self.xres)
+            leftwidth = ch.deg2pix(self.wlon - minlon, self.xres)
+            rightind = 0
+            rightwidth = ch.deg2pix(maxlon - self.wlon, self.xres)
+        elif maxlon > self.elon:
+            leftind = ch.deg2pix(self.elon - minlon, self.xres)
+            leftwidth = ch.deg2pix(self.elon - minlon, self.xres)
+            rightind = 0
+            rightwidth = ch.deg2pix(maxlon - self.elon, self.xres)
+        w_left = rio.windows.Window(leftind, topind, leftwidth, height)
+        w_right = rio.windows.Window(rightind, topind, rightwidth, height)
+        left_roi = self.read(1, window=w_left)
+        right_roi = self.read(1, window=w_right)
+        return np.concatenate((left_roi, right_roi), axis=1)
 
 
 if __name__ == "__main__":
     import doctest
+
     doctest.testmod()

@@ -4,18 +4,18 @@ development append 'dev0' (e.g., "X.Y.Zdev0").
 """
 _major = 0
 _minor = 3
-_maintenance = ''  # use '' for new major/minor release; int for 1+
-_extra = ''  # NEVER release with dev, use '' for full release
+_maintenance = ""  # use '' for new major/minor release; int for 1+
+_extra = ""  # NEVER release with dev, use '' for full release
 
 
 def concatenate_version(major, minor, maintenance, extra):
-    """ Construct full version string to pass to setup.py """
+    """Construct full version string to pass to setup.py"""
     _ver = [major, minor]
     if maintenance:
         _ver.append(maintenance)
     if extra:
         _ver.append(extra)
-    return '.'.join(map(str, _ver))
+    return ".".join(map(str, _ver))
 
 
 __version__ = concatenate_version(_major, _minor, _maintenance, _extra)
