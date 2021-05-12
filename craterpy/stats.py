@@ -196,7 +196,7 @@ def compute_stats(
                 )
                 croi.save(fname)
 
-        except Exception as e:
+        except ValueError as e:
             for stat, _ in _get_quickstats_functions(stats):
                 ret_df.loc[i, stat] = np.nan
             if verbosity:

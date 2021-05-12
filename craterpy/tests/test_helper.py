@@ -8,6 +8,7 @@ from craterpy import helper as ch
 
 class Test_geo_helpers(unittest.TestCase):
     """Test Geospatial Helper Functions"""
+
     def test_lon360(self):
         """Test lon360 function"""
         actual = ch.lon360(0)
