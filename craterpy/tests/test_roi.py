@@ -3,8 +3,8 @@ import os.path as p
 import unittest
 import numpy as np
 import craterpy
+import craterpy.roi as croi
 from craterpy.dataset import CraterpyDataset
-from craterpy.roi import CraterRoi
 
 
 class TestCraterRoi(unittest.TestCase):
@@ -13,48 +13,95 @@ class TestCraterRoi(unittest.TestCase):
     def setUp(self):
         self.data_path = p.join(craterpy.__path__[0], "data")
         self.moon_tif = p.join(self.data_path, "moon.tif")
-        self.cds = CraterpyDataset(self.moon_tif, radius=1737)
-        self.roi = CraterRoi(self.cds, 0, 0, 100)
+        self.cds = CraterpyDataset(self.moon_tif)
+        self.roi = croi.CraterRoi(self.cds, 0, 0, 100)
 
     def test_roi_import(self):
         """Test import"""
-        roi = CraterRoi(self.cds, 0, 0, 100)
+        roi = croi.CraterRoi(self.cds, 0, 0, 100)
         self.assertIsNotNone(roi)
 
     def test_get_extent(self):
         """Test _get_extent"""
-        roi = CraterRoi(self.cds, 0, 0, 16)
-        actual = roi._get_extent()
-        expected = (-0.5278, 0.5278, -0.5278, 0.5278)
+        actual = croi.get_extent(self.cds, 0, 0, 40)
+        expected = np.array([-1.3191, 1.3191, -1.3191, 1.3191])
         np.testing.assert_almost_equal(actual, expected, 4)
-        roi = CraterRoi(self.cds, 20, 20, 16)
-        actual = roi.extent
-        expected = (19.4384, 20.5616, 19.4722, 20.5278)
+        actual = croi.get_extent(self.cds, 0, 0, 40, wsize=5)
+        expected = 5 * expected
         np.testing.assert_almost_equal(actual, expected, 4)
 
     def test_get_roi(self):
         """Test get_roi"""
-        roi = CraterRoi(self.cds, 0, 0, 50)
-        arr = roi._get_roi()
-        self.assertIsNotNone(arr)
-        roi180 = CraterRoi(self.cds, 0, 180, 50)
-        arr180 = roi180.roi
-        self.assertIsNotNone(arr180)
+        actual = croi.get_roi_latlon(self.cds, 0, 0.5, 0, 0.5)
+        expected = np.array([[41, 43], [41, 41]])
+        np.testing.assert_array_almost_equal(actual, expected)
 
-    # TODO: fix this test
-    # def test_filter(self):
-    #     roi = self.roi
-    #     roi.filter(0, 100)
-    #     self.assertTrue(np.nanmax(roi.roi) <= 100)
-    #     roi.filter(0, 50, strict=True)
-    #     self.assertTrue(np.nanmax(roi.roi) < 50)
+    def test_get_roi_wrap_360(self):
+        """Test roi that extends across dataset bounds"""
+        # Test wrap right
+        actual = croi.get_roi_latlon(self.cds, 179.5, 180.25, 0, 0.5)
+        expected = np.concatenate(
+            [
+                croi.get_roi_latlon(self.cds, 179.5, 180, 0, 0.5),
+                croi.get_roi_latlon(self.cds, -180, -179.75, 0, 0.5),
+            ],
+            axis=1,
+        )
+        np.testing.assert_equal(actual, expected)
 
-    # def test_mask(self):
-    #     shape, rad = self.roi.roi.shape, self.roi.rad
-    #     mask = circle_mask(shape, rad)
-    #     masked_roi = self.roi.mask(mask)
-    #     self.assertTrue(np.isnan(masked_roi[shape[0]//2, shape[1]//2]))
-    #     self.assertTrue(np.isnan(self.roi.roi[shape[0]//2, shape[1]//2]))
+        # Test wrap left is the same
+        actual = croi.get_roi_latlon(self.cds, -180.5, -179.75, 0, 0.5)
+        np.testing.assert_equal(actual, expected)
 
-    # def test_plot(self):
-    #     self.assertIsNotNone(self.roi.plot())
+    def test_get_roi_oob(self):
+        """Test get_roi with extent out of bounds for cds"""
+        with self.assertRaises(ValueError):
+            _ = croi.get_roi_latlon(self.cds, 0, 0, 91, 0)
+
+    def test_string_repr(self):
+        """Test string representation of CraterRoi"""
+        actual = str(self.roi)
+        expected = "CraterRoi at (0N, 0E) with radius 100 km"
+        self.assertEqual(actual, expected)
+
+    def test_filter(self):
+        """Test filter method"""
+        roi = croi.CraterRoi(self.cds, 0, 0, 10)
+        # Filter non-inclusive
+        roi.filter(36, 39)
+        actual = roi.roi
+        expected = np.array(([36, np.nan], [36, 38]))
+        np.testing.assert_array_equal(actual, expected)
+
+        # Filter inclusive (strict)
+        roi.filter(36, 39, strict=True)
+        actual = roi.roi
+        expected = np.array(([np.nan, np.nan], [np.nan, 38]))
+        np.testing.assert_array_equal(actual, expected)
+
+    def test_mask_nan(self):
+        """Test mask"""
+        roi = croi.CraterRoi(self.cds, 0, 0, 10)
+        mask = np.array([[True, False], [True, True]])
+        roi.mask(mask)
+        actual = roi.roi
+        expected = np.array([[np.nan, 40], [np.nan, np.nan]])
+        np.testing.assert_array_equal(actual, expected)
+
+    def test_mask_outside(self):
+        """Test mask inverted"""
+        roi = croi.CraterRoi(self.cds, 0, 0, 10)
+        mask = np.array([[True, False], [True, True]])
+        roi.mask(mask, outside=True)
+        actual = roi.roi
+        expected = np.array([[36, np.nan], [36, 38]])
+        np.testing.assert_array_equal(actual, expected)
+
+    def test_mask_fill(self):
+        """Test mask with fillvalue"""
+        roi = croi.CraterRoi(self.cds, 0, 0, 10)
+        mask = np.array([[True, False], [True, True]])
+        roi.mask(mask, fillvalue=100)
+        actual = roi.roi
+        expected = np.array([[100, 40], [100, 100]])
+        np.testing.assert_array_equal(actual, expected)

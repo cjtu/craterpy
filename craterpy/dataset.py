@@ -3,6 +3,7 @@ import warnings
 import numpy as np
 import rasterio as rio
 import craterpy.helper as ch
+import craterpy.roi as croi
 
 
 class CraterpyDataset:
@@ -69,16 +70,17 @@ class CraterpyDataset:
                 + "wlon, elon, and planet radius for CraterpyDataset."
             )
             raise ImportError(msg)
+        geotags = [None] * len(args)
         if self.transform:
             geotags = self._get_geotiff_info()  # Attempt to read geotiff tags
-            for arg, attr, geotag in zip(args, attrs, geotags):
-                if arg is None:  # Get missing attrs from geotiff tags
-                    setattr(self, attr, geotag)
-                else:  # If argument is supplied, override geotiff tags
-                    setattr(self, attr, arg)
-        if not hasattr(self, "xres"):
+        for arg, attr, geotag in zip(args, attrs, geotags):
+            if arg is None:  # Get missing attrs from geotiff tags
+                setattr(self, attr, geotag)
+            else:  # If argument is supplied, override geotiff tags
+                setattr(self, attr, arg)
+        if getattr(self, "xres") is None:
             self.xres = self.width / (self.elon - self.wlon)
-        if not hasattr(self, "yres"):
+        if getattr(self, "yres") is None:
             self.yres = self.xres
         self.latarr = np.linspace(self.nlat, self.slat, self.height)
         self.lonarr = np.linspace(self.wlon, self.elon, self.width)
@@ -144,9 +146,7 @@ class CraterpyDataset:
         yres = -1 / transform[4]
 
         if hasattr(self.crs, "wkt"):
-            # Get body radius assuming WKT format
-            rad_wkt = self.crs.wkt.split("SPHEROID")[1].split(",")[1]
-            radius = 0.001 * float(rad_wkt)
+            radius = 0.001 * ch.get_spheroid_rad_from_wkt(self.crs.to_wkt())
         return nlat, slat, wlon, elon, radius, xres, yres
 
     def calc_mpp(self, lat=0):
@@ -253,58 +253,7 @@ class CraterpyDataset:
         >>> ds.get_roi(-27.6, -27.0, 80.5, 81.1).shape
         (2, 2)
         """
-        if not self.inbounds(minlat, minlon) or not self.inbounds(
-            maxlat, maxlon
-        ):
-            raise ValueError("Roi extent out of dataset bounds.")
-        topind = ch.deg2pix(self.nlat - maxlat, self.yres)
-        height = ch.deg2pix(maxlat - minlat, self.yres)
-        if self.is_global() and (minlon < self.wlon or maxlon > self.elon):
-            roi = self._wrap_roi_360(minlon, maxlon, topind, height)
-        else:
-            leftind = ch.deg2pix(minlon - self.wlon, self.xres)
-            width = ch.deg2pix(maxlon - minlon, self.xres)
-            w = rio.windows.Window(leftind, topind, width, height)
-            roi = self.read(1, window=w)
-        return roi.astype(float)
-
-    def _wrap_roi_360(self, minlon, maxlon, topind, height):
-        """Return roi that is split by the 360 degree edge of a global dataset.
-
-        Read the left and right sub-arrays and then concatenate them into
-        the full roi.
-
-        Parameters
-        ----------
-        minlon : int or float
-            Western longitude bound [degrees].
-        maxlon : int or float
-            Eastern longitude bound [degrees].
-        topind : int
-            Top index of returned roi.
-        height : int
-            Height of returned roi.
-
-        Returns
-        --------
-        roi: 2Darray
-            Concatenated roi wrapped around lon bound.
-        """
-        if minlon < self.wlon:
-            leftind = ch.deg2pix(minlon - (self.wlon - 360), self.xres)
-            leftwidth = ch.deg2pix(self.wlon - minlon, self.xres)
-            rightind = 0
-            rightwidth = ch.deg2pix(maxlon - self.wlon, self.xres)
-        elif maxlon > self.elon:
-            leftind = ch.deg2pix(self.elon - minlon, self.xres)
-            leftwidth = ch.deg2pix(self.elon - minlon, self.xres)
-            rightind = 0
-            rightwidth = ch.deg2pix(maxlon - self.elon, self.xres)
-        w_left = rio.windows.Window(leftind, topind, leftwidth, height)
-        w_right = rio.windows.Window(rightind, topind, rightwidth, height)
-        left_roi = self.read(1, window=w_left)
-        right_roi = self.read(1, window=w_right)
-        return np.concatenate((left_roi, right_roi), axis=1)
+        return croi.get_roi_latlon(self, minlon, maxlon, minlat, maxlat)
 
 
 if __name__ == "__main__":

@@ -74,6 +74,11 @@ def inglobal(lat, lon):
     return (-90 <= lat <= 90) and (0 <= lon360(lon) <= 360)
 
 
+def get_spheroid_rad_from_wkt(wkt):
+    """Return body radius from Well-Known Text coordinate reference system."""
+    return float(wkt.lower().split("spheroid")[1].split(",")[1])
+
+
 # DataFrame helpers
 def findcol(df, names):
     """Return first instance of a column from df matching an unformated string
