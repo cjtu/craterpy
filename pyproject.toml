@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "craterpy"
-version = "0.3.1"
+version = "0.4.0"
 homepage = "https://github.com/cjtu/craterpy"
 description = "A package for impact crater data science."
 authors = ["Christian J. Tai Udovicic <cj.taiudovicic@gmail.com>"]

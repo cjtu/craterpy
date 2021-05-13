@@ -1,10 +1,6 @@
 ---
 name: Code Quality Checks
 
-defaults:
-    run:
-      shell: bash
-
 on:
   push:
     branches: [trunk]

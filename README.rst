@@ -40,13 +40,13 @@ A code-snippet and plot is worth a thousand words::
     stat_df = cs.ejecta_stats(df, moon, 4, ['mean', 'median', 'std'], plot=True)
 
 
-.. image:: /craterpy/data/_images/readme_crater_ejecta.png
+.. image:: https://raw.githubusercontent.com/cjtu/craterpy/trunk/craterpy/data/_images/readme_crater_ejecta.png
 
 ::
 
   stats_df.head()
 
-.. image:: /craterpy/data/_images/readme_stat_df.png
+.. image:: https://raw.githubusercontent.com/cjtu/craterpy/trunk/craterpy/data/_images/readme_stat_df.png
 
 
 New users should start with the IPython notebook `tutorial`_ for typical usage with examples.
@@ -58,7 +58,9 @@ New users should start with the IPython notebook `tutorial`_ for typical usage w
 
 Requires
 --------
-craterpy requires python >3.7 and is tested on Linux, OS X and Bash on Windows.
+Craterpy requires python >3.7 and is tested on Ubuntu and OS X. If you would like to use craterpy on Windows, we recommend getting the Windows Subsystem for Linux (`WSL`_) and installing it from the bash shell.
+
+.. _`WSL`: https://docs.microsoft.com/en-us/windows/wsl/install-win10
 
 It's core dependencies are:
 
@@ -67,39 +69,69 @@ It's core dependencies are:
 - numpy
 - matplotlib
 
-We recommend using the `Anaconda`_ package manager to install craterpy. Anaconda automatically resolves dependency conflicts and allows you to get virtual environments working quickly.
+Installation
+------------
 
-.. _`Anaconda`: https://www.anaconda.com/distribution/
+The most reliable way to get craterpy is by installing `git <https://git-scm.com>`_ and `poetry <https://python-poetry.org/docs/>_` to clone and install the package.
 
-Quick Installation with Anaconda
---------------------------------
+You can clone and install craterpy with the following steps.::
 
-1. `Install Anaconda <https://www.anaconda.com/download/>`_.
+    # Clone this repository
+    $ cd ~
+    $ git clone https://github.com/cjtu/craterpy.git
 
-2. Open a terminal window and create a `conda virtual environment`_ (name it anything you like, and set the python version to a compatible version in `Requires`_)::
+    # Enter the repository
+    $ cd roughness
 
-    conda create --name your_env_name python=3.6
+    # Configure poetry
+    poetry config virtualenvs.create true --local
+    poetry config virtualenvs.in-project true --local
 
-3. Activate the environment (on Windows, omit "source")::
+    # Install craterpy with poetry
+    $ poetry install
 
-    source activate your_env_name
+    # Check installation
+    poetry version
 
-4. Install the dependencies (via `conda-forge`_)::
+    # Either open a Jupyter server
+    $ poetry run jupyter notebook
 
-    conda install -c conda-forge numpy matplotlib pandas rasterio
+    # Or activate the venv from your Python editor of choice
+    # The venv is path is ~/craterpy/.venv/bin/python
 
-5. Install craterpy with pip::
+Installing from pip
+-------------------
+
+Craterpy is also listed on `PYPI <https://pypi.org/project/craterpy/>`_ and can be installed with `pip <https://packaging.python.org/tutorials/installing-packages/>`_.::
 
     pip install craterpy
+    python -c "import craterpy; print(craterpy.__version__)"
 
-6. Check that your installation succeeded with ``conda list``.
+Installing into a conda environment
+-----------------------------------
+
+You can similarly install craterpy into a `conda environment`_ using pip.::
+
+    # Create conda environment
+    conda create -n craterpy python=3.7
+
+    # Activate the environment
+    conda activate craterpy
+
+    # Install dependencies (optional, but may fix dependency issues on some platforms)
+    conda install -c conda-forge rasterio pandas, numpy, matplotlib
+
+    # Install craterpy
+    pip install craterpy
+
+    # Test installation
+    python -c "import craterpy; print(craterpy.__version__)"
+
+Trouble installing craterpy? Let us know on the `issues`_ board.
 
 Now that you have craterpy installed, head over to the `tutorial`_ to get started!
 
-**Note**: Remember to activate your virtual environment each time you use craterpy.
-
-.. _`conda virtual environment`: https://conda.io/docs/using/envs
-.. _`conda-forge`: https://conda-forge.org/
+.. _`conda environment`: https://conda.io/docs/using/envs
 
 Installing from a fork
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -126,7 +158,9 @@ There are two major ways you can help improve craterpy:
 
 Bug Reporting and Feature Requests
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-You can report bugs or request new features on the `issue tracker <https://github.com/cjtu/craterpy/issues>`_. If you are reporting a bug, please give a detailed description about how it came up and what your build environment is (e.g. with ``conda list``).
+You can report bugs or request new features on the `issues`_ board. If you are reporting a bug, please give a detailed description about how it came up and what your build environment is (e.g. with ``conda list``).
+
+.. _`issues`: https://github.com/cjtu/craterpy/issues
 
 Becoming a contributor
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -142,21 +176,27 @@ The development environment is specified in `.environment.yml`. It can be built 
 
 2. Clone your fork, then cd into your local craterpy repository.
 
-3. Create the ``craterpy-dev`` environment with::
+3. Install the dependencies using poetry (steps above).
 
-    conda env create -f .environment.yml
+4. Run a jupyter notebook with::
 
-4. Activate the dev environment with (ignore "source" on Windows)::
+    poetry run jupyter notebook
 
-    source activate craterpy-env
+5. Test your changes::
 
-5. Test the environment with::
+    poetry run pytest craterpy
 
-    py.test craterpy
+6. Apply code formatting with black::
 
-6. Hack away!
+    poetry run black craterpy
 
-The dev environment comes pre-installed with craterpy and all of its dependencies, as well as some handy libraries like ``pytest``, ``pytest-cov``, and ``flake8``. Read more about testing, covereage and style in `CONTRIBUTING.rst`_.
+7. Run pylint to check your code style::
+
+    poetry run pylint craterpy
+
+8. Hack away!
+
+Read more about testing, contributing and style in `CONTRIBUTING.rst`_.
 
 
 Updating .environment.yml
