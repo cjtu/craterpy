@@ -9,26 +9,27 @@ craterpy |RtdBadge|_ |PyPiBadge|_ |CodecovBadge|_ |ZenodoBadge|_
 .. |PyPiBadge| image:: https://badge.fury.io/py/craterpy.svg
 .. _PyPiBadge: https://badge.fury.io/py/craterpy
 
-.. |CodecovBadge| image:: https://codecov.io/gh/cjtu/craterpy/branch/master/graph/badge.svg?token=9K567x0YUJ
+.. |CodecovBadge| image:: https://codecov.io/gh/cjtu/craterpy/branch/trunk/graph/badge.svg?token=9K567x0YUJ
 .. _CodecovBadge: https://codecov.io/gh/cjtu/craterpy
 
 Overview
 --------
 Welcome to craterpy (formerly *ACERIM*), your one-stop shop to crater data science in Python!
 
-This package is in the alpha stage of development. You can direct any questions to Christian at cj.taiudovicic@gmail.com. Bug reports and feature requests can be opened as issues at the `issue tracker`_ on GitHub.
+This package is in the alpha stage of development. You can direct any questions to Christian at cj.taiudovicic@gmail.com. Bug reports and feature requests can be opened as issues at the `issues`_ board on GitHub.
 
 You can use craterpy to:
 
-  - work with tables of crater data in Python (using pandas),
-  - load and manipulate image data in Python (using rasterio),
-  - easily extract, mask, filter, plot, and compute stats on craters located in your images.
+  - work with tables of crater data in Python (using pandas)
+  - load and manipulate image data in Python (using rasterio)
+  - extract, mask, filter, and compute stats on craters located in your images
+  - plot crater data in python!
 
-.. `issue tracker`_: https://github.com/cjtu/craterpy/issues
+Craterpy currently only supports simple cylindrical images and requires you to provide a table of crater locations and sizes (e.g. it isn't a crater detection program). See the example below!
 
 Example
 -------
-A code-snippet and plot is worth a thousand words::
+Craterpy in action::
 
     import pandas as pd
     from craterpy import dataset, stats
@@ -72,16 +73,16 @@ It's core dependencies are:
 Installation
 ------------
 
-The most reliable way to get craterpy is by installing `git <https://git-scm.com>`_ and `poetry <https://python-poetry.org/docs/>_` to clone and install the package.
+The most reliable way to get craterpy is by installing `git <https://git-scm.com>`_ and `poetry <https://python-poetry.org/docs/>`_ to clone and install the package.
 
-You can clone and install craterpy with the following steps.::
+You can clone and install craterpy with the following steps::
 
     # Clone this repository
     $ cd ~
     $ git clone https://github.com/cjtu/craterpy.git
 
     # Enter the repository
-    $ cd roughness
+    $ cd craterpy
 
     # Configure poetry
     poetry config virtualenvs.create true --local
@@ -102,7 +103,7 @@ You can clone and install craterpy with the following steps.::
 Installing from pip
 -------------------
 
-Craterpy is also listed on `PYPI <https://pypi.org/project/craterpy/>`_ and can be installed with `pip <https://packaging.python.org/tutorials/installing-packages/>`_.::
+Craterpy is also listed on `PYPI <https://pypi.org/project/craterpy/>`_ and can be installed with `pip <https://packaging.python.org/tutorials/installing-packages/>`_::
 
     pip install craterpy
     python -c "import craterpy; print(craterpy.__version__)"
@@ -110,7 +111,7 @@ Craterpy is also listed on `PYPI <https://pypi.org/project/craterpy/>`_ and can 
 Installing into a conda environment
 -----------------------------------
 
-You can similarly install craterpy into a `conda environment`_ using pip.::
+You can similarly install craterpy into a `conda environment`_ using pip::
 
     # Create conda environment
     conda create -n craterpy python=3.7
@@ -197,13 +198,6 @@ The development environment is specified in `.environment.yml`. It can be built 
 8. Hack away!
 
 Read more about testing, contributing and style in `CONTRIBUTING.rst`_.
-
-
-Updating .environment.yml
-"""""""""""""""""""""""""
-A new ``.environment.yml`` can be generated from within the activated craterpy-dev environment with::
-
-   conda env export > .environment.yml
 
 
 Citing craterpy
