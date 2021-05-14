@@ -1,0 +1,54 @@
+[tool.poetry]
+name = "craterpy"
+version = "0.4.0"
+homepage = "https://github.com/cjtu/craterpy"
+description = "A package for impact crater data science."
+authors = ["Christian J. Tai Udovicic <cj.taiudovicic@gmail.com>"]
+license = "MIT"
+classifiers=[
+'Development Status :: 3 - Alpha',
+    'Intended Audience :: Science/Research',
+    'License :: OSI Approved :: MIT License',
+    'Natural Language :: English',
+    'Operating System :: OS Independent',
+    'Topic :: Scientific/Engineering :: Astronomy',
+    'Programming Language :: Python :: 3.7',
+    'Programming Language :: Python :: 3.8',
+]
+include = [
+    "LICENSE.txt",
+]
+
+[tool.poetry.dependencies]
+python = "^3.7.7"
+numpy = "^1.20.2"
+matplotlib = "^3.4.2"
+pandas = "^1.2.4"
+rasterio = "^1.2.3"
+
+[tool.poetry.dev-dependencies]
+pytest = "^6.2.4"
+jupyter = "^1.0.0"
+pylint = "^2.8.2"
+black = "^21.5b1"
+pytest-cov = "^2.11.1"
+
+[tool.black]
+line-length=79
+
+[tool.pylint.reports]
+output-format="colorized"
+reports="y"
+include-ids="yes"
+disable=["R0913","C0103","W0212","R0914","E1121","W0511", "R0201"]
+msg-template="{msg_id}:{line:3d},{column}: {obj}: {msg}"
+
+[tool.pytest.ini_options]
+addopts = "--cov=craterpy --cov-branch --cov-report term-missing  -vv --color=yes"
+python_files = "tests.py test_*.py *_tests.py"
+
+
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

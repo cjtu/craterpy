@@ -1,5 +1,6 @@
-from __future__ import division, print_function, absolute_import
+"""Mask CraterRoi objects."""
 import numpy as np
+from matplotlib.path import Path
 import craterpy.helper as ch
 
 
@@ -31,11 +32,11 @@ def circle_mask(shape, radius, center=None):
            [False,  True,  True],
            [False, False,  True]], dtype=bool)
     """
-    cy, cx = center if center else np.array(shape)/2 - 0.5
+    cy, cx = center if center else np.array(shape) / 2 - 0.5
     height, width = shape
     x = np.arange(width) - cx
     y = np.arange(height).reshape(-1, 1) - cy
-    return x*x + y*y <= radius*radius
+    return x * x + y * y <= radius * radius
 
 
 def ellipse_mask(shape, ysize, xsize, center=None):
@@ -70,14 +71,15 @@ def ellipse_mask(shape, ysize, xsize, center=None):
            [False,  True,  True,  True,  True],
            [False, False, False,  True, False]], dtype=bool)
     """
-    cy, cx = center if center else np.array(shape)/2 - 0.5
+    cy, cx = center if center else np.array(shape) / 2 - 0.5
     height, width = shape
-    y, x = np.ogrid[-cy:height-cy, -cx:width-cx]
+    y, x = np.ogrid[-cy : height - cy, -cx : width - cx]
     if (xsize != 0) and (ysize != 0):
-        mask = (x*x)/(xsize*xsize) + (y*y)/(ysize*ysize) <= 1
+        mask = (x * x) / (xsize * xsize) + (y * y) / (ysize * ysize) <= 1
     else:
-        mask = np.array((x+y)*0, dtype=bool)
+        mask = np.array((x + y) * 0, dtype=bool)
     return mask
+
 
 def ring_mask(shape, rmin, rmax, center=None):
     """Return bool array of True in a circular ring from rmin to rmax.
@@ -115,7 +117,7 @@ def ring_mask(shape, rmin, rmax, center=None):
     """
     inner = circle_mask(shape, rmin, center)
     outer = circle_mask(shape, rmax, center)
-    return outer*~inner
+    return outer * ~inner
 
 
 def crater_floor_mask(croi, buffer=1):
@@ -135,8 +137,8 @@ def crater_floor_mask(croi, buffer=1):
     Examples
     --------
     """
-    pixwidth = ch.km2pix(croi.rad*buffer, croi.cds.calc_mpp(croi.lat))
-    pixheight = ch.km2pix(croi.rad*buffer, croi.cds.calc_mpp())
+    pixwidth = ch.km2pix(croi.rad * buffer, croi.cds.calc_mpp(croi.lat))
+    pixheight = ch.km2pix(croi.rad * buffer, croi.cds.calc_mpp())
     return ellipse_mask(croi.roi.shape, pixheight, pixwidth)
 
 
@@ -200,16 +202,19 @@ def polygon_mask(croi, poly_verts):
     >>> croi.mask(mask)
     >>> croi.plot()
     """
-    from matplotlib.path import Path
-    minlon, maxlon, minlat, maxlat = croi.extent
+    minlon, _, minlat, _ = croi.extent
     # Create grid
     nlat, nlon = croi.roi.shape
     x, y = np.meshgrid(np.arange(nlon), np.arange(nlat))
     x, y = x.flatten(), y.flatten()
     gridpoints = np.vstack((x, y)).T
-    poly_pix = [(ch.deg2pix(lon-minlon, croi.cds.ppd),
-                ch.deg2pix(lat-minlat, croi.cds.ppd))
-                for lon, lat in poly_verts]
+    poly_pix = [
+        (
+            ch.deg2pix(lon - minlon, croi.cds.xres),
+            ch.deg2pix(lat - minlat, croi.cds.yres),
+        )
+        for lon, lat in poly_verts
+    ]
     path = Path(poly_pix)
     mask = path.contains_points(gridpoints).reshape((nlat, nlon))
     return mask

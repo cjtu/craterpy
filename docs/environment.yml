@@ -1,6 +1,5 @@
 dependencies:
 - numpy
-- scipy
 - pandas
 - matplotlib
 - libgdal

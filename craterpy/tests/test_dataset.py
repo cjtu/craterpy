@@ -1,71 +1,120 @@
-from __future__ import division, print_function, absolute_import
+"""Unittest dataset.py."""
 import os.path as p
 import unittest
 import numpy as np
-import gdal
+import rasterio as rio
+import craterpy
 from craterpy.dataset import CraterpyDataset
-from craterpy.exceptions import DataImportError
 
 
 class TestCraterpyDataset(unittest.TestCase):
     """Test CraterpyDataset object"""
+
     def setUp(self):
-        import craterpy
-        self.data_path = p.join(craterpy.__path__[0], 'data')
-        self.moon_tif = p.join(self.data_path, 'moon.tif')
+        self.data_path = p.join(craterpy.__path__[0], "data")
+        self.moon_tif = p.join(self.data_path, "moon.tif")
+        self.moon_tif_nogeoref = p.join(self.data_path, "moon_nogeoref.tif")
         self.cds = CraterpyDataset(self.moon_tif, radius=1737)
 
     def test_file_import(self):
         """Test import"""
         self.assertIsNotNone(CraterpyDataset(self.moon_tif))
 
-    def test_import_gdal_Dataset(self):
-        """Test importing from gdal.Dataset object"""
-        ds = gdal.Open(self.moon_tif)
-        self.assertIsNotNone(CraterpyDataset(ds))
-
     def test_import_error(self):
         """Test that importing invalid dataset fails"""
-        self.assertRaises(RuntimeError, CraterpyDataset, "Invalid_DS")
-        self.assertRaises(RuntimeError, CraterpyDataset, [1, 2])
+        self.assertRaises(rio.errors.RasterioIOError, CraterpyDataset, "?")
 
-    def test_set_attrs(self):
-        """Test supplying optional attributes to Craterpydataset"""
-        pass  # TODO: implement
+    def test_geotiff(self):
+        """Test import geotiff with geotransform."""
+        ds = CraterpyDataset(self.moon_tif)
+        # Get geo transform
+        actual = list(ds.transform)
+        expected = [0.25, 0.0, -180.0, 0.0, -0.25, 90.0, 0.0, 0.0, 1.0]
+        self.assertListEqual(actual, expected)
 
-    def test_get_gdalDataset_attrs(self):
-        """Test that wrapped gdal Dataset attrs are accessible"""
-        self.assertIsNotNone(self.cds.GetRasterBand(1))
+        # Get body radius
+        actual = ds.radius
+        expected = 1737.4
+        self.assertEqual(actual, expected)
+
+    def test_not_georeferenced_error(self):
+        """Test importing dataset with no georef info and none supplied"""
+        with self.assertRaises(ImportError):
+            _ = CraterpyDataset(self.moon_tif_nogeoref)
+
+    def test_not_georeferenced_supplied_args(self):
+        """Test importing dataset with no georef info and none supplied"""
+        args = [90, -90, 0, 360, 1737, 4, 4]
+        ds = CraterpyDataset(self.moon_tif_nogeoref, *args)
+        actual = [
+            ds.nlat,
+            ds.slat,
+            ds.wlon,
+            ds.elon,
+            ds.radius,
+            ds.xres,
+            ds.yres,
+        ]
+        self.assertListEqual(actual, args)
+
+    def test_not_georeferenced_infer_resolution(self):
+        """Test importing dataset with no georef and inferred xres, yres"""
+        args = [90, -90, 0, 360, 1737]
+        ds = CraterpyDataset(self.moon_tif_nogeoref, *args)
+        expected = args + [4, 4]
+        actual = [
+            ds.nlat,
+            ds.slat,
+            ds.wlon,
+            ds.elon,
+            ds.radius,
+            ds.xres,
+            ds.yres,
+        ]
+        self.assertListEqual(actual, expected)
+
+    # def test_set_attrs(self):
+    #     """Test supplying optional attributes to Craterpydataset"""
+    #     pass  # TODO: implement
+
+    def test_get_rasterioDataset_attrs(self):
+        """Test that wrapped rasterio Dataset attrs are accessible"""
+        self.assertIsNotNone(self.cds.read(1))
         with self.assertRaises(AttributeError):
-            self.cds.lat
+            _ = self.cds.lat
 
     def test_repr(self):
-        expected = 'CraterpyDataset with extent (90.0N, -90.0N), '
-        expected += '(-180.0E, 180.0E), radius 1737 km, and '
-        expected += 'resolution 4.0 ppd'
+        """Test Craterpy string __repr__."""
+        expected = "CraterpyDataset with extent (90.0N, -90.0N), "
+        expected += "(-180.0E, 180.0E), radius 1737 km, "
+        expected += "xres 4.0 ppd, and yres 4.0 ppd"
         actual = self.cds.__repr__()
         self.assertEqual(actual, expected)
 
     def test_get_geotiff_info(self):
         """Test _get_info() method for reading geotiff info"""
         actual = self.cds._get_geotiff_info()
-        expected = (90.0, -90.0, -180.0, 180.0, 6378.137, 4.0)
+        expected = (90.0, -90.0, -180.0, 180.0, 1737.4, 4.0, 4.0)
         self.assertEqual(actual, expected)
 
     def test_calc_mpp(self):
         """Test .calc_mpp method"""
         cds = self.cds
-        xpix = cds.RasterXSize  # [pix]
+        xpix = cds.width  # [pix]
         # Test at equator
-        expected = 1000*2*np.pi*cds.radius/xpix  # [m/pix] at lat=0
+        expected = 1000 * 2 * np.pi * cds.radius / xpix  # [m/pix] at lat=0
         self.assertAlmostEqual(cds.calc_mpp(), expected, 5)
         # Test at 50 degrees lat
         lat = 50
-        expected = 1000*2*np.pi*cds.radius*np.cos(lat*np.pi/180)/xpix
+        expected = (
+            1000 * 2 * np.pi * cds.radius * np.cos(lat * np.pi / 180) / xpix
+        )
         self.assertAlmostEqual(cds.calc_mpp(lat), expected, 5)
         # Test at -40 degrees lat
         lat = -40
-        expected = 1000*2*np.pi*cds.radius*np.cos(lat*np.pi/180)/xpix
+        expected = (
+            1000 * 2 * np.pi * cds.radius * np.cos(lat * np.pi / 180) / xpix
+        )
         self.assertAlmostEqual(cds.calc_mpp(lat), expected, 5)
         # Test at 90
         self.assertAlmostEqual(cds.calc_mpp(90), 0)
@@ -90,24 +139,18 @@ class TestCraterpyDataset(unittest.TestCase):
 
     def test_is_global(self):
         """Test .is_global method"""
-        is_global = CraterpyDataset(self.moon_tif, wlon=0,
-                                    elon=360).is_global()
+        is_global = CraterpyDataset(
+            self.moon_tif, wlon=0, elon=360
+        ).is_global()
         self.assertTrue(is_global)
-        not_global = CraterpyDataset(self.moon_tif, wlon=0,
-                                     elon=180).is_global()
+        not_global = CraterpyDataset(
+            self.moon_tif, wlon=0, elon=180
+        ).is_global()
         self.assertFalse(not_global)
-
-    def test_wrap_roi_360(self):
-        """Test wrap_roi_360 method"""
-        pass  # TODO: implement
 
     def test_get_roi(self):
         """Test get_roi method"""
-        extent = (0, 10, 0, 91)
-        self.assertRaises(DataImportError, self.cds.get_roi, *extent)
-        extent = (170, 190, -10, 10)
+        extent = (0, 0.5, 0, 0.5)
         actual = self.cds.get_roi(*extent)
-        # TODO: Finish this
-        extent = (-190, 170, -10, 10)
-        actual = self.cds.get_roi(*extent)
-        # TODO: Finish this
+        expected = np.array([[41, 43], [41, 41]])
+        np.testing.assert_array_equal(actual, expected)

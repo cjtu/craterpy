@@ -1,37 +1,37 @@
 """This file contains various helper functions for craterpy"""
-from __future__ import division, print_function, absolute_import
 import numpy as np
 
 
 # Geospatial helpers
 def lon360(lon):
     """Return longitude in range [0, 360)."""
-    return ((lon + 180) % 360) + 180
+    return (lon + 360) % 360
 
 
 def lon180(lon):
     """Return longitude in range (-180, 180]."""
     return ((lon + 180) % 360) - 180
-    
+
+
 def deg2pix(degrees, ppd):
     """Return degrees converted to pixels at ppd pixels/degree."""
-    return int(degrees*ppd)
+    return int(degrees * ppd)
 
 
 def get_ind(value, array):
     """Return closest index of a value from array."""
-    ind = np.abs(array-value).argmin()
+    ind = np.abs(array - value).argmin()
     return int(ind)
 
 
 def km2deg(dist, mpp, ppd):
     """Return dist converted from kilometers to degrees."""
-    return 1000*dist/(mpp*ppd)
+    return 1000 * dist / (mpp * ppd)
 
 
 def km2pix(dist, mpp):
     """Return dist converted from kilometers to pixels"""
-    return int(1000*dist/mpp)
+    return int(1000 * dist / mpp)
 
 
 def greatcircdist(lat1, lon1, lat2, lon2, radius):
@@ -48,12 +48,15 @@ def greatcircdist(lat1, lon1, lat2, lon2, radius):
     lat1, lon1, lat2, lon2 = np.radians([lat1, lon1, lat2, lon2])
     # Haversine
     dlat, dlon = abs(lat2 - lat1), abs(lon2 - lon1)
-    a = np.sin(dlat/2)**2 + np.cos(lat1)*np.cos(lat2)*np.sin(dlon/2)**2
+    a = (
+        np.sin(dlat / 2) ** 2
+        + np.cos(lat1) * np.cos(lat2) * np.sin(dlon / 2) ** 2
+    )
     theta = 2 * np.arcsin(np.sqrt(a))
-    return radius*theta
+    return radius * theta
 
 
-def inglobal(lat, lon, mode=None):
+def inglobal(lat, lon):
     """True if lat and lon within global coordinates.
 
     Default coords: lat in (-90, 90) and lon in (-180, 180).
@@ -61,17 +64,19 @@ def inglobal(lat, lon, mode=None):
 
     Examples
     --------
-    >>> lat = -10
-    >>> lon = -10
-    >>> inbounds(lat, lon)
+    >>> inglobal(0, 0)
     True
-    >>> inbounds(lat, lon, 'pos')
+    >>> inglobal(91, 0)
     False
+    >>> inglobal(0, -50)
+    True
     """
-    if mode == 'pos':
-        return (-90 <= lat <= 90) and (0 <= lon <= 360)
-    else:
-        return (-90 <= lat <= 90) and (-180 <= lon <= 180)
+    return (-90 <= lat <= 90) and (0 <= lon360(lon) <= 360)
+
+
+def get_spheroid_rad_from_wkt(wkt):
+    """Return body radius from Well-Known Text coordinate reference system."""
+    return float(wkt.lower().split("spheroid")[1].split(",")[1])
 
 
 # DataFrame helpers
@@ -109,9 +114,9 @@ def findcol(df, names):
 
 def get_crater_cols(df):
     """Return name of latitude, longitude, and radius columns from df"""
-    latcol = findcol(df, ['Latitude', 'Lat'])
-    loncol = findcol(df, ['Longitude', 'Lon'])
-    radcol = findcol(df, ['Radius', 'Rad'])
+    latcol = findcol(df, ["Latitude", "Lat"])
+    loncol = findcol(df, ["Longitude", "Lon"])
+    radcol = findcol(df, ["Radius", "Rad"])
     if not all((latcol, loncol, radcol)):
         e = "Unable to read latitude, longitude and/or radius from DataFrame"
         raise RuntimeError(e)
@@ -121,8 +126,8 @@ def get_crater_cols(df):
 def diam2radius(df, diamcol=None):
     """Return dataframe with diameter column converted to radius."""
     if not diamcol:
-        diamcol = findcol(df, ['diam', 'diameter'])
-    df.update(df[diamcol]/2)
+        diamcol = findcol(df, ["diam", "diameter"])
+    df.update(df[diamcol] / 2)
     df.rename(columns={diamcol: "Radius"}, inplace=True)
     return df
 

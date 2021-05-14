@@ -5,9 +5,7 @@ functions in stats.py).
 All functions must take a numpy 2D array and return a numerical value that can
 be input into a table, DataFrame, or written to a csv.
 """
-from __future__ import division, print_function, absolute_import
 import numpy as np
-import scipy.stats
 
 
 def size(roi):
@@ -27,7 +25,9 @@ def median(roi):
 
 def mode(roi):
     """Return the mode of roi"""
-    return scipy.stats.mode(roi, None)[0][0]
+    values, counts = np.unique(roi, return_counts=True)
+    m = counts.argmax()
+    return values[m]
 
 
 def std(roi):
@@ -44,9 +44,11 @@ def minimum(roi):
     """Return minimum pixel value in roi"""
     return np.min(roi)
 
+
 def pct5(roi):
     """Return the 5th percentile (5/95) value of roi"""
     return np.percentile(roi, 5)
+
 
 def q1(roi):
     """Return the first quartile value (25/75) of roi"""
@@ -61,5 +63,3 @@ def q3(roi):
 def pct95(roi):
     """Return the 95th percentile (95/5) value of roi"""
     return np.percentile(roi, 95)
-
-# TODO: area

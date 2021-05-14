@@ -1,7 +1,4 @@
-"""
-Suite of unittests for classes found in /acerim/acestats.py.
-"""
-from __future__ import division, print_function, absolute_import
+"""Unittest quickstats.py"""
 import unittest
 import numpy as np
 from craterpy import quickstats as qs
@@ -9,6 +6,7 @@ from craterpy import quickstats as qs
 
 class Test_quickstats(unittest.TestCase):
     """Test the basic stats found in quickstats.py"""
+
     def setUp(self):
         self.data_arr = np.array([4, 4, 8, 3, 4, -1, 0, -5, 1, -10, 3])
 
