@@ -25,11 +25,14 @@ jobs:
         run: python -c "import sys; print(sys.version)"
       - name: Install Poetry
         uses: Gr1N/setup-poetry@v4
+      - name: Get poetry cache directory
+        run: |
+          echo "POETRY-CACHE=$(poetry config cache-dir)" >> $GITHUB_ENV
       - name: Load cached venv
         id: cached-poetry-dependencies
         uses: actions/cache@v2
         with:
-          path: ~/.cache/pypoetry/virtualenvs
+          path: ${{ env.POETRY-CACHE }}
           key: venv-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('**/poetry.lock') }}
       - name: Install dependencies
         run: poetry install
@@ -42,4 +45,4 @@ jobs:
         run: poetry run pytest --cov-report=xml
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v1
-      
+        
