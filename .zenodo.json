@@ -1,0 +1,57 @@
+{
+  "contributors": [
+    {
+        "name": "Gallinger, Cailin",
+        "orcid": "0000-0002-1465-7447",
+        "type": "ProjectMember"
+    },
+    {
+        "name": "Boivin, Alex L.",
+        "orcid": "0000-0001-9095-5123",
+        "type": "ProjectMember"
+    },
+    {
+        "name": "Hickson, Dylan",
+        "orcid": "0000-0002-0158-9537",
+        "type": "ProjectMember"
+    },
+    {
+        "name": "Costello, Emily S.",
+        "orcid": "0000-0001-7939-9867",
+        "type": "ProjectMember"
+    },
+    {
+        "name": "Mazrouei, Sara",
+        "orcid": "0000-0001-7220-6022",
+        "type": "ProjectMember"
+    },
+    {
+        "name": "Ghent, Rebecca R.",
+        "orcid": "0000-0002-3173-6630",
+        "type": "ProjectMember"
+    },
+    {
+        "name": "Tsai, Chun-An",
+        "orcid": "0000-0002-9933-6860",
+        "type": "ProjectMember"
+    }
+  ],
+  "creators": [
+    {
+        "affiliation": "Department of Astronomy and Planetary Science, Northern Arizona University, Flagstaff, AZ, US.",
+        "name": "Tai Udovicic, Christian J.",
+        "orcid": "0000-0001-9972-1534"
+    } 
+  ],
+  "description":"Impact crater data science in Python.",
+  "keywords": [
+    "python",
+    "crater",
+    "data analysis",
+    "planetary",
+    "moon"
+  ],
+  "license": "MIT",
+  "title": "Craterpy",
+  "upload_type": "software"
+}

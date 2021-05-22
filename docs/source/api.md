@@ -30,4 +30,18 @@
     :undoc-members:
 ```
 
+## Craterpy plotting module
+
+```{eval-rst}
+.. automodule:: craterpy.plotting
+    :members:
+    :undoc-members:
+```
+
 ## Craterpy helper functions
+
+```{eval-rst}
+.. automodule:: craterpy.helpers
+    :members:
+    :undoc-members:
+```
