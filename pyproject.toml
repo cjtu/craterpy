@@ -2,10 +2,10 @@
 name = "craterpy"
 version = "0.4.1"
 homepage = "https://github.com/cjtu/craterpy"
-description = "A package for impact crater data science."
+description = "Impact crater data science in Python."
 authors = ["Christian J. Tai Udovicic <cj.taiudovicic@gmail.com>"]
 license = "MIT"
-readme = "README.rst"
+readme = "README.md"
 repository = "https://github.com/cjtu/craterpy"
 documentation = "https://readthedocs.org/projects/craterpy/"
 classifiers=[
@@ -18,9 +18,19 @@ classifiers=[
     'Programming Language :: Python :: 3.7',
     'Programming Language :: Python :: 3.8',
 ]
+keywords = [
+    'python', 
+    'crater',
+    'data analysis',
+    'planetary',
+    'moon',
+]
 include = [
     "LICENSE.txt",
 ]
+
+[tool.poetry.urls]
+"Bug Tracker" = "https://github.com/cjtu/craterpy/issues"
 
 [tool.poetry.dependencies]
 python = "^3.7.7"
@@ -28,6 +38,7 @@ numpy = "^1.20.2"
 matplotlib = "^3.4.2"
 pandas = "^1.2.4"
 rasterio = "^1.2.3"
+importlib-metadata = {version = "^1.0", python = "<3.8"}
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.4"
@@ -35,6 +46,7 @@ jupyter = "^1.0.0"
 pylint = "^2.8.2"
 black = "^21.5b1"
 pytest-cov = "^2.11.1"
+myst-parser = "^0.14.0"
 
 [tool.black]
 line-length=79

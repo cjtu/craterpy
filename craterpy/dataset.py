@@ -13,7 +13,8 @@ class CraterpyDataset:
     will be read automatically. Otherwise, all attributes must be passed in the
     constructor.
 
-    Inherits all attributes and methods of rasterio.DatasetReader.
+    Inherits all attributes and methods of an open rasterio.DatasetReader (see
+    https://rasterio.readthedocs.io/en/latest/quickstart.html).
 
 
     Attributes
@@ -24,17 +25,6 @@ class CraterpyDataset:
         Radius of the planetary body [km].
     ppd : int or float
         Resolution of dataset in [pixels per degree].
-    nodata : int or float
-        Numerical value of invalid (no data) pixels.
-
-    Methods
-    -------
-    get_roi(lat, lon, radius, wsize=1)
-        Return 2D region of interest array around a crater.
-
-    See Also
-    --------
-    https://rasterio.readthedocs.io/en/latest/topics/reading.html
 
     Examples
     --------

@@ -146,19 +146,6 @@ class CraterRoi:
     extent : list of float
         North lat, south lat, west lon, and east lon bounds of roi [degrees].
 
-    Methods
-    -------
-    filter(vmin, vmax, strict=False, fillvalue=np.nan)
-        Replaces values outside the range (vmin, vmax) with fillvalue.
-    mask(type, outside=False, fillvalue=np.nan)
-        Applies craterpy.masking mask of fillvalue.
-    plot(*args, **kwargs)
-        Plot this CraterRoi. See plotting.plot_CraterRoi()
-
-    See Also
-    --------
-    numpy.ndarray
-
     Examples
     --------
     >>> import os.path as p
@@ -240,10 +227,6 @@ class CraterRoi:
             Mask outside the area in mask (default False).
         fillvalue : int or float
             Number to fill in masked values (default np.nan).
-
-        Examples
-        --------
-
         """
         if outside:
             mask = ~mask

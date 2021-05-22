@@ -1,17 +1,10 @@
 """craterpy module"""
-from pathlib import Path
+from craterpy.dataset import CraterpyDataset
+from craterpy.roi import CraterRoi
 
+try:
+    import importlib.metadata as importlib_metadata
+except ModuleNotFoundError:
+    import importlib_metadata
 
-def get_version():
-    """Return version from pyproject.toml"""
-    pyproj_path = Path(__file__).parent.parent.joinpath("pyproject.toml")
-    with Path(pyproj_path).open("r") as f:
-        line = f.readline()
-        while "version" not in line.lower():
-            line = f.readline()
-        if line:
-            return line.split("=")[1].strip()
-        return "?.?.?"
-
-
-__version__ = get_version()
+__version__ = importlib_metadata.version(__package__)

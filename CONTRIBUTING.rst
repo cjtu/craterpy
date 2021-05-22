@@ -35,58 +35,63 @@ If you made it this far and you're still interested, that's great! Here are four
     git clone https://github.com/your_username/craterpy.git
     cd craterpy
 
-3. Make the conda-forge channels available ::
+3. Install the dependencies using poetry::
 
-   conda config --add channels conda-forge
+    poetry install
 
-4. Set up a conda virtual environment from the ``.environment.yml`` (requires `Anaconda`_). ::
+4. Make sure the package installed correctly::
 
-    conda env create -f .environment.yml
+    poetry run pytest craterpy
 
-   on Windows::
-
-    activate craterpy-dev
-    python setup.py -q install
-
-   on UNIX/Mac users::
-
-    source activate craterpy-dev
-    python setup.py -q install
-
-5. Make a feature branch to be your working branch. Choose any name you like. ::
+5. Make a new git branch::
 
     git checkout -b feature-xyz
 
-Now that your dev environment is set up, you can start making contributions! If you haven't already, check out the `issue tracker`_ for suggestions on where to get started.
+6. Hack away!
+
+Preparing and a commit
+----------------------
+
+When you are ready to contribute your changes, make sure to:
+
+1. Add unittests to the tests folder.
+
+2. Test your changes::
+
+    poetry run pytest craterpy
+
+3. Apply automatic code formatting with black::
+
+    poetry run black craterpy
+
+4. Run pylint to check your code style and fix any errors::
+
+    poetry run pylint craterpy
+
+8. If linting and tests look good locally, add and commit your changes::
+    
+    git add . 
+    git commit -m "Descriptive commit message here" 
+
+Now you're ready to push your changes and open a Pull Request on GitHub!
 
 .. _`main repository`: https://github.com/cjtu/craterpy
 .. _`forking`: https://guides.github.com/activities/forking/
 .. _`installed`: https://git-scm.com/downloads
 .. _`Anaconda`: https://www.anaconda.com/download/
 
-When and how to submit contributions?
--------------------------------------
-Contributions are merged into the master branch via the dreaded **pull request**. These aren't actually that scary, and will go smoothest if you can answer yes to all of the following questions:
-
-- Is my contribution small and self-contained?
-
-- Does my contribution pass all unittests when I run ``py.test`` from the root directory?
-
-- Does my contribution pass all style tests when I run ``flake8``?
-
-- If my contribution adds new class(es), function(s) and/or method(s), do they all have descriptive docstrings?
-
-- If my contribution adds new functionality, did I add good test cases to the ``tests/`` folder? Do these pass ``py.test --cov`` with close to 100% coverage?
-
-If you answered yes to all of the above, you're probably good to go! Read the next section and open a Pull Request!
 
 Submitting a Pull Request
 -------------------------
 Three simple steps:
 
-1. When you are happy with your contributions, commit them to your feature branch and then push them to your forked repository (if you run into trouble, check out this great guide to `git commands`_).
+1. When you are happy with your local commit, push them to your forked repository (if you run into trouble, check out this great guide to `git commands`_)::
 
-2. Go to `pulls <https://github.com/cjtu/craterpy/pulls>`_ and click the "New pull request" button.
+    git push
+    # Or if this is your first time pushing a branch:
+    git push --set-upstream origin <branch-name>
+
+2. Go to the `Pull requests <https://github.com/cjtu/craterpy/pulls>`_ tab on GitHub and click the "New pull request" button.
 
 3. Click "compare across forks", then use the drop-downs to choose:
 
@@ -101,11 +106,11 @@ Three simple steps:
 
 You did it!
 -----------
-At this point, you've sucessfully submitted a pull request to craterpy! Sit tight while a collaborator reviews your contribution. We might ask you to clarify or update something, but if you followed this guide then we should be able to merge your contribution in no time!
+At this point, you've successfully submitted a pull request to craterpy! Sit tight while a collaborator reviews your contribution. We might ask you to clarify or update something, but if you followed this guide then we should be able to merge your contribution in no time!
 
 What if I'm stuck on something or having doubts about getting started?
 ----------------------------------------------------------------------
-Email Christian at cj.taiudovicic@gmail.com. Seriously. If you made it this far, we want to hear from you!
+Get in touch on the Issue board or by emailing Christian at cj.taiudovicic@gmail.com. We'd be happy to help you get started!
 
 Code of Conduct
 ---------------

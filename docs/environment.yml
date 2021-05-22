@@ -1,6 +1,0 @@
-dependencies:
-- numpy
-- pandas
-- matplotlib
-- libgdal
-- gdal
