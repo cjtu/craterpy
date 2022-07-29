@@ -41,7 +41,7 @@
 ## Craterpy helper functions
 
 ```{eval-rst}
-.. automodule:: craterpy.helpers
+.. automodule:: craterpy.helper
     :members:
     :undoc-members:
 ```

@@ -15,7 +15,6 @@ classifiers=[
     'Natural Language :: English',
     'Operating System :: OS Independent',
     'Topic :: Scientific/Engineering :: Astronomy',
-    'Programming Language :: Python :: 3.7',
     'Programming Language :: Python :: 3.8',
 ]
 keywords = [
@@ -33,20 +32,21 @@ include = [
 "Bug Tracker" = "https://github.com/cjtu/craterpy/issues"
 
 [tool.poetry.dependencies]
-python = "^3.7.7,<3.10"
+python = "^3.8,<3.10"
 numpy = "^1.20.2"
 matplotlib = "^3.4.2"
 pandas = "^1.2.4"
 rasterio = "^1.2.8"
-importlib-metadata = {version = "^1.0", python = "<3.8"}
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.4"
 jupyter = "^1.0.0"
 pylint = "^2.8.2"
-black = "^21.5b1"
+black = "^22.6"
 pytest-cov = "^2.11.1"
-myst-parser = "^0.14.0"
+myst-parser = "^0.18.0"
+sphinx = "^5.1.1"
+sphinx-rtd-theme = "^1.0.0"
 
 [tool.black]
 line-length=79
@@ -54,8 +54,7 @@ line-length=79
 [tool.pylint.reports]
 output-format="colorized"
 reports="y"
-include-ids="yes"
-disable=["R0913","C0103","W0212","R0914","E1121","W0511"]
+disable=["R0913","C0103","W0212","R0914","E1121","W0511","C0209"]
 msg-template="{msg_id}:{line:3d},{column}: {obj}: {msg}"
 
 [tool.pytest.ini_options]

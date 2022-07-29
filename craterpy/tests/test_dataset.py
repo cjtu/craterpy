@@ -88,7 +88,7 @@ class TestCraterpyDataset(unittest.TestCase):
         expected = "CraterpyDataset with extent (90.0N, -90.0N), "
         expected += "(-180.0E, 180.0E), radius 1737 km, "
         expected += "xres 4.0 ppd, and yres 4.0 ppd"
-        actual = self.cds.__repr__()
+        actual = repr(self.cds)
         self.assertEqual(actual, expected)
 
     def test_get_geotiff_info(self):
