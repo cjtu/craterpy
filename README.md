@@ -125,13 +125,26 @@ $ poetry run jupyter notebook
 # The venv is path is ~/craterpy/.venv/bin/python
 ```
 
+On Windows (see [rasterio installation for Windows](https://rasterio.readthedocs.io/en/latest/installation.html#windows)):
+
+- **Note**: Craterpy is tested on Ubuntu and OS X. If you would like to use craterpy on Windows, we recommend getting the Windows Subsystem for Linux ([WSL](https://docs.microsoft.com/en-us/windows/wsl/install)) and installing into a Linux distribution. However, the following may also work for a native Windows installation and depends on a working installation of rasterio from pre-compiled binaries (see link above).
+
+```bash
+# Windows requires gdal binaries specific to the OS (32/64-bit) and python version
+# First download the rasterio and GDAL binaries for your system (link above)
+# If rasterio imports with no error then craterpy should be pip installable
+pip install GDAL-X.Y.Z-...-win.whl
+pip install rasterio-X.Y.Z-...-win.whl
+python -c "import rasterio"
+pip install craterpy
+python -c "import craterpy; print(craterpy.__version__)"
+```
+
 Trouble installing craterpy? Let us know on the [issues](https://github.com/cjtu/craterpy/issues) board.
 
 ## Dependencies
 
-Craterpy requires python >3.7 and is tested on Ubuntu and OS X. If you would like to use craterpy on Windows, we recommend getting the Windows Subsystem for Linux ([WSL](https://docs.microsoft.com/en-us/windows/wsl/install-win10)) and installing it from the bash shell.
-
-It's core dependencies are:
+Craterpy requires python >3.7.7 and is tested on Ubuntu and OS X. It's core dependencies are:
 
 - rasterio
 - pandas

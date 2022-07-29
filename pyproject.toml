@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "craterpy"
-version = "0.5.0"
+version = "0.5.2"
 homepage = "https://github.com/cjtu/craterpy"
 description = "Impact crater data science in Python."
 authors = ["Christian J. Tai Udovicic <cj.taiudovicic@gmail.com>"]
@@ -33,11 +33,11 @@ include = [
 "Bug Tracker" = "https://github.com/cjtu/craterpy/issues"
 
 [tool.poetry.dependencies]
-python = "^3.7.7"
+python = "^3.7.7,<3.10"
 numpy = "^1.20.2"
 matplotlib = "^3.4.2"
 pandas = "^1.2.4"
-rasterio = "^1.2.3"
+rasterio = "^1.2.8"
 importlib-metadata = {version = "^1.0", python = "<3.8"}
 
 [tool.poetry.dev-dependencies]
@@ -55,7 +55,7 @@ line-length=79
 output-format="colorized"
 reports="y"
 include-ids="yes"
-disable=["R0913","C0103","W0212","R0914","E1121","W0511", "R0201"]
+disable=["R0913","C0103","W0212","R0914","E1121","W0511"]
 msg-template="{msg_id}:{line:3d},{column}: {obj}: {msg}"
 
 [tool.pytest.ini_options]
