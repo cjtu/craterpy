@@ -32,11 +32,13 @@ include = [
 "Bug Tracker" = "https://github.com/cjtu/craterpy/issues"
 
 [tool.poetry.dependencies]
-python = "^3.8,<3.10"
+python = "^3.8,<3.12"
 numpy = "^1.20.2"
+pandas = "^2.0.1"
 matplotlib = "^3.4.2"
-pandas = "^1.2.4"
 rasterio = "^1.2.8"
+geopandas = "^0.13.0"
+rasterstats = "^0.18.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.4"
