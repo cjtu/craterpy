@@ -105,11 +105,9 @@ def findcol(df, names):
     """
     if isinstance(names, str):
         names = [names]
-    cols = df.columns.values
-    for name in names:
-        for col in cols:
-            if name.strip().lower() == col.strip().lower():
-                return col
+    for column in df.columns:
+        if any(name.lower() in column.lower() for name in names):
+            return column
     return None
 
 
@@ -127,7 +125,7 @@ def get_crater_cols(df):
 def diam2radius(df, diamcol=None):
     """Return dataframe with diameter column converted to radius."""
     if not diamcol:
-        diamcol = findcol(df, ["diam", "diameter"])
+        diamcol = findcol(df, ["Diameter", "Diam"])
     df.update(df[diamcol] / 2)
     df.rename(columns={diamcol: "Radius"}, inplace=True)
     return df
