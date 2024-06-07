@@ -1,4 +1,5 @@
 """Mask CraterRoi objects."""
+
 import numpy as np
 from matplotlib.path import Path
 import craterpy.helper as ch

@@ -1,4 +1,5 @@
 """Contains the CraterRoi object"""
+
 import numpy as np
 import rasterio as rio
 import craterpy.helper as ch

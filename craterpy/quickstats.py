@@ -5,6 +5,7 @@ functions in stats.py).
 All functions must take a numpy 2D array and return a numerical value that can
 be input into a table, DataFrame, or written to a csv.
 """
+
 import numpy as np
 
 

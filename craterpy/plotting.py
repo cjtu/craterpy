@@ -1,4 +1,5 @@
 """This file contains helper functions for plotting."""
+
 import matplotlib.pyplot as plt
 
 

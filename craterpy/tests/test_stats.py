@@ -1,4 +1,5 @@
 """Unittest stats.py"""
+
 import unittest
 import numpy as np
 from craterpy import stats as cs

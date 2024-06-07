@@ -1,4 +1,5 @@
 """craterpy module"""
+
 from importlib import metadata
 from craterpy.dataset import CraterpyDataset
 from craterpy.roi import CraterRoi

@@ -1,4 +1,5 @@
 """Unittest masking.py."""
+
 import os.path as p
 import unittest
 import numpy as np
@@ -6,6 +7,7 @@ import craterpy
 from craterpy import masking as cm
 from craterpy.roi import CraterRoi
 from craterpy.dataset import CraterpyDataset
+
 
 # Test ROI manipulation functions
 class Test_circle_mask(unittest.TestCase):

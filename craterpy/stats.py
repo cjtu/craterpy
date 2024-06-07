@@ -1,4 +1,5 @@
 """Compute stats on CraterRoi objects."""
+
 import inspect
 import os.path as p
 from timeit import default_timer
@@ -8,6 +9,7 @@ from craterpy import quickstats as qs
 from craterpy import helper as ch
 from craterpy import masking
 from craterpy.roi import CraterRoi
+
 
 # quickstats helpers
 def _list_quickstats():

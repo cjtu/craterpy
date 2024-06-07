@@ -1,4 +1,5 @@
 """Unittest quickstats.py"""
+
 import unittest
 import numpy as np
 from craterpy import quickstats as qs
