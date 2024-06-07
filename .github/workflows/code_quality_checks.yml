@@ -16,27 +16,33 @@ jobs:
         os: [ubuntu-latest, macos-latest]
         python-version: ['3.8', '3.9']
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
       - name: Display Python version
         run: python -c "import sys; print(sys.version)"
+
       - name: Install Poetry
-        uses: Gr1N/setup-poetry@v4
-      - name: Get poetry cache directory
-        run: |
-          echo "POETRY-CACHE=$(poetry config cache-dir)" >> $GITHUB_ENV
+        uses: snok/install-poetry@v1
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+          installer-parallel: true
+
+      # Do not let Poetry to install again if we do not detect a lock file change
       - name: Load cached venv
-        id: cached-poetry-dependencies
         uses: actions/cache@v2
         with:
-          path: ${{ env.POETRY-CACHE }}
+          path: .venv
           key: venv-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('**/poetry.lock') }}
+      
       - name: Install dependencies
-        run: poetry install
         if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+        run: |          
+          poetry install --no-interaction --all-extras
+
       - name: Check format with black
         run: poetry run black --check craterpy/
       - name: Check style with pylint
