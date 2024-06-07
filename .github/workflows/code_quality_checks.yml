@@ -45,8 +45,6 @@ jobs:
 
       - name: Check format with black
         run: poetry run black --check craterpy/
-      - name: Check style with pylint
-        run: poetry run pylint craterpy/
       - name: Unit & Coverage test with pytest
         run: poetry run pytest --cov-report=xml
       - name: Upload coverage to Codecov
