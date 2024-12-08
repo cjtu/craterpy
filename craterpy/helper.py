@@ -1,8 +1,11 @@
 """This file contains various helper functions for craterpy"""
 
+from functools import partial
 import numpy as np
 import pandas as pd
-
+import fiona
+from fiona.transform import transform_geom
+from shapely.geometry import mapping, shape
 
 # Geospatial helpers
 def lon360(lon):
@@ -107,7 +110,7 @@ def findcol(df, names):
     if isinstance(names, str):
         names = [names]
     for column in df.columns:
-        if any(name.lower() in column.lower() for name in names):
+        if any(name.lower() in column.lower().replace(" ", "").replace("_", "") for name in names):
             return column
     raise ValueError(f"No column containing {names} found.")
 
@@ -117,10 +120,10 @@ def get_crater_cols(df):
     latcol = findcol(df, ["Latitude", "Lat"])
     loncol = findcol(df, ["Longitude", "Lon"])
     try:
-        radcol = findcol(df, ["Radius", "Rad"])
+        radcol = findcol(df, ["Radius", "Rad", "R(km)", "R(m)"])
     except ValueError as e:
         try:
-            diamcol = findcol(df, ["Diameter", "Diam"])
+            diamcol = findcol(df, ["Diameter", "Diam", "D(km)", "D(m)"])
             df['Radius'] = pd.to_numeric(df[diamcol]) / 2
             radcol = 'Radius'
         except ValueError:
@@ -136,7 +139,43 @@ def diam2radius(df, diamcol=None):
     df.rename(columns={diamcol: "Radius"}, inplace=True)
     return df
 
+# def split_geom(geom, src_crs, dst_crs):
+#     """
+#     Fix geometries that cross the antimeridian. Slow, use only where needed.
+    
+#     See https://gist.github.com/snowman2/2142fc217c983c42a4ed440007438b13
+#     """
+    
+#     def base_transformer(geom, src_crs, dst_crs):
+#         return shape(
+#             transform_geom(
+#                 src_crs=src_crs,
+#                 dst_crs=dst_crs,
+#                 geom=mapping(geom),
+#                 antimeridian_cutting=True,
+#             )
+#         )
+#     forward_transformer = partial(base_transformer, src_crs=src_crs.to_wkt(), dst_crs=dst_crs.to_wkt())
+#     reverse_transformer = partial(base_transformer, src_crs=dst_crs.to_wkt(), dst_crs=src_crs.to_wkt())
+#     with fiona.Env(OGR_ENABLE_PARTIAL_REPROJECTION=True):
+#         geom2 = forward_transformer(geom)
+#     return reverse_transformer(geom2)
 
-# def downshift_lon(df):
-#    """Shift longitudes from (0, 360) -> (-180, 180) convention."""
-#    pass
+
+def unproject_split_meridian(gdf, src_crs, dst_crs):
+    """
+    Fix geometries that cross the antimeridian. Slow, use only where needed.
+    
+    See https://gist.github.com/snowman2/2142fc217c983c42a4ed440007438b13
+    """
+    def base_transformer(geom, src_crs, dst_crs):
+        return shape(
+            transform_geom(
+                src_crs=src_crs,
+                dst_crs=dst_crs,
+                geom=mapping(geom),
+                antimeridian_cutting=True,
+            )
+        )
+    reverse_transformer = partial(base_transformer, src_crs=dst_crs.to_wkt(), dst_crs=src_crs.to_wkt())
+    return gdf.geometry.apply(reverse_transformer)
