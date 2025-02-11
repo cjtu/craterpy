@@ -6,10 +6,6 @@ import craterpy.helper as ch
 from craterpy.plotting import plot_CraterRoi
 
 
-def generate_annulus(lat, lon, rad, inner, outer, crs_latlon, crs_rad):
-    """"""
-    
-
 def get_extent(cds, lat, lon, rad, wsize=1):
     """
     Return the extent of the CraterRoi in cds at lat, lon and size.
