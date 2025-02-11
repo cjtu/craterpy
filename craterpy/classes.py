@@ -9,11 +9,6 @@ from shapely.ops import transform
 import craterpy.helper as ch
 from rasterstats import gen_zonal_stats
 
-# TODO: decide how to handle geodataframe annuli
-# Geopandas only allow 1 geometry per row, so we can't have annuli and craters in the rows
-# Either we have to have 1 row per annulus and flatten df or 1 gdf per crater (seems excessive)
-# Can it be a multiindex somehow? or multipolygon - don't think that works with rasterstats?
-#  Thought: keep crater point geom and compute poly on the fly?
 
 # CRS for units / coord transformations (convention is only Ocentric )
 CRS_DICT = {
@@ -28,37 +23,69 @@ CRS_DICT = {
 }
 
 class CraterDatabase:
+    """Database of crater locations and shapefiles.
+
+    Attributes:
+        data (GeoDataFrame): GeoDataFrame containing the crater data.
+        lat (Series): Crater latitudes.
+        lon (Series): Crater longitudes.
+        rad (Series): Crater radii.
+        center (GeoSeries): Crater center (shapely.geometry Point).
+    """
+    # Philosophy for database: Geopandas only allows 1 shape geometry per row
+    # So, use the point geometry for each crater by default
+    # Then switch to _rim / _annulus geometry on the fly for computing stats
+
+    # Private Attrs: 
+    # _crs (str): Coordinate reference system for the body.
+    # _crs180 (str): CRS with longitude in -180 to 180 degrees.
+    # _crs360 (str): CRS with longitude in 0 to 360 degrees.
+    # _crsnorth (str): CRS for the northern hemisphere.
+    # _crssouth (str): CRS for the southern hemisphere.
+    # _latcol (str): Column name for latitude.
+    # _loncol (str): Column name for longitude.
+    # _radcol (str): Column name for radius.
+    # _vesta_coord (str, optional): Coordinate system for Vesta, if applicable.
     def __init__(self, filepath, body='Moon', units='m', simple=True):
+        """
+        Initialize a CraterDatabase.
+
+        Parameters:
+            filepath (str): Path to the file containing crater data.
+            body (str): Planetary body, e.g. Moon, Vesta (default: Moon)
+            units (str): Length units of radius/diameter, m or km (default: m)
+            simple (bool): Constructs shapefiles using simple annuli instead of precise projected annuli (default: True).
+        """
         lon_offset = 0
         if 'vesta' in body.lower():
             body, lon_offset = self._vesta_check(body)
-            self.vesta_coord = body
+            self._vesta_coord = body
             body = 'vesta'
-        self.filepath = filepath
-        self.crs, self.crs_180, self.crs_360, self.crs_north, self.crs_south = self._load_crs(body)
-        self.data = gpd.read_file(self.filepath)
+        self._filepath = filepath
+        self._crs, self._crs180, self._crs360, self._crsnorth, self._crssouth = self._load_crs(body)
+        self.data = gpd.read_file(self._filepath)
 
         # Store reference to lat, lon, rad columns
         cols = ch.get_crater_cols(self.data)
         for col in cols:
             # Fixes lat, lon, rad columns if loaded as a string or object
             self.data[col] = pd.to_numeric(self.data[col])
-        self.latcol, self.loncol, self.radcol = cols
+        self._latcol, self._loncol, self.radcol = cols
 
         # Ensure lon is in -180 to 180
-        self.data[self.loncol] = self.lon - lon_offset
-        self.data[self.loncol] = ch.lon180(self.lon)
+        self.data[self._loncol] = self.lon - lon_offset
+        self.data[self._loncol] = ch.lon180(self.lon)
 
         # Convert to meters
         if units == 'km':
-            self.data[self.radcol] *= 1000  
+            self.data[self.radcol] *= 1000
 
         # Generate point geometry for each row
         self.data['_point'] = self._generate_point()
 
         # Set geometry and covert to GeoDataFrame if not already
         if not isinstance(self.data, gpd.GeoDataFrame):
-            self.data = gpd.GeoDataFrame(self.data, geometry='_point', crs=self.crs)
+            self.data = gpd.GeoDataFrame(self.data, geometry='_point', crs=self._crs)
         elif 'geometry' not in self.data.columns:
             self.data.set_geometry('_point', inplace=True)
 
@@ -82,23 +109,24 @@ class CraterDatabase:
         # Assumes radius is in same units as projection base unit (e.g., meters)
         if simple:
             # Draws circles in simple cylindrical
-            out = self._generate_annulus_simple(self.center, self.rad, inner, outer, self.crs, self.crs_180)
+            out = self._generate_annulus_simple(self.center, self.rad, inner, outer, self._crs, self._crs180)
 
-            # To account for stretch near poles, correct annuli polewards of 45
-            is_n = self.lat > 45
-            is_s = self.lat < -45
-            out.loc[is_n] = self._generate_annulus_simple(self.center[is_n], self.rad[is_n], inner, outer, self.crs, self.crs_north)
-            out.loc[is_s] = self._generate_annulus_simple(self.center[is_s], self.rad[is_s], inner, outer, self.crs, self.crs_south)
+            # To account for stretch near poles, re-process annuli polewards of 50 degrees
+            is_n = self.lat > 50
+            is_s = self.lat < -50
+            out.loc[is_n] = self._generate_annulus_simple(self.center[is_n], self.rad[is_n], inner, outer, self._crs, self._crsnorth)
+            out.loc[is_s] = self._generate_annulus_simple(self.center[is_s], self.rad[is_s], inner, outer, self._crs, self._crssouth)
 
-            # Finally, correct large annuli that will be inconsistently streched
-            # TODO: pick a threshold and find craters with bounds > threshold to use precise method
+            # Finally, correct large annuli that get inconsistently streched
+            is_large = out.area > 25  # TODO: Is 25 degrees^2 a good threshold?
+            out.loc[is_large] =  self._generate_annulus_precise(self.center[is_large], self.rad[is_large], inner, outer)
         else:
-            out = self._generate_annulus_precise(0, 1)
+            out = self._generate_annulus_precise(self.center, self.rad, 0, 1)
         return out
  
     def _get_annular_buffer(self, pt, rad, inner, outer):
         """Generate annulus for each row in dataframe pt must be projected to crs in rad units."""
-        # TODO: make circle more precise with more vertices at cost of memory? e.g. pt.buffer(rad, 128)
+        # TODO: option to make circle more precise with more vertices at cost of memory? e.g. pt.buffer(rad, 128)
         if inner == 0:
             return pt.buffer(rad * outer)
         else:
@@ -114,7 +142,7 @@ class CraterDatabase:
         out.loc[oob] = ch.unproject_split_meridian(annuli.loc[oob], src_crs, dst_crs)
         return out
     
-    def _generate_annulus_precise(self, inner, outer):
+    def _generate_annulus_precise(self, centers, rads, inner, outer):
         """
         Generate annuli using a local azimuthal equidistant projection for each crater.
         
@@ -123,18 +151,18 @@ class CraterDatabase:
         span many degrees of latitude.
         """
         # Generate annulus centered on each crater in the dataframe
-        annuli = [] 
-        for center, rad, in zip(self.center, self.rad):
+        annuli = []
+        for center, rad, in zip(centers, rads):
             annulus = self._get_annular_buffer(Point(0, 0), rad, inner, outer)
 
             # Create a local azimuthal equidistant projection for the crater
             local_crs = ProjectedCRS(
                 name=f'AzimuthalEquidistant({center.y:.2f}N, {center.x:.2f}E)', 
                 conversion=AzimuthalEquidistantConversion(center.y, center.x), 
-                geodetic_crs=self.crs)
+                geodetic_crs=self._crs)
 
             # Project the annulus from local azeq centered to main CRS
-            transformer = Transformer.from_crs(local_crs, self.crs, always_xy=True)
+            transformer = Transformer.from_crs(local_crs, self._crs, always_xy=True)
             annuli.append(transform(transformer.transform, annulus))
         return annuli
     
@@ -172,30 +200,36 @@ class CraterDatabase:
 
     @property
     def lat(self):
-        return self.data[self.latcol]
+        """Crater latitudes."""
+        return self.data[self._latcol]
     
     @property
     def lon(self):
-        return self.data[self.loncol]
+        """Crater longitudes."""
+        return self.data[self._loncol]
 
     @property
     def rad(self):
+        """Crater radii."""
         return self.data[self.radcol]
     
     @property
     def center(self):
+        """Crater center point geometry."""
         return self.data['_point']
 
-    def zonal_stats(self, rasters, roi='ejecta', **kwargs):
-        # TODO: write and test this
-        if roi == 'ejecta':
-            tmpdf = self.data['annulus'].rename({'annulus': 'geometry'})
-            
-        # Yields generator - figure out where we want to store all the data
-        for raster in rasters:
-            out = gen_zonal_stats(tmpdf, raster, **kwargs)
-            break
+    # def zonal_stats(self, rasters, roi='ejecta', **kwargs):
+    #     """Compute zonal statistics on all craters."""
+    #     # TODO: finish writing this and test
+    #     tmpdf = self.data
+    #     if roi == 'ejecta':
+    #         tmpdf = tmpdf['annulus'].rename({'annulus': 'geometry'}).set_geometry('geometry')
+    #     elif roi == 'crater':
+    #         tmpdf = tmpdf['_rim'].rename({'_rim': 'geometry'}).set_geometry('geometry')
 
-        return list(out)
+    #     # Yields generator - figure out where we want to store all the data
+    #     for raster in rasters:
+    #         out = gen_zonal_stats(tmpdf, raster, **kwargs)
+    #         break
 
-
+    #     return list(out)

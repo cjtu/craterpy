@@ -139,28 +139,6 @@ def diam2radius(df, diamcol=None):
     df.rename(columns={diamcol: "Radius"}, inplace=True)
     return df
 
-# def split_geom(geom, src_crs, dst_crs):
-#     """
-#     Fix geometries that cross the antimeridian. Slow, use only where needed.
-    
-#     See https://gist.github.com/snowman2/2142fc217c983c42a4ed440007438b13
-#     """
-    
-#     def base_transformer(geom, src_crs, dst_crs):
-#         return shape(
-#             transform_geom(
-#                 src_crs=src_crs,
-#                 dst_crs=dst_crs,
-#                 geom=mapping(geom),
-#                 antimeridian_cutting=True,
-#             )
-#         )
-#     forward_transformer = partial(base_transformer, src_crs=src_crs.to_wkt(), dst_crs=dst_crs.to_wkt())
-#     reverse_transformer = partial(base_transformer, src_crs=dst_crs.to_wkt(), dst_crs=src_crs.to_wkt())
-#     with fiona.Env(OGR_ENABLE_PARTIAL_REPROJECTION=True):
-#         geom2 = forward_transformer(geom)
-#     return reverse_transformer(geom2)
-
 
 def unproject_split_meridian(gdf, src_crs, dst_crs):
     """
