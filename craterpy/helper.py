@@ -7,6 +7,7 @@ import fiona
 from fiona.transform import transform_geom
 from shapely.geometry import mapping, shape
 
+
 # Geospatial helpers
 def lon360(lon):
     """Return longitude in range [0, 360)."""
@@ -86,7 +87,7 @@ def get_spheroid_rad_from_wkt(wkt):
 
 # DataFrame helpers
 def findcol(df, names):
-    """Return first instance of a column from df containing string in names. 
+    """Return first instance of a column from df containing string in names.
     Case insensitive. Raise error if none found.
 
     Parameters
@@ -110,7 +111,10 @@ def findcol(df, names):
     if isinstance(names, str):
         names = [names]
     for column in df.columns:
-        if any(name.lower() in column.lower().replace(" ", "").replace("_", "") for name in names):
+        if any(
+            name.lower() in column.lower().replace(" ", "").replace("_", "")
+            for name in names
+        ):
             return column
     raise ValueError(f"No column containing {names} found.")
 
@@ -124,8 +128,8 @@ def get_crater_cols(df):
     except ValueError as e:
         try:
             diamcol = findcol(df, ["Diameter", "Diam", "D(km)", "D(m)"])
-            df['Radius'] = pd.to_numeric(df[diamcol]) / 2
-            radcol = 'Radius'
+            df["Radius"] = pd.to_numeric(df[diamcol]) / 2
+            radcol = "Radius"
         except ValueError:
             raise ValueError("No Radius or Diameter column found.") from e
     return latcol, loncol, radcol
@@ -143,9 +147,10 @@ def diam2radius(df, diamcol=None):
 def unproject_split_meridian(gdf, src_crs, dst_crs):
     """
     Fix geometries that cross the antimeridian. Slow, use only where needed.
-    
+
     See https://gist.github.com/snowman2/2142fc217c983c42a4ed440007438b13
     """
+
     def base_transformer(geom, src_crs, dst_crs):
         return shape(
             transform_geom(
@@ -155,5 +160,8 @@ def unproject_split_meridian(gdf, src_crs, dst_crs):
                 antimeridian_cutting=True,
             )
         )
-    reverse_transformer = partial(base_transformer, src_crs=dst_crs.to_wkt(), dst_crs=src_crs.to_wkt())
+
+    reverse_transformer = partial(
+        base_transformer, src_crs=dst_crs.to_wkt(), dst_crs=src_crs.to_wkt()
+    )
     return gdf.geometry.apply(reverse_transformer)
