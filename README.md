@@ -41,7 +41,7 @@
 
 Craterpy simplifies the extraction and statistical analysis of impact craters in planetary datasets. It can:
 
-- work with tables of crater data in Python (using pandas)
+- work with tables of crater data in Python (using `pandas`)
 - load and manipulate planetary image data in Python (using rasterio)
 - extract, mask, filter, and compute stats on craters located in planetary imagery
 - plot crater regions of interest
