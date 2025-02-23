@@ -87,8 +87,8 @@ class CraterDatabase:
     """
 
     # Philosophy for database: Geopandas only allows 1 shape geometry per row
-    # So, use the _point geometry for center of each crater by default
-    # Then switch to _rim / _annulus geometry on the fly for computing stats
+    # So, use the _center of crater as default geometry. Switch to other
+    # geometry columns on the fly for computing stats
 
     # Private Attrs:
     # _crs (str): Coordinate reference system for the body.
@@ -121,7 +121,7 @@ class CraterDatabase:
             self._crsnorth,
             self._crssouth,
         ) = self._load_crs(body)
-        
+
         if isinstance(dataset, pd.DataFrame):
             self.data = dataset
         elif Path(dataset).is_file():
@@ -129,13 +129,21 @@ class CraterDatabase:
             self.data = gpd.read_file(dataset)
         else:
             raise ValueError("Could not read crater dataset.")
+        self.orig_cols = self.data.columns
 
-        # Store reference to lat, lon, rad columns
-        cols = ch.get_crater_cols(self.data)
-        for col in cols:
-            # Fixes lat, lon, rad columns if loaded as a string or object
-            self.data[col] = pd.to_numeric(self.data[col])
-        self._latcol, self._loncol, self.radcol = cols
+        # Store reference to lat, lon columns
+        self._latcol = ch.findcol(self.data, ["latitude", "lat"])
+        self._loncol = ch.findcol(self.data, ["longitude", "lon"])
+        self.data[self._latcol] = pd.to_numeric(self.data[self._latcol])
+        self.data[self._loncol] = pd.to_numeric(self.data[self._loncol])
+        # Look for radius / diam column, store as _radius_m
+        try:
+            r = ch.findcol(self.data, ["radius", "rad", "r(km)", "r(m)"])
+            self.data["_radius_m"] = pd.to_numeric(self.data[r])
+        except ValueError:
+            d = ch.findcol(self.data, ["diameter", "diam", "d(km)", "d(m)"])
+            self.data["_radius_m"] = pd.to_numeric(self.data[d]) / 2
+        self._radcol = "_radius_m"
 
         # Ensure lon is in -180 to 180
         self.data[self._loncol] = self.lon - lon_offset
@@ -143,22 +151,21 @@ class CraterDatabase:
 
         # Convert to meters
         if units == "km":
-            self.data[self.radcol] *= 1000
+            self.data[self._radcol] *= 1000
 
         # Generate point geometry for each row
-        self.data["_point"] = self._generate_point()
+        self.data["_center"] = self._generate_point()
 
         # Set geometry and covert to GeoDataFrame if not already
         if not isinstance(self.data, gpd.GeoDataFrame):
             self.data = gpd.GeoDataFrame(
-                self.data, geometry="_point", crs=self._crs
+                self.data, geometry="_center", crs=self._crs
             )
         elif "geometry" not in self.data.columns:
-            self.data.set_geometry("_point", inplace=True)
-
+            self.data.set_geometry("_center", inplace=True)
 
     def __repr__(self):
-        return self.data.__repr__()
+        return f"CraterDatabase of length {len(self.data)} with attributes {', '.join(self._get_properties())}."
 
     def _load_crs(self, body):
         """Return the pyproj CRSs for the body."""
@@ -175,12 +182,17 @@ class CraterDatabase:
         if precise:
             out = self._generate_annulus_precise(self.center, self.rad, 0, 1)
         else:
-            out = self.data._point.copy()
+            out = self.center.copy()
             # Draws circles in simple cylindrical for all craters
             lat_eq = 50  # +/-lat where annuli in simple cylindrical are ok
             is_eq = (-lat_eq <= self.lat) & (self.lat <= lat_eq)
             out.loc[is_eq] = self._generate_annulus_simple(
-                self.center[is_eq], self.rad[is_eq], inner, outer, self._crs, self._crs180
+                self.center[is_eq],
+                self.rad[is_eq],
+                inner,
+                outer,
+                self._crs,
+                self._crs180,
             )
 
             # Re-process annuli in the north and south using N/S stereographic
@@ -204,10 +216,12 @@ class CraterDatabase:
             )
 
             # Finally, correct very large annuli
-            # Suppress warn: Usually shouldn't compute area in unprojected coords 
-            #   because of stretching but that's what we want here - how messed 
+            # Suppress warn: Usually shouldn't compute area in unprojected coords
+            #   because of stretching but that's what we want here - how messed
             #   up does an annulus get when stretched near poles
-            warnings.filterwarnings('ignore', message='Geometry is in a geographic CRS*')
+            warnings.filterwarnings(
+                "ignore", message="Geometry is in a geographic CRS*"
+            )
             is_large = out.area > 25  # [deg^2] TODO: Is this a good threshold?
             out.loc[is_large] = self._generate_annulus_precise(
                 self.center[is_large], self.rad[is_large], inner, outer
@@ -248,7 +262,7 @@ class CraterDatabase:
         """
         # Generate annulus centered on each crater in the dataframe
         annuli = []
-        for (center, rad) in zip(centers, rads):
+        for center, rad in zip(centers, rads):
             annulus = self._get_annular_buffer(Point(0, 0), rad, inner, outer)
 
             # TODO apply antimeridian cutting / wrap around 180 correction
@@ -302,6 +316,16 @@ class CraterDatabase:
         )
         return "vesta_claudia_dp", 0
 
+    def _make_data_property(self, col):
+        """Make a column of self.data accessible directly as an attribute."""
+        c = col.replace(" ", "_")  # attr can't have spaces
+        setattr(self.__class__, c, property(fget=lambda self: self.data[col]))
+
+    def _get_properties(self):
+        """Return list of property names."""
+        class_items = self.__class__.__dict__.items()
+        return list(k for k, v in class_items if isinstance(v, property))
+
     @property
     def lat(self):
         """Crater latitudes."""
@@ -314,13 +338,13 @@ class CraterDatabase:
 
     @property
     def rad(self):
-        """Crater radii."""
-        return self.data[self.radcol]
+        """Crater radii in meters."""
+        return self.data[self._radcol]
 
     @property
     def center(self):
         """Crater center point geometry."""
-        return self.data["_point"]
+        return self.data["_center"]
 
     # def zonal_stats(self, rasters, roi='ejecta', **kwargs):
     #     """Compute zonal statistics on all craters."""
@@ -341,26 +365,36 @@ class CraterDatabase:
 
         inner: Num crater radii to inner edge (from center).
         outer: Num crater radii to outer edge (from center).
-        precise: Use local projection for all craters at cost of speed. 
+        precise: Use local projection for all craters at cost of speed.
 
-        Examples: 
+        Examples:
         - cdb.add_annuli(0, 1) is a circle capturing the interior of the crater.
         - cdb.add_annuli(1, 3) is the annulus from the rim to 1 crater diameter beyond the rim
 
         """
         if label is None:
-            label = f'Annulus({inner}, {outer})'
+            label = f"annulus_{inner}_{outer}"
         self.data[label] = self._generate_annulus(inner, outer, precise)
+        self._make_data_property(label)
 
-    def get_stats(self, fraster, region, stats=STATS, nodata=None, suffix=None):
+    def get_stats(
+        self, fraster, region, stats=STATS, nodata=None, suffix=None
+    ):
         """Compute stats on polygons in a GeoDataFrame."""
-        zstats = zonal_stats(self.data.set_geometry(region), fraster, stats=stats, nodata=nodata)
-        out = pd.DataFrame({stat: [z[stat] for z in zstats] for stat in stats}, index=self.data.index)
+        zstats = zonal_stats(
+            self.data.set_geometry(region), fraster, stats=stats, nodata=nodata
+        )
+        out = pd.DataFrame(
+            {stat: [z[stat] for z in zstats] for stat in stats},
+            index=self.data.index,
+        )
         if suffix:
             out = out.add_suffix(f"_{suffix}")
         return out
 
-    def get_stats_parallel(self, raster_dict, regions, stats=STATS, nodata=None, n_jobs=None):
+    def get_stats_parallel(
+        self, raster_dict, regions, stats=STATS, nodata=None, n_jobs=None
+    ):
         """Compute stats on polygons in a GeoDataFrame in parallel."""
         # Convert numeric nodata value to dict
         if not isinstance(nodata, dict):
@@ -370,15 +404,23 @@ class CraterDatabase:
             for name, f in raster_dict.items():
                 for region in regions:
                     results.append(
-                        pool.apply_async(self.get_stats, 
-                                 args=(f, region, stats, nodata.get(name, None), f'{name}_{region}'))
+                        pool.apply_async(
+                            self.get_stats,
+                            args=(
+                                f,
+                                region,
+                                stats,
+                                nodata.get(name, None),
+                                f"{name}_{region}",
+                            ),
+                        )
                     )
             results = [r.get() for r in results]
         return pd.concat(results, axis=1)
-    
+
     # def plot_region(self, fraster, region, subset=range(5)):
     #     """Display the regions on the raster given for rows in subset."""
-        
+
     #     def b2e(bounds):
     #         """Reorder bounds from [w, s, e, n] to extent [x0, x1, y0, y1]."""
     #         return bounds[0], bounds[2], bounds[1], bounds[3]
@@ -387,15 +429,15 @@ class CraterDatabase:
     #     img = plt.imread(fraster)  # Will crash for very large rasters
     #     # rois = zonal_stats(data.set_geometry(region), fraster, stats='count',
     #     #                    raster_out=True)
-        
+
     #     for i, crater in self.data.loc[subset].iterrows():
     #         lat = self.lat.loc[i]
     #         lon = self.lon.loc[i]
-    #         crs = ProjectedCRS(name=f'AzimuthalEquidistant({lat:.2f}N, {lon:.2f}E)',     
-    #                                   conversion=AzimuthalEquidistantConversion(lat, lon), 
+    #         crs = ProjectedCRS(name=f'AzimuthalEquidistant({lat:.2f}N, {lon:.2f}E)',
+    #                                   conversion=AzimuthalEquidistantConversion(lat, lon),
     #                                   geodetic_crs=self._crs)
-    #         globe = ccrs.Globe(semimajor_axis=crs.ellipsoid.semi_major_metre, 
-    #                            semiminor_axis=crs.ellipsoid.semi_minor_metre, 
+    #         globe = ccrs.Globe(semimajor_axis=crs.ellipsoid.semi_major_metre,
+    #                            semiminor_axis=crs.ellipsoid.semi_minor_metre,
     #                            ellipse=None)
     #         ae = ccrs.AzimuthalEquidistant(lon, lat, globe=globe)
     #         pc = ccrs.PlateCarree(globe=globe)
@@ -404,11 +446,11 @@ class CraterDatabase:
     #         fig = plt.figure(figsize=(4, 4))
     #         ax = plt.subplot(111, projection=ae)
     #         ax.imshow(img, extent=(-180,180,-90,90), transform=pc, cmap='gray')
-            
+
     #         # Crop to region
     #         ax.set_extent(b2e(crater[region].bounds), crs=pc)
     #         ax.set_boundary(mpath.Path(crater[region].exterior.coords), transform=pc)
-            
+
     #         # Draw region
     #         ax.add_geometries(crater[region], crs=pc, facecolor='none', edgecolor='r', linewidth=2, alpha=0.8)
     #         ax.gridlines()
