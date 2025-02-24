@@ -1,6 +1,9 @@
 import warnings
+import functools
 from pathlib import Path
-import multiprocessing as mp
+import multiprocessing
+import antimeridian
+import numpy as np
 import pandas as pd
 import geopandas as gpd
 from shapely.geometry import Point
@@ -11,11 +14,8 @@ from shapely.ops import transform
 import craterpy.helper as ch
 from rasterstats import zonal_stats
 
-
-import matplotlib.pyplot as plt
-import matplotlib.path as mpath
-import cartopy.crs as ccrs
-
+# Suppress antimeridian warning
+warnings.filterwarnings("ignore", category=antimeridian.FixWindingWarning)
 
 # Default stats for rasterstats
 STATS = ("mean", "std", "count")
@@ -123,7 +123,7 @@ class CraterDatabase:
         ) = self._load_crs(body)
 
         if isinstance(dataset, pd.DataFrame):
-            self.data = dataset
+            self.data = dataset.copy(True)
         elif Path(dataset).is_file():
             # TODO: handle craterstats .scc files here
             self.data = gpd.read_file(dataset)
@@ -154,7 +154,7 @@ class CraterDatabase:
             self.data[self._radcol] *= 1000
 
         # Generate point geometry for each row
-        self.data["_center"] = self._generate_point()
+        self.data["_center"] = self._gen_point()
 
         # Set geometry and covert to GeoDataFrame if not already
         if not isinstance(self.data, gpd.GeoDataFrame):
@@ -171,88 +171,58 @@ class CraterDatabase:
         """Return the pyproj CRSs for the body."""
         return [CRS.from_user_input(crs) for crs in CRS_DICT[body.lower()]]
 
-    def _generate_point(self):
+    def _gen_point(self):
         """Return point geometry (lon, lat) for each row."""
         # Note: list comprehension is faster than df.apply
         return [Point(xy) for xy in zip(self.lon, self.lat)]
 
-    def _generate_annulus(self, inner, outer, precise=False):
+    def _gen_annulus(self, inner, outer, precise=False, **kwargs):
         """Return annular geometry for each row."""
-        # Assumes radius is in same units as projection base unit (e.g., meters)
+        # Don't know why it prefers to edit a copy, but _precise was giving None geometries with GeoSeries([polys_out])
+        out = self.center.copy()
         if precise:
-            out = self._generate_annulus_precise(self.center, self.rad, 0, 1)
+            out.loc[:] = self._gen_annulus_precise(self.center, self.rad, inner, outer, **kwargs)
         else:
-            out = self.center.copy()
-            # Draws circles in simple cylindrical for all craters
-            lat_eq = 50  # +/-lat where annuli in simple cylindrical are ok
-            is_eq = (-lat_eq <= self.lat) & (self.lat <= lat_eq)
-            out.loc[is_eq] = self._generate_annulus_simple(
-                self.center[is_eq],
-                self.rad[is_eq],
-                inner,
-                outer,
-                self._crs,
-                self._crs180,
-            )
+            out.loc[:] = self._gen_annulus_simple(inner,outer,self._crs,self._crs180,**kwargs)
 
-            # Re-process annuli in the north and south using N/S stereographic
-            is_n = self.lat > lat_eq
-            out.loc[is_n] = self._generate_annulus_simple(
-                self.center[is_n],
-                self.rad[is_n],
-                inner,
-                outer,
-                self._crs,
-                self._crsnorth,
-            )
-            is_s = self.lat < -lat_eq
-            out.loc[is_s] = self._generate_annulus_simple(
-                self.center[is_s],
-                self.rad[is_s],
-                inner,
-                outer,
-                self._crs,
-                self._crssouth,
-            )
-
-            # Finally, correct very large annuli
-            # Suppress warn: Usually shouldn't compute area in unprojected coords
-            #   because of stretching but that's what we want here - how messed
-            #   up does an annulus get when stretched near poles
-            warnings.filterwarnings(
-                "ignore", message="Geometry is in a geographic CRS*"
-            )
-            is_large = out.area > 25  # [deg^2] TODO: Is this a good threshold?
-            out.loc[is_large] = self._generate_annulus_precise(
+            # Fix large annuli that get warped, also those that cross antimeridian 
+            # Overly clever bit of cos(lat) math that says: 
+            #   - don't fix annuli with radii <= 25 deg at the equator (no warping)
+            #   - we always want to use the precise method at the poles
+            #   - polewards of lat=60, annuli with radius >= 1 degree should use precise method
+            is_large = 50 * out.minimum_bounding_radius() * (1-np.cos(np.radians(self.lat))) > 25 # [deg]
+            out.loc[is_large] = self._gen_annulus_precise(
                 self.center[is_large], self.rad[is_large], inner, outer
             )
         return out
 
-    def _get_annular_buffer(self, pt, rad, inner, outer):
+    def _get_annular_buffer(self, pt, rad, inner, outer, nvert=32):
         """Generate annulus for each row in dataframe pt must be projected to crs in rad units."""
-        # TODO: option to make circle more precise with more vertices at cost of memory? e.g. pt.buffer(rad, 128)
-        if inner == 0:
-            return pt.buffer(rad * outer)
-        else:
-            return pt.buffer(rad * outer).difference(pt.buffer(rad * inner))
+        qs = nvert // 4  # quad_segs (n linear segments / quarter circle)
+        buf = pt.buffer(rad * outer, qs)
+        if inner > 0:
+            buf = buf.difference(pt.buffer(rad * inner), qs)
+        return buf
 
-    def _generate_annulus_simple(
-        self, pt, rad, inner, outer, src_crs, dst_crs
-    ):
-        """Generate annulus naievely in one projection"""
+    def _gen_annulus_simple(self, inner, outer, src_crs, dst_crs, **kwargs):
+        """Generate annulus in one dst_crs and reproject to src_crs.
+        
+        Usage
+        =====
+        Generate circular crater rims in simple cylindrical (PlateCaree)
+            self._gen_annulus_simple(0, 1, self._crs, self._crs180)
+        Generate circular crater rims in north pole stereographic
+            self._gen_annulus_simple(0, 1, self._crs, self._crsnorth)
+        Generate circular crater rims in south pole stereographic
+            self._gen_annulus_simple(0, 1, self._crs, self._crssouth)
+        """
+        # Assumes radius is in same units as crs base unit (usually meters)
         annuli = self._get_annular_buffer(
-            pt.to_crs(dst_crs), rad, inner, outer
+            self.center.to_crs(dst_crs), self.rad, inner, outer, **kwargs
         )
-        out = annuli.to_crs(src_crs)
+        return annuli.to_crs(src_crs)
 
-        # Correct annuli that cross the antimeridian (make a huge poly stretching across the globe, i.e. lon>180)
-        oob = out.bounds["maxx"] - out.bounds["minx"] >= 179
-        out.loc[oob] = ch.unproject_split_meridian(
-            annuli.loc[oob], src_crs, dst_crs
-        )
-        return out
-
-    def _generate_annulus_precise(self, centers, rads, inner, outer):
+    def _gen_annulus_precise(self, centers, rads, inner, outer, **kwargs):
         """
         Generate annuli using a local azimuthal equidistant projection for each crater.
 
@@ -263,9 +233,8 @@ class CraterDatabase:
         # Generate annulus centered on each crater in the dataframe
         annuli = []
         for center, rad in zip(centers, rads):
-            annulus = self._get_annular_buffer(Point(0, 0), rad, inner, outer)
+            buf = self._get_annular_buffer(Point(0, 0), rad, inner, outer, **kwargs)
 
-            # TODO apply antimeridian cutting / wrap around 180 correction
             # Create a local azimuthal equidistant projection for the crater
             local_crs = ProjectedCRS(
                 name=f"AzimuthalEquidistant({center.y:.2f}N, {center.x:.2f}E)",
@@ -273,11 +242,30 @@ class CraterDatabase:
                 geodetic_crs=self._crs,
             )
 
-            # Project the annulus from local azeq centered to main CRS
-            transformer = Transformer.from_crs(
+            # Unproject the annular buffer from local azeq centered to geodetic crs
+            to_geodetic = Transformer.from_crs(
                 local_crs, self._crs, always_xy=True
-            )
-            annuli.append(transform(transformer.transform, annulus))
+            ).transform
+
+            annulus = transform(to_geodetic, buf)
+
+            # Fix antimeridian (if xmax-xmin is huge, it wrapped around the globe the wrong way)
+            if annulus.bounds[2] - annulus.bounds[0] > 350:
+                # Check if north or south crossing
+                # Need to check in projected coords because geodetic coords are broken
+                # Also makes circlar buf with no hole in center
+                to_projected = Transformer.from_crs(
+                   self._crs, local_crs, always_xy=True
+                ).transform
+                sbuf = self._get_annular_buffer(Point(0, 0), rad, 0, outer, **kwargs)
+                isn = sbuf.contains(transform(to_projected, Point(20, 90)))
+                iss = sbuf.contains(transform(to_projected, Point(20, -90)))
+
+                annulus = antimeridian.fix_polygon(annulus, 
+                                                   force_north_pole=isn, 
+                                                   force_south_pole=iss 
+                                                   )
+            annuli.append(annulus)
         return annuli
 
     def _vesta_check(self, body):
@@ -345,6 +333,11 @@ class CraterDatabase:
     def center(self):
         """Crater center point geometry."""
         return self.data["_center"]
+    
+    @functools.cached_property
+    def crater(self):
+        """Crater circular geometry."""
+        return self._gen_annulus(0, 1)
 
     # def zonal_stats(self, rasters, roi='ejecta', **kwargs):
     #     """Compute zonal statistics on all craters."""
@@ -360,7 +353,7 @@ class CraterDatabase:
     #         out = gen_zonal_stats(tmpdf, raster, **kwargs)
     #         break
     #     return list(out)
-    def add_annuli(self, inner, outer, label=None, precise=False):
+    def add_annuli(self, inner, outer, name="", precise=False):
         """Generate annular shapefiles for each crater in database.
 
         inner: Num crater radii to inner edge (from center).
@@ -372,15 +365,14 @@ class CraterDatabase:
         - cdb.add_annuli(1, 3) is the annulus from the rim to 1 crater diameter beyond the rim
 
         """
-        if label is None:
-            label = f"annulus_{inner}_{outer}"
-        self.data[label] = self._generate_annulus(inner, outer, precise)
-        self._make_data_property(label)
+        name = name or f"annulus_{inner}_{outer}"
+        self.data[name] = self._gen_annulus(inner, outer, precise)
+        self._make_data_property(name)
 
-    def get_stats(
+    def _get_stats(
         self, fraster, region, stats=STATS, nodata=None, suffix=None
     ):
-        """Compute stats on polygons in a GeoDataFrame."""
+        """Return DataFrame of zonal stats on region from fraster."""
         zstats = zonal_stats(
             self.data.set_geometry(region), fraster, stats=stats, nodata=nodata
         )
@@ -392,65 +384,35 @@ class CraterDatabase:
             out = out.add_suffix(f"_{suffix}")
         return out
 
-    def get_stats_parallel(
-        self, raster_dict, regions, stats=STATS, nodata=None, n_jobs=None
+    def get_stats(
+        self, rasters, regions, stats=STATS, nodata=None, n_jobs=1
     ):
         """Compute stats on polygons in a GeoDataFrame in parallel."""
+        if not isinstance(rasters, dict):
+            rasters = {'_': rasters}  # Will be stripped from stats colname
+        if isinstance(regions, str):
+            regions = [regions]
         # Convert numeric nodata value to dict
         if not isinstance(nodata, dict):
-            nodata = {k: nodata for k in raster_dict.keys()}
-        with mp.Pool(n_jobs) as pool:
-            results = []
-            for name, f in raster_dict.items():
-                for region in regions:
-                    results.append(
-                        pool.apply_async(
-                            self.get_stats,
-                            args=(
-                                f,
-                                region,
-                                stats,
-                                nodata.get(name, None),
-                                f"{name}_{region}",
-                            ),
-                        )
-                    )
-            results = [r.get() for r in results]
-        return pd.concat(results, axis=1)
+            nodata = {k: nodata for k in rasters.keys()}
+        args = [
+            [f, region, stats, nodata.get(name, None), f"{name}_{region}".strip('_')]
+            for region in regions
+            for name, f in rasters.items()
+        ]
+        with multiprocessing.Pool(n_jobs) as pool:
+            result = pool.starmap(self._get_stats, args)
+        return pd.concat([self.data[self.orig_cols], *result], axis=1)
 
-    # def plot_region(self, fraster, region, subset=range(5)):
+    def plot(self, ax=None, **kwargs):
+        """Plot craters."""
+        ax = self.crater.boundary.plot(ax=ax, **kwargs)
+        ax.set_xlabel('Longitude')
+        ax.set_ylabel('Latitude')
+        ax.set_title(f'CraterDatabase (N={len(self.data)})')
+        return ax
+
+    # TODO: fix plot region in craterpy.plotting
+    # def plot_region(self, fraster, region, row):
     #     """Display the regions on the raster given for rows in subset."""
-
-    #     def b2e(bounds):
-    #         """Reorder bounds from [w, s, e, n] to extent [x0, x1, y0, y1]."""
-    #         return bounds[0], bounds[2], bounds[1], bounds[3]
-
-    #     # TODO: Switch to only plotting what is clipped by zonal stats
-    #     img = plt.imread(fraster)  # Will crash for very large rasters
-    #     # rois = zonal_stats(data.set_geometry(region), fraster, stats='count',
-    #     #                    raster_out=True)
-
-    #     for i, crater in self.data.loc[subset].iterrows():
-    #         lat = self.lat.loc[i]
-    #         lon = self.lon.loc[i]
-    #         crs = ProjectedCRS(name=f'AzimuthalEquidistant({lat:.2f}N, {lon:.2f}E)',
-    #                                   conversion=AzimuthalEquidistantConversion(lat, lon),
-    #                                   geodetic_crs=self._crs)
-    #         globe = ccrs.Globe(semimajor_axis=crs.ellipsoid.semi_major_metre,
-    #                            semiminor_axis=crs.ellipsoid.semi_minor_metre,
-    #                            ellipse=None)
-    #         ae = ccrs.AzimuthalEquidistant(lon, lat, globe=globe)
-    #         pc = ccrs.PlateCarree(globe=globe)
-
-    #         # Plot
-    #         fig = plt.figure(figsize=(4, 4))
-    #         ax = plt.subplot(111, projection=ae)
-    #         ax.imshow(img, extent=(-180,180,-90,90), transform=pc, cmap='gray')
-
-    #         # Crop to region
-    #         ax.set_extent(b2e(crater[region].bounds), crs=pc)
-    #         ax.set_boundary(mpath.Path(crater[region].exterior.coords), transform=pc)
-
-    #         # Draw region
-    #         ax.add_geometries(crater[region], crs=pc, facecolor='none', edgecolor='r', linewidth=2, alpha=0.8)
-    #         ax.gridlines()
+    #     cp.plot_region(fraster, region, row)
