@@ -1,11 +1,7 @@
 """This file contains various helper functions for craterpy"""
 
-from functools import partial
 import numpy as np
 import pandas as pd
-import fiona
-from fiona.transform import transform_geom
-from shapely.geometry import mapping, shape, Polygon
 
 
 # Geospatial helpers
@@ -112,7 +108,7 @@ def findcol(df, names):
         names = [names]
     for column in df.columns:
         if any(
-            name.lower() in column.lower().replace(" ", "").replace("_", "")
+            name.lower().replace("_", "") in column.lower().replace(" ", "").replace("_", "").replace("(", "")
             for name in names
         ):
             return column
@@ -142,70 +138,3 @@ def diam2radius(df, diamcol=None):
     df.update(df[diamcol] / 2)
     df.rename(columns={diamcol: "Radius"}, inplace=True)
     return df
-
-def fix_antimeridian(geoms):
-    """Fix geometries that cross the antimeridian.
-    
-    Polygons that also cross a pole might not be fixable but it tries.
-    """
-    if isinstance(geoms, Polygon):
-        minx, miny, maxx, maxy = geoms.bounds
-    else:
-        minx, miny, maxx, maxy = geoms.bounds.values.T
-
-    # Polygon wrapped around whole globe
-    isa = maxx - minx > 330  
-    
-    # TODO: antimeridian can try to fix pole crossing polys but we need to
-    #  know which pole. problem with doing this from the geom is that a crater
-    #  at the pole that is 10 degrees diameter will have maxy of 80
-    #  maybe need to do fix_antimeridian_north pole and south pole separate?
-    isn = maxy + miny > 0  # in the north force_north_pole=True
-    # iss = miny < -89.9  # force_south_pole=True
-    geoms.loc[isa] = antimeridian.fix_polygon()
-
-
-def reproject_split_meridian(gdf, dst_crs):
-    """Reproject gdf from its geometry (must have crs) to dst_crs, 
-    splitting geometries that cross the antimeridian."""
-    # See https://gist.github.com/snowman2/2142fc217c983c42a4ed440007438b13
-    transformer = partial(
-        lambda geom, src_crs, dst_crs: shape(
-            transform_geom(src_crs,dst_crs,mapping(geom),
-                antimeridian_cutting=True,
-                antimeridian_offset=2
-            )
-        ), src_crs=gdf.crs, dst_crs=dst_crs)
-    
-    with fiona.Env(OGR_ENABLE_PARTIAL_REPROJECTION=True):
-        new_geom = gdf.geometry.apply(transformer)
-    new_geom.crs = dst_crs
-    return new_geom
-
-
-def unproject_split_meridian(gdf, src_crs, dst_crs):
-    """
-    Fix geometries that cross the antimeridian. Slow, use only where needed.
-
-    See https://gist.github.com/snowman2/2142fc217c983c42a4ed440007438b13
-    """
-
-    def base_transformer(geom, src_crs, dst_crs):
-        return shape(
-            transform_geom(
-                src_crs=src_crs,
-                dst_crs=dst_crs,
-                geom=mapping(geom),
-                antimeridian_cutting=True,
-            )
-        )
-
-    reverse_transformer = partial(
-        base_transformer, src_crs=dst_crs.to_wkt(), dst_crs=src_crs.to_wkt()
-    )
-    with fiona.Env(OGR_ENABLE_PARTIAL_REPROJECTION=True):
-        if hasattr(gdf, 'geometry'): # GeoDataFrame or GeoSeries
-            return gdf.geometry.apply(reverse_transformer)
-    # Otherwise assume it is a single instance
-    # print(src_crs)
-        return reverse_transformer(gdf)
