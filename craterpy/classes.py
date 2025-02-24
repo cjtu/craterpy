@@ -200,9 +200,12 @@ class CraterDatabase:
                 * (1 - np.cos(np.radians(self.lat)))
                 > 25
             )  # [deg]
-            is_anti = out.bounds['maxx'] - out.bounds['minx'] >= 300
+            is_anti = out.bounds["maxx"] - out.bounds["minx"] >= 300
             out.loc[is_large | is_anti] = self._gen_annulus_precise(
-                self.center[is_large | is_anti], self.rad[is_large | is_anti], inner, outer
+                self.center[is_large | is_anti],
+                self.rad[is_large | is_anti],
+                inner,
+                outer,
             )
         return out
 

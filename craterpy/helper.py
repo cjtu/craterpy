@@ -108,7 +108,11 @@ def findcol(df, names):
         names = [names]
     for column in df.columns:
         if any(
-            name.lower().replace("_", "") in column.lower().replace(" ", "").replace("_", "").replace("(", "")
+            name.lower().replace("_", "")
+            in column.lower()
+            .replace(" ", "")
+            .replace("_", "")
+            .replace("(", "")
             for name in names
         ):
             return column
