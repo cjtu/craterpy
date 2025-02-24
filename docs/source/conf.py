@@ -12,10 +12,12 @@ sys.path.insert(0, os.path.abspath("../.."))
 
 # -- Project information --
 
+
 def get_version():
-    with open('../../pyproject.toml') as pyproj:
+    with open("../../pyproject.toml") as pyproj:
         f = pyproj.read()
-    return toml.loads(f)['tool']['poetry']['version']
+    return toml.loads(f)["tool"]["poetry"]["version"]
+
 
 project = "craterpy"
 copyright = "2021, Christian J. Tai Udovicic"
@@ -38,7 +40,7 @@ myst_enable_extensions = [
     "colon_fence",
 ]
 
-source_suffix = ['.rst', '.md']
+source_suffix = [".rst", ".md"]
 
 # Preserve :members: order.
 autodoc_member_order = "bysource"

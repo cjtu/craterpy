@@ -1,6 +1,7 @@
 """This file contains various helper functions for craterpy"""
 
 import numpy as np
+import pandas as pd
 
 
 # Geospatial helpers
@@ -82,8 +83,8 @@ def get_spheroid_rad_from_wkt(wkt):
 
 # DataFrame helpers
 def findcol(df, names):
-    """Return first instance of a column from df matching an unformated string
-    in names. If none found, return None
+    """Return first instance of a column from df containing string in names.
+    Case insensitive. Raise error if none found.
 
     Parameters
     ----------
@@ -105,34 +106,39 @@ def findcol(df, names):
     """
     if isinstance(names, str):
         names = [names]
-    cols = df.columns.values
-    for name in names:
-        for col in cols:
-            if name.strip().lower() == col.strip().lower():
-                return col
-    return None
+    for column in df.columns:
+        if any(
+            name.lower().replace("_", "")
+            in column.lower()
+            .replace(" ", "")
+            .replace("_", "")
+            .replace("(", "")
+            for name in names
+        ):
+            return column
+    raise ValueError(f"No column containing {names} found.")
 
 
 def get_crater_cols(df):
     """Return name of latitude, longitude, and radius columns from df"""
     latcol = findcol(df, ["Latitude", "Lat"])
     loncol = findcol(df, ["Longitude", "Lon"])
-    radcol = findcol(df, ["Radius", "Rad"])
-    if not all((latcol, loncol, radcol)):
-        e = "Unable to read latitude, longitude and/or radius from DataFrame"
-        raise RuntimeError(e)
+    try:
+        radcol = findcol(df, ["Radius", "Rad", "R(km)", "R(m)"])
+    except ValueError as e:
+        try:
+            diamcol = findcol(df, ["Diameter", "Diam", "D(km)", "D(m)"])
+            df["Radius"] = pd.to_numeric(df[diamcol]) / 2
+            radcol = "Radius"
+        except ValueError:
+            raise ValueError("No Radius or Diameter column found.") from e
     return latcol, loncol, radcol
 
 
 def diam2radius(df, diamcol=None):
     """Return dataframe with diameter column converted to radius."""
     if not diamcol:
-        diamcol = findcol(df, ["diam", "diameter"])
+        diamcol = findcol(df, ["Diameter", "Diam"])
     df.update(df[diamcol] / 2)
     df.rename(columns={diamcol: "Radius"}, inplace=True)
     return df
-
-
-# def downshift_lon(df):
-#    """Shift longitudes from (0, 360) -> (-180, 180) convention."""
-#    pass

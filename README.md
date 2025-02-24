@@ -39,16 +39,15 @@
 
 # Overview
 
-Craterpy simplifies the extraction and statistical analysis of impact craters in planetary datasets. It can:
+Craterpy simplifies the extraction and statistical analysis of impact crater regions of interest in planetary datasets. It can:
 
-- work with tables of crater data in Python (using `pandas`)
-- load and manipulate planetary image data in Python (using rasterio)
-- extract, mask, filter, and compute stats on craters located in planetary imagery
-- plot crater regions of interest
+- work with tables of crater data in Python (pandas)
+- quickly extract data associated with each crater in ellipses or annuli (rasterstats)
+- eliminate some pain points of planetary GIS analysis (antimeridian wrapping, local equal-area projections, etc.)
 
-Craterpy currently only supports simple cylindrical images and requires you to provide a table of crater locations and sizes (e.g. it isn't a crater detection program). See the example below!
+Note: craterpy is not a detection algorithm (e.g., [PyCDA](https://github.com/AlliedToasters/PyCDA)), nor is it a crater count age dating tool (see [craterstats](https://github.com/ggmichael/craterstats)).
 
-**Note:** *Craterpy is in alpha. We appreciate bug reports and feature requests on the [issues board](https://github.com/cjtu/craterpy/issues).*
+**Note:** *Craterpy is in beta. We appreciate bug reports and feature requests on the [issues board](https://github.com/cjtu/craterpy/issues).*
 
 ## Example
 
@@ -56,26 +55,35 @@ Craterpy in action:
 
 ```python
 import pandas as pd
-from craterpy import dataset, stats
-df = pd.DataFrame({'Name': ["Orientale", "Langrenus", "Compton"],
-                    'Lat': [-19.9, -8.86, 55.9],
-                    'Lon': [-94.7, 61.0, 104.0],
-                    'Rad': [147.0, 66.0, 82.3]})
-moon = dataset.CraterpyDataset("moon.tif")
-stat_df = cs.ejecta_stats(df, moon, 4, ['mean', 'median', 'std'], plot=True)
+from craterpy import CraterDatabase
+df = pd.DataFrame({'Name': ["Orientale", "Compernicus", "Tycho"],
+                    'Lat': [-19.9, 9.62, -43.35],
+                    'Lon': [-94.7, -20.08, -11.35],
+                    'Rad': [250., 48., 42.]})
+cdb = CraterDatabase(df, "Moon", units="km")
+# Define annular ROIs for central peak, crater floor, and rim (sizes in crater radii)
+cdb.add_annuli(0, 0.1, "peak")
+cdb.add_annuli(0.3, 0.6, "floor")
+cdb.add_annuli(1.0, 1.2, "rim")
+stats = cdb.get_stats("dem.tif", regions=['floor', 'peak', 'rim'], stats=['mean', 'std'])
+cdb.plot()
 ```
 
-![ejecta image](https://raw.githubusercontent.com/cjtu/craterpy/trunk/craterpy/data/_images/readme_crater_ejecta.png)
+![Craters map plot](https://raw.githubusercontent.com/cjtu/craterpy/trunk/craterpy/data/_images/readme_craters.png)
 
-```python
-stats_df.head()
-```
 
-![crater stats](https://raw.githubusercontent.com/cjtu/craterpy/trunk/craterpy/data/_images/readme_stat_df.png)
+| **Name** | **Lat** | **Lon** | **Rad** | **mean_floor** | **std_floor** | **mean_peak** | **std_peak** | **mean_rim** | **std_rim** |
+|---|---|---|---|---|---|---|---|---|---|
+| Orientale | -19.90 | -94.70 | 250.0 | -2400.0 | 400.0 | -2800.0 | 100.0 | 400.0 | 1100.0 |
+| Compernicus | 9.62 | -20.08 | 48.0 | -3400.0 | 200.0 | -3400.0 | 100.0 | -0.0 | 200.0 |
+| Tycho | -43.35 | -11.35 | 42.0 | -3200.0 | 400.0 | -2100.0 | 500.0 | 900.0 | 400.0 |
 
-New users should start with the Jupyter notebook [tutorial](https://gist.github.com/cjtu/560f121049b342aa0b2bf70e038358b7) for typical usage with examples. See also [craterpy documentation](https://readthedocs.org/projects/craterpy/) on Read the Docs.
+Quickly compute stats on many more craters and many datasets in parallel.
 
-**Note**: This package currently **only accepts image data in simple-cylindrical (Plate Caree) projection**. If your data is in another projection, please reproject it to simple-cylindrical before importing it with craterpy. If you would like add reprojection functionality to craterpy, consider [Contributing](https://github.com/cjtu/craterpy/blob/trunk/CONTRIBUTING.rst).
+![CraterDatabase plot](https://raw.githubusercontent.com/cjtu/craterpy/trunk/craterpy/data/_images/readme_craterdatabase.png)
+
+See the full [craterpy documentation](https://readthedocs.org/projects/craterpy/) on Read the Docs.
+
 
 ## Installation
 
@@ -83,73 +91,29 @@ With pip:
 
 ```bash
 pip install craterpy
-python -c "import craterpy; print(craterpy.__version__)"
 ```
 
-In a new [conda environment](https://conda.io/docs/using/envs):
+From the repo with [poetry](https://python-poetry.org/docs/) (for latest version & to contribute). First fork and clone the repository, then:
 
 ```bash
-# Create and activate a new conda environment called "craterpy"
-conda create -n craterpy python=3.9
-conda activate craterpy
-
-# Install craterpy with pip
-pip install craterpy
-python -c "import craterpy; print(craterpy.__version__)"
-```
-
-With [git](https://git-scm.com) and [poetry](https://python-poetry.org/docs/) (for latest version & development):
-
-```bash
-# Clone this repository
-$ cd ~
-$ git clone https://github.com/cjtu/craterpy.git
-
-# Enter the repository
-$ cd craterpy
-
-# Configure poetry
-poetry config virtualenvs.create true --local
-poetry config virtualenvs.in-project true --local
-
 # Install craterpy with poetry
+$ cd craterpy
 $ poetry install
 
-# Check installation
+# Check installation version
 poetry version
 
-# Either open a Jupyter server
+# Activate the venv 
+$ poetry shell
+$ which python
+
+# Or open a Jupyter notebook
 $ poetry run jupyter notebook
-
-# Or activate the venv from your Python editor of choice
-# The venv is path is ~/craterpy/.venv/bin/python
 ```
-
-On Windows (see [rasterio installation for Windows](https://rasterio.readthedocs.io/en/latest/installation.html#windows)):
-
-- **Note**: Craterpy is tested on Ubuntu and OS X. If you would like to use craterpy on Windows, we recommend getting the Windows Subsystem for Linux ([WSL](https://docs.microsoft.com/en-us/windows/wsl/install)) and installing into a Linux distribution. However, the following may also work for a native Windows installation and depends on a working installation of rasterio from pre-compiled binaries (see link above).
-
-```bash
-# Windows requires gdal binaries specific to the OS (32/64-bit) and python version
-# First download the rasterio and GDAL binaries for your system (link above)
-# If rasterio imports with no error then craterpy should be pip installable
-pip install GDAL-X.Y.Z-...-win.whl
-pip install rasterio-X.Y.Z-...-win.whl
-python -c "import rasterio"
-pip install craterpy
-python -c "import craterpy; print(craterpy.__version__)"
-```
+- **Note**: Craterpy is currently only tested on Ubuntu and OS X. If you would like to use craterpy on Windows, check out the Windows Subsystem for Linux ([WSL](https://docs.microsoft.com/en-us/windows/wsl/install)). 
 
 Trouble installing craterpy? Let us know on the [issues](https://github.com/cjtu/craterpy/issues) board.
 
-## Dependencies
-
-Craterpy requires python >3.7.7 and is tested on Ubuntu and OS X. It's core dependencies are:
-
-- rasterio
-- pandas
-- numpy
-- matplotlib
 
 ## Documentation
 
@@ -170,7 +134,3 @@ Want to fix a bug / implement a feature / fix some documentation? We welcome pul
 ## Citing craterpy
 
 Craterpy is [MIT Licenced](https://github.com/cjtu/craterpy/blob/master/LICENSE.txt) and is free to use with attribution. Citation information can be found [here](https://zenodo.org/badge/latestdoi/88457986).
-
-## Contact
-
-If you have comments/question/concerns or just want to get in touch, you can email Christian at cj.taiudovicic@gmail.com or follow [@TaiUdovicic](https://twitter.com/TaiUdovicic) on Twitter.

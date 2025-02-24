@@ -134,8 +134,8 @@ class Test_dataframe_helpers(unittest.TestCase):
         self.assertEqual(actual, expected)
         actual = ch.findcol(self.df, ["Latitude", "Lat"])
         self.assertEqual(actual, expected)
-        actual = ch.findcol(self.df, "slat")
-        self.assertIsNone(actual)
+        with self.assertRaises(ValueError):
+            actual = ch.findcol(self.df, "slat")
 
     def test_diam2radius(self):
         """Test diam2radius"""
