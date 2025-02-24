@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "craterpy"
-version = "0.5.4"
+version = "0.6.0"
 homepage = "https://github.com/cjtu/craterpy"
 description = "Impact crater data science in Python."
 authors = ["Christian J. Tai Udovicic <cj.taiudovicic@gmail.com>"]
@@ -9,13 +9,13 @@ readme = "README.md"
 repository = "https://github.com/cjtu/craterpy"
 documentation = "https://readthedocs.org/projects/craterpy/"
 classifiers=[
-'Development Status :: 3 - Alpha',
+    'Development Status :: 4 - Beta',
     'Intended Audience :: Science/Research',
     'License :: OSI Approved :: MIT License',
     'Natural Language :: English',
     'Operating System :: OS Independent',
     'Topic :: Scientific/Engineering :: Astronomy',
-    'Programming Language :: Python :: 3.8',
+    'Programming Language :: Python :: 3.10',
 ]
 keywords = [
     'python', 
