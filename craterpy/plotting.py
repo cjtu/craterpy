@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import matplotlib.path as mpath
 import cartopy.crs as ccrs
 
+
 def plot_CraterRoi(croi, figsize=((4, 4)), title=None, cmap="gray", **kwargs):
     """
     Plot 2D CraterRoi.
@@ -39,6 +40,7 @@ def plot_CraterRoi(croi, figsize=((4, 4)), title=None, cmap="gray", **kwargs):
 
     def plot_region(fraster, region, row):
         """Plot a region of a crater in CraterDatabase."""
+
     #     def b2e(bounds):
     #         """Reorder bounds from [w, s, e, n] to extent [x0, x1, y0, y1]."""
     #         return bounds[0], bounds[2], bounds[1], bounds[3]
