@@ -32,7 +32,7 @@ include = [
 "Bug Tracker" = "https://github.com/cjtu/craterpy/issues"
 
 [tool.poetry.dependencies]
-python = "^3.9,<4.0"
+python = "^3.10,<4.0"
 numpy = "^1.24.2"
 matplotlib = "^3.4.2"
 pandas = "^1.2.4"
@@ -41,12 +41,12 @@ cartopy = "^0.23.0"
 rasterstats = "^0.19.0"
 geopandas = "1.0.0a1"
 scipy = "^1.13.1"
+antimeridian = "^0.4.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.2.0"
 jupyter = "^1.0.0"
 black = "^24.3.0"
-pytest-cov = "^2.11.1"
 
 [tool.poetry.group.docs]
 optional = true
