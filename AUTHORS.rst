@@ -4,3 +4,5 @@ Contributors in the order of first contribution:
 - Alexandre Boivin
 - Dylan Hickson
 - Cailin Gallinger
+- Ari Essunfeld
+
