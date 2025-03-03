@@ -104,10 +104,14 @@ class CraterDatabase:
         """
         Initialize a CraterDatabase.
 
-        Parameters:
-            filepath (str): Path to the file containing crater data.
-            body (str): Planetary body, e.g. Moon, Vesta (default: Moon)
-            units (str): Length units of radius/diameter, m or km (default: m)
+        Parameters
+        ----------
+        filepath: str or path-like
+            Path to the file containing crater data.
+        body: str
+            Planetary body, e.g. Moon, Mercury, Vesta (default: Moon)
+        units (str):
+            Length units of radius/diameter column in file, m or km (default: m)
         """
         lon_offset = 0
         if "vesta" in body.lower():
@@ -165,7 +169,10 @@ class CraterDatabase:
             self.data.set_geometry("_center", inplace=True)
 
     def __repr__(self):
-        return f"CraterDatabase of length {len(self.data)} with attributes {', '.join(self._get_properties())}."
+        attrs = ", ".join(
+            [p for p in self._get_properties() if not p.startswith("_")]
+        )
+        return f"CraterDatabase of length {len(self.data)} with attributes {attrs}."
 
     def _load_crs(self, body):
         """Return the pyproj CRSs for the body."""
@@ -350,39 +357,43 @@ class CraterDatabase:
         """Crater center point geometry."""
         return self.data["_center"]
 
-    @functools.cached_property
-    def crater(self):
-        """Crater circular geometry."""
-        return self._gen_annulus(0, 1)
+    def add_annuli(self, name, inner, outer, precise=True):
+        """Generate annular geometries for each crater in database.
 
-    # def zonal_stats(self, rasters, roi='ejecta', **kwargs):
-    #     """Compute zonal statistics on all craters."""
-    #     # TODO: finish writing this and test
-    #     tmpdf = self.data
-    #     if roi == 'ejecta':
-    #         tmpdf = tmpdf['annulus'].rename({'annulus': 'geometry'}).set_geometry('geometry')
-    #     elif roi == 'crater':
-    #         tmpdf = tmpdf['_rim'].rename({'_rim': 'geometry'}).set_geometry('geometry')
+        (slower but more precise than using global, Npolar and Spolar stereo)
 
-    #     # Yields generator - figure out where we want to store all the data
-    #     for raster in rasters:
-    #         out = gen_zonal_stats(tmpdf, raster, **kwargs)
-    #         break
-    #     return list(out)
-    def add_annuli(self, inner, outer, name="", precise=False):
-        """Generate annular shapefiles for each crater in database.
-
-        inner: Num crater radii to inner edge (from center).
-        outer: Num crater radii to outer edge (from center).
-        precise: Use local projection for all craters at cost of speed.
+        Parameters
+        ----------
+        name: str
+            Name of geometry column.
+        inner: int or float
+            Distance from center to inner edge of annulus in crater radii.
+        outer: int or float
+            Distance from center to outer edge of annulus in crater radii.
+        precise: bool
+            Precisely calculate each geometry in a local projection (default: True).
 
         Examples:
-        - cdb.add_annuli(0, 1) is a circle capturing the interior of the crater.
-        - cdb.add_annuli(1, 3) is the annulus from the rim to 1 crater diameter beyond the rim
+        - cdb.add_annuli(1, 2) generates annuli from each crater rim to 1 crater radius beyond the rim.
+        - cdb.add_annuli(1, 3) generates annuli from each crater rim to 1 crater diameter beyond the rim.
+        - cdb.add_annuli(0, 1) generates a cicle capturing the interior of the crater rim.
         """
         name = name or f"annulus_{inner}_{outer}"
         self.data[name] = self._gen_annulus(inner, outer, precise)
         self._make_data_property(name)
+
+    def add_circles(self, name="", size=1, precise=True):
+        """Generate circluar geometries for each crater in database.
+
+        Parameters
+        ----------
+        size: int or float
+            Radius of circle around each crater in crater radii (default: 1).
+        name: str
+            Name of geometry column (default: circle_{size}).
+        """
+        name = name or f"circle_{size}"
+        self.add_annuli(inner=0, outer=size, name=name, precise=precise)
 
     def _get_stats(
         self, fraster, region, stats=STATS, nodata=None, suffix=None
@@ -423,15 +434,36 @@ class CraterDatabase:
             result = pool.starmap(self._get_stats, args)
         return pd.concat([self.data[self.orig_cols], *result], axis=1)
 
-    def plot(self, ax=None, **kwargs):
-        """Plot craters."""
-        ax = self.crater.boundary.plot(ax=ax, **kwargs)
+    def plot(self, name="", ax=None, alpha=0.2, **kwargs):
+        """Plot crater geometries.
+
+        Parameters
+        ----------
+        name (optional): str
+            Defined geometries to plot (default: simple crater circles).
+        ax: matplotlib.Axes
+            Axes on which to plot data.
+        alpha: float
+            Transparancy of the plot geometries (0-1, default: 0.2).
+        **kwargs
+            Keyword arguments supplied to GeoSeries.plot().
+
+        Returns
+        -------
+        ax: matplotlib.Axes
+        """
+        if not name:
+            # Note: add this directly to geodataframe to not conflict with user-set properties
+            if "_plot_circles" not in self.data.columns:
+                self.data["_plot_circles"] = self._gen_annulus(0, 1)
+            # Plot outline only
+            plotdata = self.data.loc[:, "_plot_circles"].boundary
+        else:
+            # Plot enclosed area
+            plotdata = self.data.loc[:, name]
+        ax = plotdata.plot(ax=ax, alpha=alpha, **kwargs)
         ax.set_xlabel("Longitude")
         ax.set_ylabel("Latitude")
-        ax.set_title(f"CraterDatabase (N={len(self.data)})")
+        label = "." + name if name else ""
+        ax.set_title(f"CraterDatabase{label} (N={len(self.data)})")
         return ax
-
-    # TODO: fix plot region in craterpy.plotting
-    # def plot_region(self, fraster, region, row):
-    #     """Display the regions on the raster given for rows in subset."""
-    #     cp.plot_region(fraster, region, row)

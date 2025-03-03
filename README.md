@@ -39,38 +39,69 @@
 
 # Overview
 
-Craterpy simplifies the extraction and statistical analysis of impact crater regions of interest in planetary datasets. It can:
+Craterpy makes it easier to work with impact crater data in Python. Highlights:
 
-- work with tables of crater data in Python (pandas)
-- quickly extract data associated with each crater in ellipses or annuli (rasterstats)
-- eliminate some pain points of planetary GIS analysis (antimeridian wrapping, local equal-area projections, etc.)
+- convert a table of crater data to a GeoDataFrame or GIS-ready shapefile
+- extract zonal statistics associated with each crater in circlular or annular regions (rasterstats)
+- eliminate some pain points of planetary GIS analysis (antimeridian wrapping, projection conversions, etc.)
 
 Note: craterpy is not a detection algorithm (e.g., [PyCDA](https://github.com/AlliedToasters/PyCDA)), nor is it a crater count age dating tool (see [craterstats](https://github.com/ggmichael/craterstats)).
 
 **Note:** *Craterpy is in beta. We appreciate bug reports and feature requests on the [issues board](https://github.com/cjtu/craterpy/issues).*
 
-## Example
+## Examples
 
-Craterpy in action:
+All craters on the Moon > 2km.
+
+```python
+from craterpy import CraterDatabase
+cdb = CraterDatabase('lunar_crater_database_robbins_2018.csv', "Moon", units="km")
+cdb.plot(linewidth=0.25, alpha=0.25, color='gray')
+```
+
+![Lunar craters plot](https://github.com/cjtu/craterpy/raw/trunk/craterpy/data/_images/readme_moon_robbins.png)
+
+
+Define cicular/annular regions and export to GIS-ready shapefiles:
+
+```python
+cdb.add_circles("craters", size=1)  # Crater interiors
+cdb.add_annuli("ejecta", inner=1, outer=3)  # Annulus from rim to 2 radii past the rim (excludes interior)
+cdb.craters.to_file("lunar_craters.geojson")
+cdb.ejecta.to_file("lunar_ejecta.geojson")
+```
+
+Plot on a raster
+
+```python
+cdb = CraterDatabase('vesta_craters.csv', "Vesta", units="m")
+im = plt.imread('vesta.tif')
+ax = cdb.plot(alpha=0.5, color='tab:green')
+ax.imshow(im, extent=(-180, 180, -90, 90), cmap='gray')
+```
+
+![Vesta map plot](https://github.com/cjtu/craterpy/raw/trunk/craterpy/data/_images/readme_vesta_cdb.png)
+
+
+Compute raster image statistics on each crater geometry.
 
 ```python
 import pandas as pd
-from craterpy import CraterDatabase
-df = pd.DataFrame({'Name': ["Orientale", "Compernicus", "Tycho"],
+df = pd.DataFrame({'Name': ["Orientale", "Copernicus", "Tycho"],
                     'Lat': [-19.9, 9.62, -43.35],
                     'Lon': [-94.7, -20.08, -11.35],
                     'Rad': [250., 48., 42.]})
 cdb = CraterDatabase(df, "Moon", units="km")
-# Define annular ROIs for central peak, crater floor, and rim (sizes in crater radii)
-cdb.add_annuli(0, 0.1, "peak")
-cdb.add_annuli(0.3, 0.6, "floor")
-cdb.add_annuli(1.0, 1.2, "rim")
+
+# Define regions for central peak, crater floor, and rim (sizes in crater radii)
+cdb.add_annuli("peak", 0, 0.1)
+cdb.add_annuli("floor", 0.3, 0.6)
+cdb.add_annuli("rim", 1.0, 1.2)
+
+# DEM is a geotiff with elevation relative to reference Moon in meters
 stats = cdb.get_stats("dem.tif", regions=['floor', 'peak', 'rim'], stats=['mean', 'std'])
-cdb.plot()
+print(stats)
 ```
-
-![Craters map plot](https://raw.githubusercontent.com/cjtu/craterpy/trunk/craterpy/data/_images/readme_craters.png)
-
 
 | **Name** | **Lat** | **Lon** | **Rad** | **mean_floor** | **std_floor** | **mean_peak** | **std_peak** | **mean_rim** | **std_rim** |
 |---|---|---|---|---|---|---|---|---|---|
@@ -78,9 +109,6 @@ cdb.plot()
 | Compernicus | 9.62 | -20.08 | 48.0 | -3400.0 | 200.0 | -3400.0 | 100.0 | -0.0 | 200.0 |
 | Tycho | -43.35 | -11.35 | 42.0 | -3200.0 | 400.0 | -2100.0 | 500.0 | 900.0 | 400.0 |
 
-Quickly compute stats on many more craters and many datasets in parallel.
-
-![CraterDatabase plot](https://raw.githubusercontent.com/cjtu/craterpy/trunk/craterpy/data/_images/readme_craterdatabase.png)
 
 See the full [craterpy documentation](https://readthedocs.org/projects/craterpy/) on Read the Docs.
 
@@ -117,7 +145,7 @@ Trouble installing craterpy? Let us know on the [issues](https://github.com/cjtu
 
 ## Documentation
 
-Full API documentation is available at [readthedocs](https://readthedocs.org/projects/craterpy/).
+Full API documentation and usage examples are available at [readthedocs](https://readthedocs.org/projects/craterpy/).
 
 ## Contributing
 

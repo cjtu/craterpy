@@ -1,36 +1,13 @@
 # Craterpy API Documentation
 
-## CraterpyDataset object
+## The CraterDatabase
 
 ```{eval-rst}
-.. autoclass:: craterpy.dataset.CraterpyDataset
+.. autoclass:: craterpy.classes.CraterDatabase
     :members:
 ```
-
-## CraterpyRoi object
-
-```{eval-rst}
-.. autoclass:: craterpy.roi.CraterRoi
-    :members:
-```
-
-## Craterpy stats Module
-
-```{eval-rst}
-.. automodule:: craterpy.stats
-    :members:
-    :undoc-members:
-```
-
-## Craterpy masking module
-
-```{eval-rst}
-.. automodule:: craterpy.masking
-    :members:
-    :undoc-members:
-```
-
-## Craterpy plotting module
+<!-- TODO: update plotting and helper docs
+## Plotting module
 
 ```{eval-rst}
 .. automodule:: craterpy.plotting
@@ -38,10 +15,10 @@
     :undoc-members:
 ```
 
-## Craterpy helper functions
+## Helper functions
 
 ```{eval-rst}
 .. automodule:: craterpy.helper
     :members:
     :undoc-members:
-```
+``` -->
