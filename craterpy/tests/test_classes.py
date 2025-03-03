@@ -17,27 +17,32 @@ class TestCraterDatabase(unittest.TestCase):
         data_dir = Path(craterpy.__path__[0], "data")
         self.moon_tif = data_dir / "moon.tif"
         self.crater_list = data_dir / "craters.csv"
+        self.vesta_crater_list = data_dir / "vesta_craters.csv"
 
     def test_add_annuli(self):
-        """Test adding annular shapefiles to CraterDataBase."""
+        """Test adding annular geometries to CraterDataBase."""
         cdb = CraterDatabase(self.crater_list)
-        cdb.add_annuli(1, 2, "ejecta")
+        cdb.add_annuli("ejecta", 1, 2)
         # Check that ejecta appears in the string repr
         self.assertIn("ejecta", str(cdb))
         # Test that ejecta was registered as a propety and contains a shapely geom
         self.assertIsInstance(cdb.ejecta[0], shapely.geometry.Polygon)
 
+    def test_add_circles(self):
+        """Test adding circular geometries to CraterDatabase"""
+        pass
+
     def test_annuli_precision(self):
         """Test that simple and precise annuli mostly agree."""
         cdb = CraterDatabase(self.crater_list)
-        cdb.add_annuli(0, 1, "precise", precise=True)
-        cdb.add_annuli(0, 1, "simple", precise=False)
+        cdb.add_annuli("precise", 0, 1, precise=True)
+        cdb.add_annuli("simple", 0, 1, precise=False)
         assert_geometries_equal(cdb.precise, cdb.simple, tolerance=1)
 
     def test_get_stats(self):
         """Test getting statistics on a region for a raster."""
         cdb = CraterDatabase(self.crater_list)
-        cdb.add_annuli(1, 1.1, "rim")
+        cdb.add_annuli("rim", 1, 1.1)
         stats = cdb.get_stats(self.moon_tif, "rim", ["count"])
         self.assertIn("count_rim", stats.columns)
 
@@ -62,6 +67,7 @@ class TestCraterDatabase(unittest.TestCase):
 
     def test_vesta_coord_correction(self):
         """Test Vesta's various coordinate systems."""
+        cdb = CraterDatabase(self.vesta_crater_list, "vesta_claudia_dp", "m")
         pass
 
     def test_import_dataframe(self):

@@ -14,3 +14,4 @@ dist/
 *.sublime*
 *.ipynb*
 .vscode
+tmp/

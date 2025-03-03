@@ -5,7 +5,7 @@
 
 import os
 import sys
-import toml
+import importlib.metadata
 
 # Allow sphinx-autodoc to access craterpy contents
 sys.path.insert(0, os.path.abspath("../.."))
@@ -14,13 +14,11 @@ sys.path.insert(0, os.path.abspath("../.."))
 
 
 def get_version():
-    with open("../../pyproject.toml") as pyproj:
-        f = pyproj.read()
-    return toml.loads(f)["tool"]["poetry"]["version"]
+    return importlib.metadata.version("craterpy")
 
 
 project = "craterpy"
-copyright = "2021, Christian J. Tai Udovicic"
+copyright = "2025, Christian J. Tai Udovicic"
 author = "Christian J. Tai Udovicic"
 
 # The full version, including alpha/beta/rc tags
