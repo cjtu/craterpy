@@ -110,7 +110,7 @@ class CraterDatabase:
             Path to the file containing crater data.
         body: str
             Planetary body, e.g. Moon, Mercury, Vesta (default: Moon)
-        units (str):
+        units: str
             Length units of radius/diameter column in file, m or km (default: m)
         """
         lon_offset = 0
@@ -374,9 +374,9 @@ class CraterDatabase:
             Precisely calculate each geometry in a local projection (default: True).
 
         Examples:
-        - cdb.add_annuli(1, 2) generates annuli from each crater rim to 1 crater radius beyond the rim.
-        - cdb.add_annuli(1, 3) generates annuli from each crater rim to 1 crater diameter beyond the rim.
-        - cdb.add_annuli(0, 1) generates a cicle capturing the interior of the crater rim.
+        - cdb.add_annuli("name", 1, 2) generates annuli from each crater rim to 1 crater radius beyond the rim.
+        - cdb.add_annuli("name", 1, 3) generates annuli from each crater rim to 1 crater diameter beyond the rim.
+        - cdb.add_annuli("name", 0, 1) generates a cicle capturing the interior of the crater rim.
         """
         name = name or f"annulus_{inner}_{outer}"
         self.data[name] = self._gen_annulus(inner, outer, precise)
@@ -387,10 +387,12 @@ class CraterDatabase:
 
         Parameters
         ----------
-        size: int or float
-            Radius of circle around each crater in crater radii (default: 1).
         name: str
             Name of geometry column (default: circle_{size}).
+        size: int or float
+            Radius of circle around each crater in crater radii (default: 1).
+        precise: bool
+            Precisely calculate each geometry in a local projection (default: True).
         """
         name = name or f"circle_{size}"
         self.add_annuli(inner=0, outer=size, name=name, precise=precise)
