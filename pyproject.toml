@@ -54,7 +54,7 @@ optional = true
 
 [tool.poetry.group.docs.dependencies]
 myst-parser = "^1.0.0"
-sphinx = "^5.3.0"
+sphinx = ">=5.3,<7.0"
 sphinx-rtd-theme = "^2.0.0"
 sphinx-autobuild = "^2024.10.3"
 
