@@ -1,3 +1,4 @@
+from typing import Union
 import warnings
 import functools
 from pathlib import Path
@@ -100,18 +101,23 @@ class CraterDatabase:
     # _loncol (str): Column name for longitude.
     # _radcol (str): Column name for radius.
     # _vesta_coord (str, optional): Coordinate system for Vesta, if applicable.
-    def __init__(self, dataset, body="Moon", units="m"):
+    def __init__(
+            self, 
+            dataset: Union[str, pd.DataFrame],
+            body: str="Moon", 
+            units: str="m"):
         """
         Initialize a CraterDatabase.
 
-        Parameters
-        ----------
-        filepath: str or path-like
-            Path to the file containing crater data.
-        body: str
-            Planetary body, e.g. Moon, Mercury, Vesta (default: Moon)
-        units: str
-            Length units of radius/diameter column in file, m or km (default: m)
+        Parameters:
+            dataset (str or DataFrame): 
+                if str, path to the file containing crater data.
+                if DataFrame, DataFrame containing crater data.
+            body (str): Planetary body, e.g. Moon, Vesta (default: Moon)
+            units (str): Length units of radius/diameter, m or km (default: m)
+
+        Raises:
+            ValueError: If dataset is not a file or DataFrame.
         """
         lon_offset = 0
         if "vesta" in body.lower():
@@ -469,3 +475,186 @@ class CraterDatabase:
         label = "." + name if name else ""
         ax.set_title(f"CraterDatabase{label} (N={len(self.data)})")
         return ax
+    
+    def to_geojson(
+            self, 
+            filename=None, 
+            geometry_column=None, 
+            crs=None, 
+            properties=None, 
+            drop_private=True):
+        """
+        Export the crater database to GeoJSON format.
+        
+        Parameters
+        ----------
+        filename : str, optional
+            Path to output GeoJSON file. If None, returns a string representation.
+        geometry_column : str, optional
+            Name of the geometry column to use as the active geometry. 
+            If None, uses the current active geometry.
+        crs : str or pyproj.CRS, optional
+            Target coordinate reference system. If None, uses the current CRS.
+        properties : list, optional
+            List of column names to include as properties. If None, includes all columns
+            except geometry columns.
+        drop_private : bool, optional
+            If True, drops columns with names starting with an underscore (private columns).
+            Default is True.
+            
+        Returns
+        -------
+        str or None
+            If filename is None, returns the GeoJSON string.
+            Otherwise, writes to the file and returns None.
+        """
+        # Create a copy of the data to avoid modifying the original
+        data = self.data.copy()
+        
+        # Determine which geometry column to use
+        if geometry_column is not None:
+            if geometry_column in data.columns:
+                data = data.set_geometry(geometry_column)
+            else:
+                raise ValueError(f"Geometry column '{geometry_column}' not found.")
+        
+        # Drop private columns if requested
+        if drop_private:
+            private_cols = [col for col in data.columns if col.startswith("_") and col != data.geometry.name]
+            data = data.drop(columns=private_cols)
+        
+        # Filter properties if specified
+        if properties is not None:
+            # Make sure the geometry column is included
+            geometry_name = data.geometry.name
+            keep_cols = list(set(properties + [geometry_name]))
+            missing_cols = [col for col in keep_cols if col not in data.columns]
+            if missing_cols:
+                raise ValueError(f"Properties not found: {missing_cols}")
+            data = data[keep_cols]
+        
+        # Convert to the target CRS if specified
+        if crs is not None:
+            # Handle various input types for CRS
+            try:
+                target_crs = CRS.from_user_input(crs)
+                if data.crs != target_crs:
+                    data = data.to_crs(target_crs)
+            except Exception as e:
+                raise ValueError(f"Error converting to CRS '{crs}': {str(e)}")
+        
+        # Export to GeoJSON
+        if filename is not None:
+            data.to_file(filename, driver="GeoJSON")
+            return None
+        else:
+            # Return as string
+            return data.to_json()
+
+
+    @classmethod
+    def read_shapefile(cls, filename, body="Moon", units="m"):
+        """
+        Read crater data from a shapefile or GeoJSON file.
+        
+        Parameters
+        ----------
+        filename : str
+            Path to the shapefile or GeoJSON file.
+        body : str, optional
+            Planetary body, e.g. Moon, Vesta (default: Moon).
+            If the file contains a 'body' or 'planet' field, that value will be used instead.
+        units : str, optional
+            Length units of radius/diameter, m or km (default: m).
+            If the file contains a 'units' field, that value will be used instead.
+        
+        Returns
+        -------
+        CraterDatabase
+            A new CraterDatabase instance containing the data from the file.
+            
+        Notes
+        -----
+        This method assumes the file was previously created by CraterDatabase.to_geojson()
+        or has a compatible format with lat/lon coordinates and radius or diameter information.
+        
+        If the file contains different coordinate column names than expected, this method
+        will attempt to identify them by common names (e.g., 'lat', 'latitude', 'lon', 'longitude').
+        """
+        gdf = gpd.read_file(filename)
+        
+        # Check if the file has body or units info
+        if 'body' in gdf.columns and gdf['body'].nunique() == 1:
+            body = gdf['body'].iloc[0]
+        elif 'planet' in gdf.columns and gdf['planet'].nunique() == 1:
+            body = gdf['planet'].iloc[0]
+            
+        if 'units' in gdf.columns and gdf['units'].nunique() == 1:
+            units = gdf['units'].iloc[0]
+        
+        # Create a working copy to modify
+        data = gdf.copy()
+        
+        # Try to identify latitude column
+        lat_col = None
+        lat_candidates = ['lat', 'latitude', 'latitude_deg', 'lat_deg', 'y']
+        for col in lat_candidates:
+            if col in data.columns:
+                lat_col = col
+                break
+        
+        # Try to identify longitude column
+        lon_col = None
+        lon_candidates = ['lon', 'longitude', 'longitude_deg', 'lon_deg', 'x']
+        for col in lon_candidates:
+            if col in data.columns:
+                lon_col = col
+                break
+        
+        # If lat/lon columns not found, try to extract from Point geometry
+        if (lat_col is None or lon_col is None) and all(geom.geom_type == 'Point' for geom in data.geometry):
+            data['lon'] = data.geometry.x
+            data['lat'] = data.geometry.y
+            lat_col = 'lat'
+            lon_col = 'lon'
+        
+        # If still no lat/lon, raise error
+        if lat_col is None or lon_col is None:
+            raise ValueError("Could not identify latitude and longitude columns.")
+        
+        # Standardize column names
+        data = data.rename(columns={lat_col: 'lat', lon_col: 'lon'})
+        
+        # Try to identify radius or diameter
+        radius_col = None
+        radius_candidates = ['radius', 'rad', 'r_km', 'r_m', 'radius_m', 'radius_km']
+        for col in radius_candidates:
+            if col in data.columns:
+                radius_col = col
+                break
+        
+        # If no radius, check for diameter
+        diameter_col = None
+        if radius_col is None:
+            diameter_candidates = ['diameter', 'diam', 'd_km', 'd_m', 'diameter_m', 'diameter_km']
+            for col in diameter_candidates:
+                if col in data.columns:
+                    diameter_col = col
+                    break
+        
+        # Process radius or diameter
+        if radius_col:
+            data = data.rename(columns={radius_col: 'radius'})
+        elif diameter_col:
+            data['radius'] = data[diameter_col] / 2
+            # Remove original diameter column to avoid confusing the constructor
+            data = data.drop(columns=[diameter_col])
+        else:
+            # If no radius or diameter, check if '_radius_m' exists (from previous export)
+            if '_radius_m' in data.columns:
+                pass  # Already has the right format
+            else:
+                raise ValueError("Could not identify radius or diameter column.")
+        
+        # Create and return a new CraterDatabase instance
+        return cls(data, body=body, units=units)
