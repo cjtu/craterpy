@@ -102,15 +102,16 @@ class CraterDatabase:
     # _radcol (str): Column name for radius.
     # _vesta_coord (str, optional): Coordinate system for Vesta, if applicable.
     def __init__(
-            self, 
-            dataset: Union[str, pd.DataFrame],
-            body: str="Moon", 
-            units: str="m"):
+        self,
+        dataset: Union[str, pd.DataFrame],
+        body: str = "Moon",
+        units: str = "m",
+    ):
         """
         Initialize a CraterDatabase.
 
         Parameters:
-            dataset (str or DataFrame): 
+            dataset (str or DataFrame):
                 if str, path to the file containing crater data.
                 if DataFrame, DataFrame containing crater data.
             body (str): Planetary body, e.g. Moon, Vesta (default: Moon)
@@ -475,23 +476,24 @@ class CraterDatabase:
         label = "." + name if name else ""
         ax.set_title(f"CraterDatabase{label} (N={len(self.data)})")
         return ax
-    
+
     def to_geojson(
-            self, 
-            filename=None, 
-            geometry_column=None, 
-            crs=None, 
-            properties=None, 
-            drop_private=True):
+        self,
+        filename=None,
+        geometry_column=None,
+        crs=None,
+        properties=None,
+        drop_private=True,
+    ):
         """
         Export the crater database to GeoJSON format.
-        
+
         Parameters
         ----------
         filename : str, optional
             Path to output GeoJSON file. If None, returns a string representation.
         geometry_column : str, optional
-            Name of the geometry column to use as the active geometry. 
+            Name of the geometry column to use as the active geometry.
             If None, uses the current active geometry.
         crs : str or pyproj.CRS, optional
             Target coordinate reference system. If None, uses the current CRS.
@@ -501,14 +503,14 @@ class CraterDatabase:
         drop_private : bool, optional
             If True, drops columns with names starting with an underscore (private columns).
             Default is True.
-            
+
         Returns
         -------
         str or None
             If filename is None, returns the GeoJSON string.
             Otherwise, writes to the file and returns None.
         """
-        
+
         # Determine which geometry column to use
         if geometry_column is None:
             # Use the current active geometry
@@ -519,14 +521,16 @@ class CraterDatabase:
         else:
             # Specified column doesn't exist
             raise ValueError(f"Geometry column '{geometry_column}' not found.")
-        
+
         # Determine which columns to keep
         if properties is not None:
             # Check if any specified properties don't exist
-            missing_cols = [col for col in properties if col not in self.data.columns]
+            missing_cols = [
+                col for col in properties if col not in self.data.columns
+            ]
             if missing_cols:
                 raise ValueError(f"Properties not found: {missing_cols}")
-            
+
             # Make sure geometry column is included in properties
             if geom_col not in properties:
                 keep_cols = properties + [geom_col]
@@ -538,9 +542,11 @@ class CraterDatabase:
 
         # Remove private columns if requested
         if drop_private:
-            keep_cols = [col for col in keep_cols if not (col.startswith("_") and col != geom_col)]
-        
-        
+            keep_cols = [
+                col
+                for col in keep_cols
+                if not (col.startswith("_") and col != geom_col)
+            ]
 
         if crs is not None:
             converted_db = CraterDatabase.to_crs(self, crs)
@@ -549,7 +555,7 @@ class CraterDatabase:
         else:
             # Apply the same filtering/geometry update to the converted data
             data = self.data[keep_cols].set_geometry(geom_col)
-        
+
         # Export to GeoJSON
         if filename is not None:
             data.to_file(filename, driver="GeoJSON")
@@ -562,19 +568,19 @@ class CraterDatabase:
     def to_crs(cls, crater_db, crs):
         """
         Convert the crater database to a different coordinate reference system.
-        
+
         Parameters
         ----------
         crater_db : CraterDatabase
             The crater database to convert.
         crs : str or pyproj.CRS
             Target coordinate reference system.
-            
+
         Returns
         -------
         CraterDatabase
             A new CraterDatabase instance with the converted CRS.
-        
+
         Raises
         ------
         ValueError
@@ -586,7 +592,14 @@ class CraterDatabase:
                 # Create a new CraterDatabase with the converted data
                 new_data = crater_db.data.to_crs(target_crs)
                 # Use the __init__ of the class to create a new CraterDatabase
-                return cls(new_data, body=crater_db._vesta_coord if hasattr(crater_db, '_vesta_coord') else "Moon")
+                return cls(
+                    new_data,
+                    body=(
+                        crater_db._vesta_coord
+                        if hasattr(crater_db, "_vesta_coord")
+                        else "Moon"
+                    ),
+                )
             return crater_db
         except Exception as e:
             raise ValueError(f"Error converting to CRS '{crs}': {str(e)}")
@@ -595,7 +608,7 @@ class CraterDatabase:
     def read_shapefile(cls, filename, body="Moon", units="m"):
         """
         Read crater data from a shapefile or GeoJSON file.
-        
+
         Parameters
         ----------
         filename : str
@@ -605,47 +618,50 @@ class CraterDatabase:
             If None, will attempt to determine from the file's CRS.
         units : str, optional
             Length units of radius/diameter, m or km (default: m).
-        
+
         Returns
         -------
         CraterDatabase
             A new CraterDatabase instance containing the data from the file.
-            
+
         Notes
         -----
         This method assumes the file was previously created by CraterDatabase.to_geojson()
         or has a compatible format with lat/lon coordinates and radius or diameter information.
-        
+
         If the file contains different coordinate column names than expected, this method
         will attempt to identify them by common names (e.g., 'lat', 'latitude', 'lon', 'longitude').
         """
         # Try to read metadata from GeoJSON first (if it's a GeoJSON file)
         file_metadata = {}
-        if filename.lower().endswith('.geojson'):
+        if filename.lower().endswith(".geojson"):
             import json
+
             try:
-                with open(filename, 'r') as f:
+                with open(filename, "r") as f:
                     geojson_data = json.load(f)
-                    if 'metadata' in geojson_data:
-                        file_metadata = geojson_data['metadata']
+                    if "metadata" in geojson_data:
+                        file_metadata = geojson_data["metadata"]
             except (json.JSONDecodeError, IOError):
                 # If can't read it as JSON, try geopandas anyway
                 pass
-        
+
         # Read the file with geopandas
         data = gpd.read_file(filename)
-        
+
         # Determine body (priority: user-specified > file metadata > CRS detection)
         if body is None:
             # Check if we have body info in metadata
-            if 'body' in file_metadata:
-                body = file_metadata['body']
+            if "body" in file_metadata:
+                body = file_metadata["body"]
             else:
                 # Try to determine from CRS
                 file_crs = data.crs
                 if file_crs is None:
-                    raise ValueError("File has no CRS and body parameter was not provided. Please specify the body parameter.")
-                
+                    raise ValueError(
+                        "File has no CRS and body parameter was not provided. Please specify the body parameter."
+                    )
+
                 # Try to match the CRS against known planetary body CRSs
                 body_found = False
                 for body_name, crs_list in CRS_DICT.items():
@@ -660,20 +676,20 @@ class CraterDatabase:
                             continue
                     if body_found:
                         break
-                        
+
                 if not body_found:
                     raise ValueError(
                         "Could not determine planetary body from file CRS. "
                         "Please specify the body parameter explicitly."
                     )
-        
+
         # Check if we have units info in metadata
-        file_units = file_metadata.get('units', units)
-        
+        file_units = file_metadata.get("units", units)
+
         # If geometry is Point type, extract lat/lon from geometry
-        if all(geom.geom_type == 'Point' for geom in data.geometry):
-            data['Lon'] = data.geometry.x
-            data['Lat'] = data.geometry.y
-        
+        if all(geom.geom_type == "Point" for geom in data.geometry):
+            data["Lon"] = data.geometry.x
+            data["Lat"] = data.geometry.y
+
         # Create and return a new CraterDatabase instance
         return cls(data, body=body, units=file_units)
