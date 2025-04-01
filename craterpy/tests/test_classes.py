@@ -338,7 +338,7 @@ class TestCraterDatabase(unittest.TestCase):
         gdf = gpd.GeoDataFrame({
             "latitude_deg": [0.0, 10.0],
             "longitude_deg": [0.0, 20.0],
-            "diameter_km": [2.0, 4.0],  # Diameters in km
+            "diameter": [2.0, 4.0],  # Diameters in km
             "crater_name": ["Crater A", "Crater B"],
             "geometry": [Point(0, 0), Point(20, 10)]
         }, crs="EPSG:4326")
@@ -364,7 +364,7 @@ class TestCraterDatabase(unittest.TestCase):
             np.testing.assert_array_almost_equal(imported_cdb.lon.values, [0.0, 20.0])
             
             # Since diameter was converted to radius in km and then to meters,
-            # we expect: diameter_km / 2 * 1000 = [1000.0, 2000.0]
+            # we expect: diameter / 2 * 1000 = [1000.0, 2000.0]
             np.testing.assert_array_almost_equal(imported_cdb.rad.values, [1000.0, 2000.0])
         finally:
             # Clean up
@@ -383,8 +383,8 @@ class TestCraterDatabase(unittest.TestCase):
             "lon": [0.0, 20.0],
             "radius": [1.0, 2.0],
             "name": ["Crater A", "Crater B"],
-            "body": ["Mars", "Mars"],  # Should override default body
-            "units": ["km", "km"],     # Should override default units
+            "body": ["Mars", "Mars"],  # Will NOT override user-provided body
+            "units": ["km", "km"],     # Will NOT override user-provided units
             "geometry": [Point(0, 0), Point(20, 10)]
         }, crs="EPSG:4326")
         
@@ -395,17 +395,16 @@ class TestCraterDatabase(unittest.TestCase):
             # Save to file
             gdf.to_file(tmp_path, driver="GeoJSON")
             
-            # Read the file, specifying Moon as default (should be overridden by Mars)
+            # Read the file, specifying Moon as body - this should be used
             imported_cdb = CraterDatabase.read_shapefile(tmp_path, body="Moon", units="m")
             
-            # Verify body and units were overridden from file
-            # We can't directly compare the CRS name as it gets reformatted when the CRS object is created
-            # Instead check that we're using Mars CRS by checking that it's not Moon CRS
-            self.assertNotEqual(imported_cdb._crs.name, CRS.from_user_input(CRS_DICT["moon"][0]).name)
-            self.assertEqual(imported_cdb._crs.name, CRS.from_user_input(CRS_DICT["mars"][0]).name)
+            # Verify that user-specified body was used (not overridden by file)
+            self.assertEqual(imported_cdb._crs.name, CRS.from_user_input(CRS_DICT["moon"][0]).name)
+            self.assertNotEqual(imported_cdb._crs.name, CRS.from_user_input(CRS_DICT["mars"][0]).name)
             
-            # Since units in file is km, radii should be converted to meters
-            np.testing.assert_array_almost_equal(imported_cdb.rad.values, [1000.0, 2000.0])
+            # Since user-specified units is 'm', and radius in file is 1.0 and 2.0,
+            # the radius should be directly used as meters
+            np.testing.assert_array_almost_equal(imported_cdb.rad.values, [1.0, 2.0])
         finally:
             # Clean up
             if os.path.exists(tmp_path):
@@ -423,7 +422,7 @@ class TestCraterDatabase(unittest.TestCase):
             "lat": [0.0, 10.0],
             "lon": [0.0, 20.0],
             "radius": [1.0, 2.0],
-            "planet": ["Europa", "Europa"],  # Should override default body
+            "planet": ["Europa", "Europa"],  # Will NOT override user-provided body
             "geometry": [Point(0, 0), Point(20, 10)]
         }, crs="EPSG:4326")
         
@@ -434,12 +433,12 @@ class TestCraterDatabase(unittest.TestCase):
             # Save to file
             gdf.to_file(tmp_path, driver="GeoJSON")
             
-            # Read the file, specifying Moon as default (should be overridden by Europa)
+            # Read the file, specifying Moon as body - this should be used
             imported_cdb = CraterDatabase.read_shapefile(tmp_path, body="Moon")
             
-            # Verify body was overridden from file
-            self.assertEqual(imported_cdb._crs.name, CRS.from_user_input(CRS_DICT["europa"][0]).name)  # Europa CRS
-            self.assertNotEqual(imported_cdb._crs.name, CRS.from_user_input(CRS_DICT["moon"][0]).name)  # Not Moon CRS
+            # Verify user-specified body was used (not overridden by file)
+            self.assertEqual(imported_cdb._crs.name, CRS.from_user_input(CRS_DICT["moon"][0]).name)
+            self.assertNotEqual(imported_cdb._crs.name, CRS.from_user_input(CRS_DICT["europa"][0]).name)
         finally:
             # Clean up
             if os.path.exists(tmp_path):
@@ -506,3 +505,231 @@ class TestCraterDatabase(unittest.TestCase):
             # Clean up
             if os.path.exists(tmp_path):
                 os.remove(tmp_path)
+
+    def test_read_shapefile_from_metadata_body(self):
+        """Test reading body from file metadata in GeoJSON."""
+        import geopandas as gpd
+        import tempfile
+        import json
+        import os
+        
+        # Create a simple GeoDataFrame
+        gdf = gpd.GeoDataFrame({
+            "lat": [10.0, -20.0],
+            "lon": [45.0, -60.0],
+            "radius": [1000.0, 2000.0],
+            "geometry": [Point(45.0, 10.0), Point(-60.0, -20.0)]
+        }, crs="EPSG:4326")  # Generic CRS, not planet-specific
+        
+        with tempfile.NamedTemporaryFile(suffix='.geojson', delete=False) as tmp:
+            tmp_path = tmp.name
+        
+        try:
+            # Create GeoJSON string
+            geojson_str = gdf.to_json()
+            
+            # Parse it to add metadata
+            geojson_data = json.loads(geojson_str)
+            
+            # Add metadata with body info
+            geojson_data['metadata'] = {
+                'body': 'Europa',
+                'units': 'm'
+            }
+            
+            # Write the modified GeoJSON
+            with open(tmp_path, 'w') as f:
+                json.dump(geojson_data, f)
+            
+            # Read the file without specifying body - should use metadata
+            imported_cdb = CraterDatabase.read_shapefile(tmp_path, body=None)
+            
+            # Verify body was correctly read from metadata
+            self.assertEqual(imported_cdb._crs.name, CRS.from_user_input(CRS_DICT["europa"][0]).name)
+            
+        finally:
+            # Clean up
+            if os.path.exists(tmp_path):
+                os.remove(tmp_path)
+
+    def test_to_crs_same_body_different_projection(self):
+        """Test CRS conversion between different projections of the same body."""
+        # Create a simple CraterDatabase for Moon
+        df = pd.DataFrame({
+            "lat": [10.0, -20.0],
+            "lon": [45.0, -60.0],
+            "radius": [1000.0, 2000.0]
+        })
+        cdb = CraterDatabase(df, body="Moon")
+        
+        # Get initial CRS (geographic)
+        initial_crs = cdb.data.crs
+        
+        # Convert to a different Moon CRS (equirectangular projection)
+        moon_equirect_crs = CRS.from_user_input(CRS_DICT["moon"][1])
+        converted_cdb = CraterDatabase.to_crs(cdb, moon_equirect_crs)
+        
+        # Verify the CRS objects are different
+        self.assertNotEqual(converted_cdb.data.crs, initial_crs)
+        
+        # Verify the CRS is correctly set to the target CRS
+        self.assertEqual(converted_cdb.data.crs, moon_equirect_crs)
+        
+        # Verify it's a new object, not the original
+        self.assertIsNot(converted_cdb, cdb)
+        
+        # Verify the data was preserved during conversion
+        np.testing.assert_array_almost_equal(converted_cdb.lat.values, cdb.lat.values)
+        np.testing.assert_array_almost_equal(converted_cdb.lon.values, cdb.lon.values)
+        np.testing.assert_array_almost_equal(converted_cdb.rad.values, cdb.rad.values)
+
+    def test_to_crs_string_input(self):
+        """Test conversion using a string CRS identifier."""
+        # Create a database with Moon CRS
+        df = pd.DataFrame({
+            "lat": [10.0, -20.0],
+            "lon": [45.0, -60.0],
+            "radius": [1000.0, 2000.0]
+        })
+        cdb = CraterDatabase(df, body="Moon")
+        
+        # Convert using a string CRS code (Moon equirectangular)
+        moon_crs_string = CRS_DICT["moon"][1]  # Equirectangular projection
+        converted_cdb = CraterDatabase.to_crs(cdb, moon_crs_string)
+        
+        # Verify conversion worked
+        self.assertEqual(converted_cdb.data.crs, CRS.from_user_input(moon_crs_string))
+        self.assertIsNot(converted_cdb, cdb)
+
+    def test_to_crs_identical_returns_same_instance(self):
+        """Test that converting to the same CRS returns the original instance."""
+        # Create a database
+        df = pd.DataFrame({
+            "lat": [10.0, -20.0],
+            "lon": [45.0, -60.0],
+            "radius": [1000.0, 2000.0]
+        })
+        cdb = CraterDatabase(df, body="Moon")
+        
+        # Get the current CRS
+        current_crs = cdb.data.crs
+        
+        # Convert to the same CRS
+        result = CraterDatabase.to_crs(cdb, current_crs)
+        
+        # Should be the same instance
+        self.assertIs(result, cdb)
+
+    def test_to_crs_invalid_crs_format(self):
+        """Test error handling with invalid CRS format."""
+        # Create a database
+        df = pd.DataFrame({
+            "lat": [10.0, -20.0],
+            "lon": [45.0, -60.0],
+            "radius": [1000.0, 2000.0]
+        })
+        cdb = CraterDatabase(df, body="Moon")
+        
+        # Try to convert using an invalid CRS format
+        with self.assertRaises(ValueError) as context:
+            CraterDatabase.to_crs(cdb, "NOT_A_VALID_CRS")
+        
+        # Verify error message is helpful
+        self.assertIn("Error converting to CRS", str(context.exception))
+
+    def test_to_crs_preserves_data_values(self):
+        """Test that data values are preserved during CRS conversion."""
+        # Create a database
+        df = pd.DataFrame({
+            "lat": [10.0, -20.0, 30.0, -40.0],
+            "lon": [45.0, -60.0, 75.0, -90.0],
+            "radius": [1000.0, 2000.0, 3000.0, 4000.0],
+            "custom_field": ["A", "B", "C", "D"]
+        })
+        cdb = CraterDatabase(df, body="Moon")
+        
+        # Convert to a different Moon projection
+        moon_equirect_crs = CRS.from_user_input(CRS_DICT["moon"][1])
+        converted_cdb = CraterDatabase.to_crs(cdb, moon_equirect_crs)
+        
+        # Verify all data values are preserved
+        np.testing.assert_array_almost_equal(converted_cdb.lat.values, cdb.lat.values)
+        np.testing.assert_array_almost_equal(converted_cdb.lon.values, cdb.lon.values)
+        np.testing.assert_array_almost_equal(converted_cdb.rad.values, cdb.rad.values)
+        np.testing.assert_array_equal(
+            converted_cdb.data["custom_field"].values, 
+            cdb.data["custom_field"].values)
+        
+        # Verify the point geometries have been properly transformed
+        # (Can't directly compare coordinates as they change with projection)
+        self.assertEqual(len(converted_cdb.center), len(cdb.center))
+        self.assertEqual(converted_cdb.center.geom_type.unique()[0], "Point")
+
+    def test_to_crs_vesta_coordinate_preservation(self):
+        """Test that Vesta coordinate system information is preserved."""
+        # Create a database for Vesta
+        df = pd.DataFrame({
+            "lat": [10.0, -20.0],
+            "lon": [45.0, -60.0],
+            "radius": [1000.0, 2000.0]
+        })
+        cdb = CraterDatabase(df, body="vesta_claudia_dp")
+        
+        # Verify Vesta coordinate system attribute exists
+        self.assertTrue(hasattr(cdb, "_vesta_coord"))
+        self.assertEqual(cdb._vesta_coord, "vesta_claudia_dp")
+        
+        # Convert to a different Vesta projection
+        vesta_equirect_crs = CRS.from_user_input(CRS_DICT["vesta"][1])
+        converted_cdb = CraterDatabase.to_crs(cdb, vesta_equirect_crs)
+        
+        # Verify Vesta coordinate system information was preserved
+        self.assertTrue(hasattr(converted_cdb, "_vesta_coord"))
+        self.assertEqual(converted_cdb._vesta_coord, "vesta_claudia_dp")
+
+    def test_to_crs_different_body_error_message(self):
+        """Test that error message for different bodies is helpful."""
+        # Create a Moon database
+        df = pd.DataFrame({
+            "lat": [10.0, -20.0],
+            "lon": [45.0, -60.0],
+            "radius": [1000.0, 2000.0]
+        })
+        cdb = CraterDatabase(df, body="Moon")
+        
+        # Try to convert to Mars CRS
+        mars_crs = CRS.from_user_input(CRS_DICT["mars"][0])
+        
+        # This should raise a meaningful error
+        with self.assertRaises(ValueError) as context:
+            CraterDatabase.to_crs(cdb, mars_crs)
+        
+        error_msg = str(context.exception)
+        
+        # Check for key information in the error message
+        self.assertIn("Error converting to CRS", error_msg)
+        self.assertIn("proj_create_operations", error_msg)
+        self.assertIn("Source and target ellipsoid do not belong to the same celestial body", error_msg)
+        self.assertIn("Moon vs Mars", error_msg)
+
+    def test_to_crs_with_north_pole_projection(self):
+        """Test conversion to a north pole stereographic projection."""
+        # Create a Moon database
+        df = pd.DataFrame({
+            "lat": [70.0, 75.0, 80.0, 85.0],  # High latitude points for polar projection
+            "lon": [0.0, 90.0, 180.0, 270.0],
+            "radius": [1000.0, 2000.0, 3000.0, 4000.0]
+        })
+        cdb = CraterDatabase(df, body="Moon")
+        
+        # Convert to north pole stereographic projection
+        moon_north_crs = CRS.from_user_input(CRS_DICT["moon"][3])
+        converted_cdb = CraterDatabase.to_crs(cdb, moon_north_crs)
+        
+        # Verify conversion
+        self.assertEqual(converted_cdb.data.crs, moon_north_crs)
+        
+        # Verify data integrity
+        self.assertEqual(len(converted_cdb.data), len(cdb.data))
+        np.testing.assert_array_almost_equal(converted_cdb.lat.values, cdb.lat.values)
+        np.testing.assert_array_almost_equal(converted_cdb.lon.values, cdb.lon.values)
