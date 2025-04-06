@@ -182,7 +182,7 @@ class CraterDatabase:
             [p for p in self._get_properties() if not p.startswith("_")]
         )
         return f"CraterDatabase of length {len(self.data)} with attributes {attrs}."
-    
+
     def __eq__(self, other):
         """
         Compare this CraterDatabase with another for equality.
@@ -212,9 +212,10 @@ class CraterDatabase:
             and self._latcol == other._latcol
             and self._loncol == other._loncol
             and self._radcol == other._radcol
-            and getattr(self, "_vesta_coord", None) == getattr(other, "_vesta_coord", None)
+            and getattr(self, "_vesta_coord", None)
+            == getattr(other, "_vesta_coord", None)
         )
-    
+
     def __len__(self):
         """Return the number of crater records in the database."""
         return len(self.data)
@@ -605,8 +606,8 @@ class CraterDatabase:
         else:
             # Return as string
             return data.to_json()
-        
-    def to_crs(self, crs, inplace: bool=False):
+
+    def to_crs(self, crs, inplace: bool = False):
         """
         Convert the crater database to a different coordinate reference system.
 
@@ -624,7 +625,7 @@ class CraterDatabase:
             A new CraterDatabase instance with the converted data if inplace is False.
             Otherwise, modifies the current instance.
         """
-        
+
         if inplace:
             self.data.to_crs(crs, inplace=True)
             return
@@ -636,11 +637,12 @@ class CraterDatabase:
 
     @classmethod
     def read_shapefile(
-            cls, 
-            filename, 
-            body: str="Moon", 
-            units: str="m",
-            use_point_geom: bool=True):
+        cls,
+        filename,
+        body: str = "Moon",
+        units: str = "m",
+        use_point_geom: bool = True,
+    ):
         """
         Read crater data from a shapefile or GeoJSON file.
 
@@ -695,7 +697,7 @@ class CraterDatabase:
             else:
                 # Try to determine from CRS
                 try:
-                    body = data.crs.ellipsoid.name.split()[0].lower()  
+                    body = data.crs.ellipsoid.name.split()[0].lower()
                 except (AttributeError, IndexError) as err:
                     raise ValueError(
                         "Could not determine planetary body from file CRS. "
@@ -706,7 +708,9 @@ class CraterDatabase:
         file_units = file_metadata.get("units", units)
 
         # If geometry is Point type, extract lat/lon from geometry
-        if use_point_geom and all(geom.geom_type == "Point" for geom in data.geometry):
+        if use_point_geom and all(
+            geom.geom_type == "Point" for geom in data.geometry
+        ):
             data.insert(0, "_Lon", data.geometry.x)
             data.insert(0, "_Lat", data.geometry.y)
 
