@@ -1,3 +1,4 @@
+from copy import deepcopy
 from typing import Union
 import warnings
 import functools
@@ -125,6 +126,7 @@ class CraterDatabase:
             body, lon_offset = self._vesta_check(body)
             self._vesta_coord = body
             body = "vesta"
+
         (
             self._crs,
             self._crs180,
@@ -180,6 +182,46 @@ class CraterDatabase:
             [p for p in self._get_properties() if not p.startswith("_")]
         )
         return f"CraterDatabase of length {len(self.data)} with attributes {attrs}."
+    
+    def __eq__(self, other):
+        """
+        Compare this CraterDatabase with another for equality.
+
+        Two CraterDatabase objects are considered equal if all of the below are true:
+        - They are instances of CraterDatabase.
+        - Their underlying data GeoDataFrames are equal.
+        - Their coordinate reference systems (_crs, _crs180, _crs360, _crsnorth, _crssouth)
+            are equal.
+        - The names of the latitude, longitude, and radius columns (_latcol, _loncol, _radcol)
+            are equal.
+        - The optional _vesta_coord attribute (if present) is equal.
+
+        Returns:
+            bool: True if the two objects are equal, False otherwise.
+        """
+        if not isinstance(other, CraterDatabase):
+            return NotImplemented
+
+        return (
+            self.data.equals(other.data)
+            and self._crs == other._crs
+            and self._crs180 == other._crs180
+            and self._crs360 == other._crs360
+            and self._crsnorth == other._crsnorth
+            and self._crssouth == other._crssouth
+            and self._latcol == other._latcol
+            and self._loncol == other._loncol
+            and self._radcol == other._radcol
+            and getattr(self, "_vesta_coord", None) == getattr(other, "_vesta_coord", None)
+        )
+    
+    def __len__(self):
+        """Return the number of crater records in the database."""
+        return len(self.data)
+
+    def __bool__(self):
+        """Return True if the database contains any crater records."""
+        return not self.data.empty
 
     def _load_crs(self, body):
         """Return the pyproj CRSs for the body."""
@@ -563,49 +605,42 @@ class CraterDatabase:
         else:
             # Return as string
             return data.to_json()
-
-    @classmethod
-    def to_crs(cls, crater_db, crs):
+        
+    def to_crs(self, crs, inplace: bool=False):
         """
         Convert the crater database to a different coordinate reference system.
 
         Parameters
         ----------
-        crater_db : CraterDatabase
-            The crater database to convert.
         crs : str or pyproj.CRS
             Target coordinate reference system.
+        inplace : bool, optional
+            If True, modifies the current instance. If False, returns a new instance.
+            Default is False.
 
         Returns
         -------
         CraterDatabase
-            A new CraterDatabase instance with the converted CRS.
-
-        Raises
-        ------
-        ValueError
-            If there's an error converting to the specified CRS.
+            A new CraterDatabase instance with the converted data if inplace is False.
+            Otherwise, modifies the current instance.
         """
-        try:
-            target_crs = CRS.from_user_input(crs)
-            if crater_db.data.crs != target_crs:
-                # Create a new CraterDatabase with the converted data
-                new_data = crater_db.data.to_crs(target_crs)
-                # Use the __init__ of the class to create a new CraterDatabase
-                return cls(
-                    new_data,
-                    body=(
-                        crater_db._vesta_coord
-                        if hasattr(crater_db, "_vesta_coord")
-                        else "Moon"
-                    ),
-                )
-            return crater_db
-        except Exception as e:
-            raise ValueError(f"Error converting to CRS '{crs}': {str(e)}")
+        
+        if inplace:
+            self.data.to_crs(crs, inplace=True)
+            return
+        else:
+            # Make a copy of the whole instance and do to_crs inplace on the copy
+            new_crater_db = deepcopy(self)
+            new_crater_db.to_crs(crs, inplace=True)
+            return new_crater_db
 
     @classmethod
-    def read_shapefile(cls, filename, body="Moon", units="m"):
+    def read_shapefile(
+            cls, 
+            filename, 
+            body: str="Moon", 
+            units: str="m",
+            use_point_geom: bool=True):
         """
         Read crater data from a shapefile or GeoJSON file.
 
@@ -618,6 +653,9 @@ class CraterDatabase:
             If None, will attempt to determine from the file's CRS.
         units : str, optional
             Length units of radius/diameter, m or km (default: m).
+        use_point_geom : bool, optional
+            If True, use point geometry for lat/lon coordinates (default: True).
+            Otherwise, use lat/lon columns directly (if they exist)
 
         Returns
         -------
@@ -656,40 +694,21 @@ class CraterDatabase:
                 body = file_metadata["body"]
             else:
                 # Try to determine from CRS
-                file_crs = data.crs
-                if file_crs is None:
-                    raise ValueError(
-                        "File has no CRS and body parameter was not provided. Please specify the body parameter."
-                    )
-
-                # Try to match the CRS against known planetary body CRSs
-                body_found = False
-                for body_name, crs_list in CRS_DICT.items():
-                    for crs_code in crs_list:
-                        try:
-                            target_crs = CRS.from_user_input(crs_code)
-                            if file_crs == target_crs:
-                                body = body_name
-                                body_found = True
-                                break
-                        except:
-                            continue
-                    if body_found:
-                        break
-
-                if not body_found:
+                try:
+                    body = data.crs.ellipsoid.name.split()[0].lower()  
+                except (AttributeError, IndexError) as err:
                     raise ValueError(
                         "Could not determine planetary body from file CRS. "
                         "Please specify the body parameter explicitly."
-                    )
+                    ) from err
 
         # Check if we have units info in metadata
         file_units = file_metadata.get("units", units)
 
         # If geometry is Point type, extract lat/lon from geometry
-        if all(geom.geom_type == "Point" for geom in data.geometry):
-            data["Lon"] = data.geometry.x
-            data["Lat"] = data.geometry.y
+        if use_point_geom and all(geom.geom_type == "Point" for geom in data.geometry):
+            data.insert(0, "_Lon", data.geometry.x)
+            data.insert(0, "_Lat", data.geometry.y)
 
         # Create and return a new CraterDatabase instance
         return cls(data, body=body, units=file_units)
