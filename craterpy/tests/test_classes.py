@@ -356,7 +356,7 @@ class TestCraterDatabase(unittest.TestCase):
                 "crater_name": ["Crater A", "Crater B"],
                 "geometry": [Point(0, 0), Point(20, 10)],
             },
-            crs="IAU_2015:30100"
+            crs="IAU_2015:30100",
         )
 
         with tempfile.NamedTemporaryFile(
@@ -402,7 +402,7 @@ class TestCraterDatabase(unittest.TestCase):
                 "name": ["Crater A", "Crater B"],
                 "geometry": [Point(30, 15), Point(45, 20)],
             },
-            crs="IAU_2015:30100"
+            crs="IAU_2015:30100",
         )
 
         with tempfile.NamedTemporaryFile(
@@ -440,7 +440,7 @@ class TestCraterDatabase(unittest.TestCase):
                 "_radius_m": [5000.0, 7500.0],  # Already in meters
                 "geometry": [Point(0, 0), Point(20, 10)],
             },
-            crs="IAU_2015:30100"
+            crs="IAU_2015:30100",
         )
 
         with tempfile.NamedTemporaryFile(
@@ -475,8 +475,8 @@ class TestCraterDatabase(unittest.TestCase):
                 "radius": [1000.0, 2000.0],
                 "geometry": [Point(45.0, 10.0), Point(-60.0, -20.0)],
             },
-            crs="IAU_2015:30100"
-        ) 
+            crs="IAU_2015:30100",
+        )
 
         with tempfile.NamedTemporaryFile(
             suffix=".geojson", delete=False
