@@ -1,20 +1,24 @@
 from copy import deepcopy
 from typing import Union
 import warnings
-import functools
 from pathlib import Path
 import multiprocessing
 import antimeridian
 import numpy as np
 import pandas as pd
 import geopandas as gpd
+import matplotlib.pyplot as plt
+import rasterio as rio
 from shapely.geometry import Point
 from pyproj import CRS, Transformer
 from pyproj.crs import ProjectedCRS
 from pyproj.crs.coordinate_operation import AzimuthalEquidistantConversion
 from shapely.ops import transform
+from rasterstats import zonal_stats, gen_zonal_stats
+import cartopy.crs as ccrs
+from cartopy.feature import ShapelyFeature
+from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
 import craterpy.helper as ch
-from rasterstats import zonal_stats
 
 # Suppress antimeridian warning
 warnings.filterwarnings("ignore", category=antimeridian.FixWindingWarning)
@@ -150,12 +154,25 @@ class CraterDatabase:
         self.data[self._latcol] = pd.to_numeric(self.data[self._latcol])
         self.data[self._loncol] = pd.to_numeric(self.data[self._loncol])
         # Look for radius / diam column, store as _radius_m
-        try:
-            r = ch.findcol(self.data, ["radius", "rad", "r_km", "r_m"])
-            self.data["_radius_m"] = pd.to_numeric(self.data[r])
-        except ValueError:
-            d = ch.findcol(self.data, ["diameter", "diam", "d_km", "d_m"])
-            self.data["_radius_m"] = pd.to_numeric(self.data[d]) / 2
+        rcol = ch.findcol(
+            self.data,
+            [
+                "radius",
+                "diameter",
+                "rad",
+                "diam",
+                "r_km",
+                "d_km",
+                "r_m",
+                "d_m",
+                "r(km)",
+                "d(km)",
+                "r(m)",
+                "d(m)",
+            ],
+        )
+        div = 2 if rcol.startswith("d") else 1  # diam -> rad conversion
+        self.data["_radius_m"] = pd.to_numeric(self.data[rcol]) / div
         self._radcol = "_radius_m"
 
         # Ensure lon is in -180 to 180
@@ -242,25 +259,18 @@ class CraterDatabase:
                 self.center, self.rad, inner, outer, **kwargs
             )
         else:
+            # Compute simple circles for all craters (fast)
             out.loc[:] = self._gen_annulus_simple(
                 inner, outer, self._crs, self._crs180, **kwargs
             )
-
-            # Fix large annuli that get warped, also those that cross antimeridian
-            # Overly clever bit of cos(lat) math that says:
-            #   - don't fix annuli with radii <= 25 deg at the equator (no warping)
-            #   - we always want to use the precise method at the poles
-            #   - polewards of lat=60, annuli with radius >= 1 degree should use precise method
-            is_large = (
-                50
-                * out.minimum_bounding_radius()
-                * (1 - np.cos(np.radians(self.lat)))
-                > 25
-            )  # [deg]
-            is_anti = out.bounds["maxx"] - out.bounds["minx"] >= 300
-            out.loc[is_large | is_anti] = self._gen_annulus_precise(
-                self.center[is_large | is_anti],
-                self.rad[is_large | is_anti],
+            # Be more precise for craters that are warped or go out of bounds
+            # find craters warped more than 10% in plate caree. Horizonal stretch 
+            # goes as cos and cos(25)=0.906, so circles within 25N-25S are <10% err
+            equatorial = (-25 < out.bounds.miny) & (out.bounds.maxy < 25)
+            oob = out.bounds.maxx - out.bounds.minx >= 300
+            out.loc[~equatorial | oob] = self._gen_annulus_precise(
+                self.center[~equatorial | oob],
+                self.rad[~equatorial | oob],
                 inner,
                 outer,
             )
@@ -452,7 +462,11 @@ class CraterDatabase:
     ):
         """Return DataFrame of zonal stats on region from fraster."""
         zstats = zonal_stats(
-            self.data.set_geometry(region), fraster, stats=stats, nodata=nodata
+            self.data.set_geometry(region),
+            fraster,
+            stats=stats,
+            nodata=nodata,
+            all_touched=True,
         )
         out = pd.DataFrame(
             {stat: [z[stat] for z in zstats] for stat in stats},
@@ -486,17 +500,27 @@ class CraterDatabase:
             result = pool.starmap(self._get_stats, args)
         return pd.concat([self.data[self.orig_cols], *result], axis=1)
 
-    def plot(self, name="", ax=None, alpha=0.2, **kwargs):
+    def plot(self, fraster=None, region="", ax=None, size=6, dpi=100, band=1, alpha=0.5, color='tab:blue', **kwargs):
         """Plot crater geometries.
 
         Parameters
         ----------
-        name (optional): str
-            Defined geometries to plot (default: simple crater circles).
-        ax: matplotlib.Axes
+        fraster : str
+            A path to raster image data to overlay craters on.
+        region : str
+            The CraterDatabase region geometries to plot (default: crater rims).
+        ax : matplotlib.Axes
             Axes on which to plot data.
+        size : int, float, or 2-tuple
+            Width of plot in inches or figsize tuple (width, height).
+        dpi : int
+            Resolution of plot (dots/inch). Lower resolutions load faster.
+        band : int
+            Band to use from fraster (default: first).
         alpha: float
-            Transparancy of the plot geometries (0-1, default: 0.2).
+            Transparancy of the ROI geometries (0-1, default: 0.2).
+        color : str 
+            Color of the ROI geometries.
         **kwargs
             Keyword arguments supplied to GeoSeries.plot().
 
@@ -504,19 +528,33 @@ class CraterDatabase:
         -------
         ax: matplotlib.Axes
         """
-        if not name:
-            # Note: add this directly to geodataframe to not conflict with user-set properties
-            if "_plot_circles" not in self.data.columns:
-                self.data["_plot_circles"] = self._gen_annulus(0, 1)
-            # Plot outline only
-            plotdata = self.data.loc[:, "_plot_circles"].boundary
-        else:
-            # Plot enclosed area
-            plotdata = self.data.loc[:, name]
-        ax = plotdata.plot(ax=ax, alpha=alpha, **kwargs)
+        if fraster:
+            if ax is not None:
+                size = ax.figure.get_size_inches()
+                dpi = ax.figure.get_dpi()
+            with rio.open(fraster) as src:
+                if isinstance(size, (int, float)):
+                    aspect = src.width / src.height
+                    size = (size, size/aspect)
+                height_npix = int(size[1] * dpi)
+                width_npix = int(size[0] * dpi)
+                # By default does nearest-neighbor interp to out_shape (super fast reads for low dpi)
+                data = src.read(indexes=band, out_shape=(height_npix, width_npix))
+                extent = ch.bbox2extent(src.bounds)
+            if ax is None:
+                fig, ax = plt.subplots(figsize=size, dpi=dpi)
+            ax.imshow(data, cmap='gray', extent=extent)
+        if not region:
+            # Store crater circles in .data with leading "_" to not be mistaken
+            #  for user-defined ROIs
+            region = "_plot_circles"
+            if region not in self.data.columns:
+                self.data[region] = self._gen_annulus(0, 1, precise=False)
+        rois = self.data.loc[:, region].boundary  # plot outline of ROI
+        ax = rois.plot(ax=ax, alpha=alpha, color=color, **kwargs)
         ax.set_xlabel("Longitude")
         ax.set_ylabel("Latitude")
-        label = "." + name if name else ""
+        label = " " + region if not region.startswith("_") else ""
         ax.set_title(f"CraterDatabase{label} (N={len(self.data)})")
         return ax
 
@@ -634,6 +672,111 @@ class CraterDatabase:
             new_crater_db = deepcopy(self)
             new_crater_db.to_crs(crs, inplace=True)
             return new_crater_db
+
+    def plot_rois(self, fraster, region, index=9, pole="", **kwargs):
+        """
+        Plot CraterDatabase regions of interest (ROIs) clipped from raster.
+
+        Plots the first 9 craters supplied in index.
+
+        Parameters:
+        -----------
+        cdb : object
+            A CraterDatabase with region defined, e.g., with add_annuli().
+        fraster : str
+            A path to raster to clip rois from.
+        region : str
+            The name CraterDatabase region geometry to plot.
+        index : int, pd.Index, or iterable, optional
+            Specifies which ROIs to plot. If an integer, take first n, 
+            otherwise plot all given indices. Default is 9.
+        **kwargs : dict, optional
+            Additional keyword arguments for customizing the plot. These can overwrite
+            default settings for the raster image (`cmap`, `vmin`, `vmax`) or the ROI
+            geometries (`color`, `facecolor`, `lw`, `alpha`, etc.).
+
+        Returns:
+        --------
+        axes : array of matplotlib.axes._subplots.AxesSubplot
+
+        Examples:
+        ---------
+        cdb = CraterDatabase(craters.csv, body="Moon")
+        cdb.add_circles("crater", 1.5)
+        cdb.plot_rois("moon.tif", region='crater', index=(1, 6, 9), alpha=0.2)
+        """
+        # Parse index an int, or pd Index otherwise pass to .iloc (e.g., range, tuple, list, array of indices should all work)
+        gdf = self.data[region]
+        if isinstance(index, pd.Index):
+            gdf = gdf.loc[index]
+
+        # TODO: find a way to display these
+        # Filter out polar or antimeridian crossing rois
+        polar = (gdf.bounds.miny < -89) | (89 < gdf.bounds.maxy)
+        oob = gdf.bounds.maxx - gdf.bounds.minx >= 300
+        if any(polar | oob):
+            warnings.warn('Skipping ROIs that cross pole or antimeridian...')
+        gdf = gdf.loc[~polar & ~oob]
+        
+        if isinstance(index, int):
+            index = gdf.head(index).index
+        gdf = gdf.iloc[index]
+
+        # Plot default kwargs (user kwargs will overwrite these if present)
+        im_kw = {
+            "cmap": kwargs.pop("cmap", "gray"),
+            "vmin": kwargs.pop("vmin", None),
+            "vmax": kwargs.pop("vmax", None),
+        }
+        shp_kw = dict(color="tab:green", facecolor="none", lw=2, alpha=0.5)
+        shp_kw = {**shp_kw, **kwargs}
+
+        # Make projection
+        ellipsoid = ccrs.CRS(self._crs).ellipsoid
+        globe = ccrs.Globe(
+            semimajor_axis=ellipsoid.semi_major_metre,
+            semiminor_axis=ellipsoid.semi_minor_metre,
+            ellipse=None,
+        )
+        pc = ccrs.PlateCarree(globe=globe)
+
+        # Make roi array generator
+        rois = gen_zonal_stats(
+            gdf.geometry,
+            fraster,
+            stats="count",
+            raster_out=True,
+            all_touched=True,
+        )
+        # Make subplots n x 3 grid, is hardcoded b/c labels/fontsize affect aspect ratio
+        n = len(gdf)
+        rows = 1 + (n - 1) // 3  
+        fig, axes = plt.subplots(
+            rows,
+            3,
+            figsize=(9 + 2, -0.5 + rows * 3.4),
+            subplot_kw={"projection": pc},
+            gridspec_kw={"wspace": 0.4, "hspace": 0.2},
+        )
+        for geom, roi, ax in zip(gdf.geometry, rois, axes.flatten()):
+            img = roi["mini_raster_array"]
+            extent = ch.bbox2extent(geom.bounds)
+            ax.imshow(img, extent=extent, aspect="auto", **im_kw)
+            ax.add_feature(ShapelyFeature(geom, crs=pc, **shp_kw))
+
+        # Delete the unused axes
+        n = len(index)
+        for i in range(n, 3 * rows):
+            fig.delaxes(axes.flatten()[i])
+
+        # Add gridlines
+        for ax in np.atleast_1d(axes).flatten():
+            gl = ax.gridlines(draw_labels=True, dms=False, ls="--", alpha=0.5)
+            gl.top_labels = False
+            gl.right_labels = False
+            gl.xformatter = LONGITUDE_FORMATTER
+            gl.yformatter = LATITUDE_FORMATTER
+        return axes
 
     @classmethod
     def read_shapefile(

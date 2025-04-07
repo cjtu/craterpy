@@ -5,6 +5,10 @@ import pandas as pd
 
 
 # Geospatial helpers
+def bbox2extent(bbox):
+        """Convert rasterio/geopandas bounding box to matplotlib extent."""
+        return bbox[0], bbox[2], bbox[1], bbox[3]
+
 def lon360(lon):
     """Return longitude in range [0, 360)."""
     return (lon + 360) % 360
@@ -108,12 +112,7 @@ def findcol(df, names):
         names = [names]
     for column in df.columns:
         if any(
-            name.lower().replace("_", "")
-            in column.lower()
-            .replace(" ", "")
-            .replace("_", "")
-            .replace("(", "")
-            for name in names
+            name.lower() in column.lower().replace(" ", "") for name in names
         ):
             return column
     raise ValueError(f"No column containing {names} found.")
