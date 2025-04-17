@@ -48,6 +48,7 @@ pytest = "^8.3.5"
 jupyter = "^1.1.1"
 black = "^25.1.0"
 pytest-cov = "^6.0.0"
+seaborn = "^0.13.2"
 
 [tool.poetry.group.docs]
 optional = true

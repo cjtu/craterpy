@@ -2,12 +2,14 @@
 
 import numpy as np
 import pandas as pd
+from scipy.spatial import cKDTree
 
 
 # Geospatial helpers
 def bbox2extent(bbox):
-        """Convert rasterio/geopandas bounding box to matplotlib extent."""
-        return bbox[0], bbox[2], bbox[1], bbox[3]
+    """Convert rasterio/geopandas bounding box to matplotlib extent."""
+    return bbox[0], bbox[2], bbox[1], bbox[3]
+
 
 def lon360(lon):
     """Return longitude in range [0, 360)."""
@@ -141,3 +143,80 @@ def diam2radius(df, diamcol=None):
     df.update(df[diamcol] / 2)
     df.rename(columns={diamcol: "Radius"}, inplace=True)
     return df
+
+
+def latlon_to_cartesian(lat, lon, radius):
+    """Convert lat, lon to cartesian (x, y, z)"""
+    lat, lon = np.radians(lat), np.radians(lon)
+    x = radius * np.cos(lat) * np.cos(lon)
+    y = radius * np.cos(lat) * np.sin(lon)
+    z = radius * np.sin(lat)
+    return x, y, z
+
+
+def merge(
+    df1,
+    df2,
+    rbody=1737.4e3,
+    rtol=0.5,
+    latcol="lat",
+    loncol="lon",
+    radcol="rad",
+):
+    """Spatial merge of craters in df1 and df2.
+
+    If a crater matches, keep lat, lon, rad and other col values from df1.
+    If not a match, append to the end with lat, lon, rad from df2.
+    Retains all columns from both dfs and fills in values if present.
+
+    Parameters
+    ----------
+    df1 : pandas.DataFrame
+        Left dataframe whose values will be preserved for any matches
+    df2 : pandas.DataFrame
+        Right dataframe to merge
+    rbody : float
+        Radius of the body in meters (default: Moon's radius)
+    latcol : str
+        Name of latitude column (default: 'lat')
+    loncol : str
+        Name of longitude column (default: 'lon')
+    radcol : str
+        Name of radius column (default: 'rad')
+    rtol : float
+        Relative tolerance for radius matching (default: 0.5)
+
+    Returns
+    -------
+    pandas.DataFrame
+        Merged dataframe with lat/lon/rad from df1
+    """
+
+    def match(result, df2_rad):
+        """Return matching index if radii differ by less than rtol."""
+        if result:
+            for match in result:
+                df1_rad = df1[radcol].iloc[match]
+                if (df2_rad - df1_rad) / df1_rad < rtol:
+                    return match
+        return np.nan
+
+    coords1 = list(zip(*latlon_to_cartesian(df1[latcol], df1[loncol], rbody)))
+    coords2 = list(zip(*latlon_to_cartesian(df2[latcol], df2[loncol], rbody)))
+    tree = cKDTree(coords1)
+    results = tree.query_ball_point(coords2, r=df2[radcol])
+    df2["df1_idx"] = np.nan
+    for (i, row), result in zip(df2.iterrows(), results):
+        df2.at[i, "df1_idx"] = match(result, row[radcol])
+
+    # Append non-matching rows (includes columns from both df1 and df2)
+    merged = pd.concat([df1, df2[df2.df1_idx.isna()]], ignore_index=True)
+
+    # Find and add missing data from columns unique to df2 to the matched rows
+    df2_uniq_cols = list(set(df2.columns) - set(df1.columns))
+    df2_match_idx = df2.df1_idx.dropna().values
+    merged.loc[df2_match_idx, df2_uniq_cols] = df2.loc[
+        ~df2.df1_idx.isna(), df2_uniq_cols
+    ].values
+    merged.drop(columns="df1_idx", inplace=True)
+    return merged.reset_index(drop=True)

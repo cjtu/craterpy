@@ -130,14 +130,14 @@ class CraterDatabase:
             body, lon_offset = self._vesta_check(body)
             self._vesta_coord = body
             body = "vesta"
-
+        self.body = body
         (
             self._crs,
             self._crs180,
             self._crs360,
             self._crsnorth,
             self._crssouth,
-        ) = self._load_crs(body)
+        ) = self._load_crs(self.body)
 
         if isinstance(dataset, pd.DataFrame):
             self.data = dataset.copy(True)
@@ -176,7 +176,7 @@ class CraterDatabase:
         self._radcol = "_radius_m"
 
         # Ensure lon is in -180 to 180
-        self.data[self._loncol] = self.lon - lon_offset
+        self.data[self._loncol] = self.lon + lon_offset
         self.data[self._loncol] = ch.lon180(self.lon)
 
         # Convert to meters
@@ -264,7 +264,7 @@ class CraterDatabase:
                 inner, outer, self._crs, self._crs180, **kwargs
             )
             # Be more precise for craters that are warped or go out of bounds
-            # find craters warped more than 10% in plate caree. Horizonal stretch 
+            # find craters warped more than 10% in plate caree. Horizonal stretch
             # goes as cos and cos(25)=0.906, so circles within 25N-25S are <10% err
             equatorial = (-25 < out.bounds.miny) & (out.bounds.maxy < 25)
             oob = out.bounds.maxx - out.bounds.minx >= 300
@@ -417,6 +417,16 @@ class CraterDatabase:
         """Crater center point geometry."""
         return self.data["_center"]
 
+    @property
+    def _rbody(self):
+        """Return average planetary radius from crs in meters."""
+        ellipse = self._crs.ellipsoid
+        return (ellipse.semi_major_metre + ellipse.semi_minor_metre) / 2
+
+    def copy(self):
+        """Return a deepcopy of a CraterDatabase."""
+        return deepcopy(self)
+
     def add_annuli(self, name, inner, outer, precise=True):
         """Generate annular geometries for each crater in database.
 
@@ -500,7 +510,18 @@ class CraterDatabase:
             result = pool.starmap(self._get_stats, args)
         return pd.concat([self.data[self.orig_cols], *result], axis=1)
 
-    def plot(self, fraster=None, region="", ax=None, size=6, dpi=100, band=1, alpha=0.5, color='tab:blue', **kwargs):
+    def plot(
+        self,
+        fraster=None,
+        region="",
+        ax=None,
+        size=6,
+        dpi=100,
+        band=1,
+        alpha=0.5,
+        color="tab:blue",
+        **kwargs,
+    ):
         """Plot crater geometries.
 
         Parameters
@@ -519,7 +540,7 @@ class CraterDatabase:
             Band to use from fraster (default: first).
         alpha: float
             Transparancy of the ROI geometries (0-1, default: 0.2).
-        color : str 
+        color : str
             Color of the ROI geometries.
         **kwargs
             Keyword arguments supplied to GeoSeries.plot().
@@ -535,15 +556,17 @@ class CraterDatabase:
             with rio.open(fraster) as src:
                 if isinstance(size, (int, float)):
                     aspect = src.width / src.height
-                    size = (size, size/aspect)
+                    size = (size, size / aspect)
                 height_npix = int(size[1] * dpi)
                 width_npix = int(size[0] * dpi)
                 # By default does nearest-neighbor interp to out_shape (super fast reads for low dpi)
-                data = src.read(indexes=band, out_shape=(height_npix, width_npix))
+                data = src.read(
+                    indexes=band, out_shape=(height_npix, width_npix)
+                )
                 extent = ch.bbox2extent(src.bounds)
             if ax is None:
                 fig, ax = plt.subplots(figsize=size, dpi=dpi)
-            ax.imshow(data, cmap='gray', extent=extent)
+            ax.imshow(data, cmap="gray", extent=extent)
         if not region:
             # Store crater circles in .data with leading "_" to not be mistaken
             #  for user-defined ROIs
@@ -669,11 +692,11 @@ class CraterDatabase:
             return
         else:
             # Make a copy of the whole instance and do to_crs inplace on the copy
-            new_crater_db = deepcopy(self)
+            new_crater_db = self.copy()
             new_crater_db.to_crs(crs, inplace=True)
             return new_crater_db
 
-    def plot_rois(self, fraster, region, index=9, pole="", **kwargs):
+    def plot_rois(self, fraster, region, index=9, grid_kw=None, **kwargs):
         """
         Plot CraterDatabase regions of interest (ROIs) clipped from raster.
 
@@ -688,8 +711,10 @@ class CraterDatabase:
         region : str
             The name CraterDatabase region geometry to plot.
         index : int, pd.Index, or iterable, optional
-            Specifies which ROIs to plot. If an integer, take first n, 
+            Specifies which ROIs to plot. If an integer, take first n,
             otherwise plot all given indices. Default is 9.
+        grid_kw : dict, optional
+            Keyword args for gridlines (see matplotlib.axes.gridlines()).
         **kwargs : dict, optional
             Additional keyword arguments for customizing the plot. These can overwrite
             default settings for the raster image (`cmap`, `vmin`, `vmax`) or the ROI
@@ -715,9 +740,9 @@ class CraterDatabase:
         polar = (gdf.bounds.miny < -89) | (89 < gdf.bounds.maxy)
         oob = gdf.bounds.maxx - gdf.bounds.minx >= 300
         if any(polar | oob):
-            warnings.warn('Skipping ROIs that cross pole or antimeridian...')
+            warnings.warn("Skipping ROIs that cross pole or antimeridian...")
         gdf = gdf.loc[~polar & ~oob]
-        
+
         if isinstance(index, int):
             index = gdf.head(index).index
         gdf = gdf.iloc[index]
@@ -750,7 +775,7 @@ class CraterDatabase:
         )
         # Make subplots n x 3 grid, is hardcoded b/c labels/fontsize affect aspect ratio
         n = len(gdf)
-        rows = 1 + (n - 1) // 3  
+        rows = 1 + (n - 1) // 3
         fig, axes = plt.subplots(
             rows,
             3,
@@ -769,14 +794,41 @@ class CraterDatabase:
         for i in range(n, 3 * rows):
             fig.delaxes(axes.flatten()[i])
 
-        # Add gridlines
         for ax in np.atleast_1d(axes).flatten():
-            gl = ax.gridlines(draw_labels=True, dms=False, ls="--", alpha=0.5)
+            # Parse gridline kws, overwrite defaults if given
+            grid_kw = {} if grid_kw is None else grid_kw
+            gl_kw = dict(draw_labels=True, dms=False, ls="--", alpha=0.5)
+            gl_kw = {**gl_kw, **grid_kw}
+            gl = ax.gridlines(**gl_kw)
             gl.top_labels = False
             gl.right_labels = False
             gl.xformatter = LONGITUDE_FORMATTER
             gl.yformatter = LATITUDE_FORMATTER
         return axes
+
+    @classmethod
+    def merge(cls, cdb1, cdb2):
+        """
+        Return a new CraterDatabase with duplicate crater rows and no ROIs.
+
+        Parameters
+        ----------
+        cdb1 : CraterDatabase
+            The first CraterDatabase object to merge.
+        cdb2 : CraterDatabase
+            The second CraterDatabase object to merge.
+
+        Returns
+        -------
+        CraterDatabase
+            A new CraterDatabase instance with craters.
+        """
+        if cdb1.body != cdb2.body:
+            raise ValueError(
+                "Cannot merge CraterDatabases from different bodies!"
+            )
+        merged = ch.merge(cdb1.data, cdb2.data, rbody=cdb1._rbody)
+        return cls(merged, body=cdb1.body, units=cdb1.units)
 
     @classmethod
     def read_shapefile(
