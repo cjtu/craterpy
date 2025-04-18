@@ -126,7 +126,9 @@ class CraterDatabase:
             ValueError: If dataset is not a file or DataFrame.
         """
         if not body:
-            raise ValueError(f"Please specify a planetary body from, {list(CRS_DICT.keys())}")
+            raise ValueError(
+                f"Please specify a planetary body from, {list(CRS_DICT.keys())}"
+            )
         lon_offset = 0
         if "vesta" in body.lower():
             body, lon_offset = self._vesta_check(body)
