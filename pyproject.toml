@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "craterpy"
-version = "0.8.0"
+version = "0.9.0"
 homepage = "https://github.com/cjtu/craterpy"
 description = "Impact crater data science in Python."
 authors = ["Christian J. Tai Udovicic <cj.taiudovicic@gmail.com>"]
@@ -48,7 +48,6 @@ pytest = "^8.3.5"
 jupyter = "^1.1.1"
 black = "^25.1.0"
 pytest-cov = "^6.0.0"
-seaborn = "^0.13.2"
 
 [tool.poetry.group.docs]
 optional = true
@@ -74,13 +73,21 @@ python_files = "tests.py test_*.py *_tests.py"
 filterwarnings = ["ignore:::antimeridian"]
 
 [tool.coverage.run]
+branch = true
 omit = [
-    "craterpy/dataset.py",
-    "craterpy/masking.py",
-    "craterpy/quickstats.py",
-    "craterpy/roi.py",
-    "craterpy/stats.py"
+    "*/examples*",
+    "*test*",
+    "*setup.py",
+    "*version.py",
+    "*__init__.py",
 ]
+
+[tool.coverage.report]
+exclude_also = [
+    "if __name__ == .__main__.:",
+]
+
+ignore_errors = true
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
