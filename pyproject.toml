@@ -26,6 +26,8 @@ keywords = [
 ]
 include = [
     "LICENSE.txt",
+    "data/*.tif",
+    "data/*.csv"
 ]
 
 [tool.poetry.urls]
