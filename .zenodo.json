@@ -1,6 +1,19 @@
 {
+    "creators": [
+        {
+            "affiliation": "Hawaii Institute of Geophysics and Planetology, University of Hawaii at Manoa, Honolulu, HI, USA.",
+            "name": "Tai Udovicic, Christian J.",
+            "orcid": "0000-0001-9972-1534"
+        } 
+      ],
   "contributors": [
     {
+
+        "name": "Essunfeld, Ari",
+        "orcid": "0000-0001-8689-0734",
+        "type": "ProjectMember"
+    },    {
+
         "name": "Gallinger, Cailin",
         "orcid": "0000-0002-1465-7447",
         "type": "ProjectMember"
@@ -35,13 +48,6 @@
         "orcid": "0000-0002-9933-6860",
         "type": "ProjectMember"
     }
-  ],
-  "creators": [
-    {
-        "affiliation": "Department of Astronomy and Planetary Science, Northern Arizona University, Flagstaff, AZ, US.",
-        "name": "Tai Udovicic, Christian J.",
-        "orcid": "0000-0001-9972-1534"
-    } 
   ],
   "description":"Impact crater data science in Python.",
   "keywords": [
