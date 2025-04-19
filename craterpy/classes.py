@@ -1,3 +1,4 @@
+import json
 from copy import deepcopy
 from typing import Union
 import warnings
@@ -9,6 +10,7 @@ import pandas as pd
 import geopandas as gpd
 import matplotlib.pyplot as plt
 import rasterio as rio
+import shapely
 from shapely.geometry import Point
 from pyproj import CRS, Transformer
 from pyproj.crs import ProjectedCRS
@@ -158,23 +160,7 @@ class CraterDatabase:
         self.data[self._latcol] = pd.to_numeric(self.data[self._latcol])
         self.data[self._loncol] = pd.to_numeric(self.data[self._loncol])
         # Look for radius / diam column, store as _radius_m
-        rcol = ch.findcol(
-            self.data,
-            [
-                "radius",
-                "diameter",
-                "rad",
-                "diam",
-                "r_km",
-                "d_km",
-                "r_m",
-                "d_m",
-                "r(km)",
-                "d(km)",
-                "r(m)",
-                "d(m)",
-            ],
-        )
+        rcol = ch.find_rad_or_diam_col(self.data)
         div = 2 if rcol.startswith("d") else 1  # diam -> rad conversion
         self.data["_radius_m"] = pd.to_numeric(self.data[rcol]) / div
         self._radcol = "_radius_m"
@@ -587,90 +573,78 @@ class CraterDatabase:
 
     def to_geojson(
         self,
-        filename=None,
-        geometry_column=None,
+        filename,
+        region=None,
         crs=None,
-        properties=None,
-        drop_private=True,
+        keep_cols=None,
+        keep_all=False,
     ):
         """
-        Export the crater database to GeoJSON format.
+        Export the crater database to GeoJSON file.
 
         Parameters
         ----------
-        filename : str, optional
-            Path to output GeoJSON file. If None, returns a string representation.
-        geometry_column : str, optional
-            Name of the geometry column to use as the active geometry.
-            If None, uses the current active geometry.
+        filename : str
+            Path to output GeoJSON file.
+        region : str, optional
+            Name of the region geometries to export. Default: crater centers point geometry.
         crs : str or pyproj.CRS, optional
             Target coordinate reference system. If None, uses the current CRS.
-        properties : list, optional
-            List of column names to include as properties. If None, includes all columns
-            except geometry columns.
-        drop_private : bool, optional
-            If True, drops columns with names starting with an underscore (private columns).
-            Default is True.
-
-        Returns
-        -------
-        str or None
-            If filename is None, returns the GeoJSON string.
-            Otherwise, writes to the file and returns None.
+        keep_cols : list, optional
+            List of column names to keep. If None, includes all original columns
+            and excludes region geometries.
+        keep_all : bool, optional
+            If True, keep hidden columns (e.g. all region geometries). Default is False.
+            Only if keep_cols is None (specific columns requested take precedence).
         """
-
-        # Determine which geometry column to use
-        if geometry_column is None:
-            # Use the current active geometry
-            geom_col = self.data.geometry.name
-        elif geometry_column in self.data.columns:
-            # Use the specified geometry column
-            geom_col = geometry_column
+        if region is None:
+            geom_col = "_center"
+        elif region in self.data.columns:
+            geom_col = region
         else:
-            # Specified column doesn't exist
-            raise ValueError(f"Geometry column '{geometry_column}' not found.")
+            raise ValueError(f"Geometry column '{region}' not found.")
 
         # Determine which columns to keep
-        if properties is not None:
-            # Check if any specified properties don't exist
-            missing_cols = [
-                col for col in properties if col not in self.data.columns
-            ]
-            if missing_cols:
-                raise ValueError(f"Properties not found: {missing_cols}")
-
-            # Make sure geometry column is included in properties
-            if geom_col not in properties:
-                keep_cols = properties + [geom_col]
-            else:
-                keep_cols = properties
-        else:
-            # Keep all columns in their original order
-            keep_cols = list(self.data.columns)
-
-        # Remove private columns if requested
-        if drop_private:
+        must_keep = {self._latcol, self._loncol, self._radcol}
+        if keep_cols is None:
+            # Take all columns if keep cols otherwise only take cols without leading "_"
             keep_cols = [
                 col
-                for col in keep_cols
-                if not (col.startswith("_") and col != geom_col)
+                for col in self.data.columns
+                if keep_all or col in must_keep or not col.startswith("_")
             ]
+        else:
+            # Check if any specified cols don't exist
+            missing_cols = [
+                col for col in keep_cols if col not in self.data.columns
+            ]
+            if missing_cols:
+                raise ValueError(f"Columns not found: {missing_cols}")
+
+        if geom_col not in keep_cols:
+            keep_cols = list(set(keep_cols).union({geom_col}))
+        keep_cols = list(must_keep.union(set(keep_cols)))
+        # Prep for export - always writes active geometry with the name 'geometry'
+        # So copy the active col to 'geometry' and keep the original with its name
+        # All other geometry columns need to be written as string (WKT format)
+        data = self.data.copy()
+        data = data[keep_cols]
+        data["geometry"] = data[geom_col]
+        data = data.set_geometry("geometry")
+
+        # Get the rest of the geometry type colums (minus the one called geometry)
+        other_geom_cols = set(data.select_dtypes("geometry")) - {"geometry"}
+        for col in other_geom_cols:
+            data[col] = data.apply(lambda x: x[col].wkt, axis=1)
+            # TODO: there should be a better way to store these without all the naming hacks
+            data.rename(columns={col: col + "_wkt"}, inplace=True)
+        data.rename(
+            columns={geom_col + "_wkt": geom_col + "_active_wkt"}, inplace=True
+        )
 
         if crs is not None:
-            converted_db = CraterDatabase.to_crs(self, crs)
-            # Create filtered dataframe with only needed columns and set the geometry
-            data = converted_db.data[keep_cols].set_geometry(geom_col)
-        else:
-            # Apply the same filtering/geometry update to the converted data
-            data = self.data[keep_cols].set_geometry(geom_col)
-
-        # Export to GeoJSON
-        if filename is not None:
-            data.to_file(filename, driver="GeoJSON")
-            return None
-        else:
-            # Return as string
-            return data.to_json()
+            data = data.to_crs(crs)
+        data.to_file(filename, driver="GeoJSON")
 
     def to_crs(self, crs, inplace: bool = False):
         """
@@ -746,6 +720,10 @@ class CraterDatabase:
         if any(polar | oob):
             warnings.warn("Skipping ROIs that cross pole or antimeridian...")
         gdf = gdf.loc[~polar & ~oob]
+        if len(gdf) == 0:
+            raise ValueError(
+                "No geometries are in map bounds. Perhaps check radius units or raster extent?"
+            )
 
         if isinstance(index, int):
             index = gdf.head(index).index
@@ -840,7 +818,6 @@ class CraterDatabase:
         filename,
         body: str = "Moon",
         units: str = "m",
-        use_point_geom: bool = True,
     ):
         """
         Read crater data from a shapefile or GeoJSON file.
@@ -854,28 +831,19 @@ class CraterDatabase:
             If None, will attempt to determine from the file's CRS.
         units : str, optional
             Length units of radius/diameter, m or km (default: m).
-        use_point_geom : bool, optional
-            If True, use point geometry for lat/lon coordinates (default: True).
-            Otherwise, use lat/lon columns directly (if they exist)
 
         Returns
         -------
         CraterDatabase
-            A new CraterDatabase instance containing the data from the file.
 
         Notes
         -----
         This method assumes the file was previously created by CraterDatabase.to_geojson()
         or has a compatible format with lat/lon coordinates and radius or diameter information.
-
-        If the file contains different coordinate column names than expected, this method
-        will attempt to identify them by common names (e.g., 'lat', 'latitude', 'lon', 'longitude').
         """
         # Try to read metadata from GeoJSON first (if it's a GeoJSON file)
         file_metadata = {}
         if filename.lower().endswith(".geojson"):
-            import json
-
             try:
                 with open(filename, "r") as f:
                     geojson_data = json.load(f)
@@ -906,12 +874,21 @@ class CraterDatabase:
         # Check if we have units info in metadata
         file_units = file_metadata.get("units", units)
 
-        # If geometry is Point type, extract lat/lon from geometry
-        if use_point_geom and all(
-            geom.geom_type == "Point" for geom in data.geometry
-        ):
-            data.insert(0, "_Lon", data.geometry.x)
-            data.insert(0, "_Lat", data.geometry.y)
+        # Restore any columns exported as "_wkt" to geometry columns
+        for col in data.columns:
+            if col.endswith("_wkt"):
+                data[col] = data.apply(
+                    lambda x: shapely.wkt.loads(x[col]), axis=1
+                )
+            if col.endswith("_active_wkt"):
+                data.drop(columns="geometry", inplace=True)
+        data.rename(
+            columns={
+                c: c.removesuffix("_wkt").removesuffix("_active")
+                for c in data.columns
+            },
+            inplace=True,
+        )
 
         # Create and return a new CraterDatabase instance
         return cls(data, body=body, units=file_units)
