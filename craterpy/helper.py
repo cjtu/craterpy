@@ -88,9 +88,10 @@ def get_spheroid_rad_from_wkt(wkt):
 
 
 # DataFrame helpers
-def findcol(df, names):
-    """Return first instance of a column from df containing string in names.
-    Case insensitive. Raise error if none found.
+def findcol(df, names, exact=False):
+    """Return first matching column in df matching a string given in names.
+
+    Case insensitive, ignores whitespace. Raises ValueError if none found.
 
     Parameters
     ----------
@@ -98,6 +99,8 @@ def findcol(df, names):
         Dataframe object.
     names : str or list of str
         Names to check against columns in df.
+    exact : bool
+        Exact matches only (case-insensitive). Otherwise match on column substring.
 
     Examples
     --------
@@ -112,12 +115,37 @@ def findcol(df, names):
     """
     if isinstance(names, str):
         names = [names]
-    for column in df.columns:
-        if any(
-            name.lower() in column.lower().replace(" ", "") for name in names
-        ):
-            return column
+    # Ignore spaces, convert "(xyz)" to "_xyz" so that Ex. d_m will match d (m)
+    # Note: can match with regex but then calling func needs to escape chars like ()
+    cols = df.columns.str.replace(" ", "")
+    cols = cols.str.replace("(", "_", regex=False).str.replace(
+        ")", " ", regex=False
+    )
+    for name in names:
+        if exact:
+            matches = df.columns[cols.str.fullmatch(name, case=False)]
+        else:
+            matches = df.columns[cols.str.contains(name, case=False)]
+        if any(matches):
+            # Exit early at first match found
+            return matches[0]
     raise ValueError(f"No column containing {names} found.")
+
+
+def find_rad_or_diam_col(df):
+    """Return the name of the radius or diameter column."""
+    # First search these names in order for exact matches
+    s = "radius,diameter,rad,diam,r_km,d_km,r_m,d_m"
+    exact_only = ",r,d"  # never match colname only containing "r" or "d"
+    try:
+        names = (s + exact_only).split(",")
+        col = findcol(df, names, exact=True)
+    except ValueError:
+        try:
+            col = findcol(df, s.split(","), exact=False)
+        except ValueError:
+            raise ValueError("Could not identify radius or diameter column.")
+    return col
 
 
 def get_crater_cols(df):

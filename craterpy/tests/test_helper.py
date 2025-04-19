@@ -165,3 +165,38 @@ class Test_dataframe_helpers(unittest.TestCase):
         expected = pd.Series([5, -10.0, 40.0], name="Radius")
         actual = ch.diam2radius(df, "Lat")["Radius"]
         pdt.assert_series_equal(actual, expected)
+
+    def test_merge(self):
+        """Test spatial merge of crater dataframes."""
+        # Create test dataframes
+        df1 = pd.DataFrame(
+            {
+                "lat": [0, 10, -10],
+                "lon": [0, 10, -10],
+                "rad": [1, 2, 3],
+                "a": [1, 2, 3],
+            }
+        )
+        df2 = pd.DataFrame(
+            {
+                "lat": [0, 20, -20],  # First crater matches df1
+                "lon": [0, 20, -20],
+                "rad": [1.1, 4, 5],  # Within rtol=0.5 of df1
+                "b": [4, 5, 6],
+            }
+        )
+
+        # Test basic merge
+        merged = ch.merge(df1, df2)
+        self.assertEqual(len(merged), 5)  # 3 from df1 + 2 unique from df2
+        self.assertTrue("a" in merged.columns and "b" in merged.columns)
+
+        # Test value preservation from df1 for matching crater
+        self.assertEqual(merged.iloc[0]["rad"], 1)  # Keep df1 value
+        self.assertEqual(merged.iloc[0]["b"], 4)  # Get df2 value
+
+        # Test rtol parameter
+        merged_strict = ch.merge(df1, df2, rtol=0.05)
+        self.assertEqual(
+            len(merged_strict), 6
+        )  # No matches with stricter rtol
