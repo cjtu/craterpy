@@ -26,8 +26,8 @@ keywords = [
 ]
 include = [
     "LICENSE.txt",
-    "data/*.tif",
-    "data/*.csv"
+    "craterpy/data/*.tif",
+    "craterpy/data/*.csv"
 ]
 
 [tool.poetry.urls]
