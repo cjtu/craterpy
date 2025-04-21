@@ -26,8 +26,6 @@ keywords = [
 ]
 include = [
     "LICENSE.txt",
-    "craterpy/data/*.tif",
-    "craterpy/data/*.csv"
 ]
 
 [tool.poetry.urls]
@@ -72,7 +70,11 @@ msg-template="{msg_id}:{line:3d},{column}: {obj}: {msg}"
 [tool.pytest.ini_options]
 addopts = "--cov=craterpy --cov-branch --cov-report term-missing  -v --color=yes"
 python_files = "tests.py test_*.py *_tests.py"
-filterwarnings = ["ignore:::antimeridian"]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore:::antimeridian", 
+    "ignore:::rasterstats"
+]
 
 [tool.coverage.run]
 branch = true

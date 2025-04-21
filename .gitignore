@@ -17,3 +17,4 @@ scripts/
 *.ipynb*
 .vscode
 tmp/
+!craterpy/data
