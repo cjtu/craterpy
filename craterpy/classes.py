@@ -291,7 +291,7 @@ class CraterDatabase:
         qs = nvert // 4  # quad_segs (n linear segments / quarter circle)
         buf = pt.buffer(rad * outer, qs)
         if inner > 0:
-            buf = buf.difference(pt.buffer(rad * inner), qs)
+            buf = buf.difference(pt.buffer(rad * inner, qs))
         return buf
 
     def _gen_annulus_simple(self, inner, outer, src_crs, dst_crs, **kwargs):
