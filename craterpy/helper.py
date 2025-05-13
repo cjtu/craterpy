@@ -100,7 +100,8 @@ def findcol(df, names, exact=False):
     names : str or list of str
         Names to check against columns in df.
     exact : bool
-        Exact matches only (case-insensitive). Otherwise match on column substring.
+        Exact matches only (case-insensitive). Otherwise match on column
+        substring (default: False).
 
     Examples
     --------
@@ -134,43 +135,18 @@ def findcol(df, names, exact=False):
 
 def find_rad_or_diam_col(df):
     """Return the name of the radius or diameter column."""
-    # First search these names in order for exact matches
-    s = "radius,diameter,rad,diam,r_km,d_km,r_m,d_m"
-    exact_only = ",r,d"  # never match colname only containing "r" or "d"
+    # First search these names (case-insensitive) in order for exact matches
+    names = "radius,diameter,rad,diam,r_km,d_km,r_m,d_m,r,d"
     try:
-        names = (s + exact_only).split(",")
-        col = findcol(df, names, exact=True)
+        col = findcol(df, names.split(","), exact=True)
     except ValueError:
         try:
-            col = findcol(df, s.split(","), exact=False)
+            # Unlikely that inexact matches for r,d are correct so exclude
+            names_contains = names.replace(",r,d", "")
+            col = findcol(df, names_contains.split(","), exact=False)
         except ValueError:
             raise ValueError("Could not identify radius or diameter column.")
     return col
-
-
-def get_crater_cols(df):
-    """Return name of latitude, longitude, and radius columns from df"""
-    latcol = findcol(df, ["Latitude", "Lat"])
-    loncol = findcol(df, ["Longitude", "Lon"])
-    try:
-        radcol = findcol(df, ["Radius", "Rad", "R(km)", "R(m)"])
-    except ValueError as e:
-        try:
-            diamcol = findcol(df, ["Diameter", "Diam", "D(km)", "D(m)"])
-            df["Radius"] = pd.to_numeric(df[diamcol]) / 2
-            radcol = "Radius"
-        except ValueError:
-            raise ValueError("No Radius or Diameter column found.") from e
-    return latcol, loncol, radcol
-
-
-def diam2radius(df, diamcol=None):
-    """Return dataframe with diameter column converted to radius."""
-    if not diamcol:
-        diamcol = findcol(df, ["Diameter", "Diam"])
-    df.update(df[diamcol] / 2)
-    df.rename(columns={diamcol: "Radius"}, inplace=True)
-    return df
 
 
 def latlon_to_cartesian(lat, lon, radius):

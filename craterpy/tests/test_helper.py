@@ -137,34 +137,47 @@ class Test_dataframe_helpers(unittest.TestCase):
         with self.assertRaises(ValueError):
             actual = ch.findcol(self.df, "slat")
 
-    def test_diam2radius(self):
-        """Test diam2radius"""
-        # Find Diam col
-        expected = pd.Series([1.0, 6.0, 11.85], name="Radius")
-        actual = ch.diam2radius(self.df)["Radius"]
-        pdt.assert_series_equal(actual, expected)
-        # Find Diameter col
-        expected = pd.Series([1.0, 6.0, 11.85], name="Radius")
-        df = pd.DataFrame(
-            {
-                "Lat": [10, -20.0, 80.0],
-                "Lon": [14, -40.1, 317.2],
-                "Diameter": [2, 12.0, 23.7],
-            }
-        )
-        actual = ch.diam2radius(df)["Radius"]
-        pdt.assert_series_equal(actual, expected)
-        # Supply Lat col
-        df = pd.DataFrame(
-            {
-                "Lat": [10, -20.0, 80.0],
-                "Lon": [14, -40.1, 317.2],
-                "Diam": [2, 12.0, 23.7],
-            }
-        )
-        expected = pd.Series([5, -10.0, 40.0], name="Radius")
-        actual = ch.diam2radius(df, "Lat")["Radius"]
-        pdt.assert_series_equal(actual, expected)
+    def test_find_rad_or_diam_col(self):
+        """Test find_rad_or_diam_col"""
+        # Test with a column named "radius"
+        df = pd.DataFrame({"radius": [1, 2, 3], "other": [4, 5, 6]})
+        expected = "radius"
+        self.assertEqual(ch.find_rad_or_diam_col(df), expected)
+
+        # Test with a column named "rad"
+        df = pd.DataFrame({"rad": [1, 2, 3], "other": [4, 5, 6]})
+        expected = "rad"
+        actual = ch.find_rad_or_diam_col(df)
+        self.assertEqual(actual, expected)
+
+        # Test with a column named "D"
+        df = pd.DataFrame({"D": [1, 2, 3], "other": [4, 5, 6]})
+        expected = "D"
+        actual = ch.find_rad_or_diam_col(df)
+        self.assertEqual(actual, expected)
+
+        # Test with multiple possible matches, exact match should take precedence
+        df = pd.DataFrame({"radius": [1, 2, 3], "rad": [4, 5, 6]})
+        expected = "radius"
+        actual = ch.find_rad_or_diam_col(df)
+        self.assertEqual(actual, expected)
+
+        # Test case insensitive
+        df = pd.DataFrame({"Radius (km)": [1, 2, 3], "other": [4, 5, 6]})
+        expected = "Radius (km)"
+        actual = ch.find_rad_or_diam_col(df)
+        self.assertEqual(actual, expected)
+
+        # Test no exact match
+        df = pd.DataFrame({"circ_radius_m": [1, 2, 3], "other": [4, 5, 6]})
+        expected = "circ_radius_m"
+        actual = ch.find_rad_or_diam_col(df)
+        self.assertEqual(actual, expected)
+
+        # Test with no matching column
+        df = pd.DataFrame({"other": [1, 2, 3]})
+        with self.assertRaises(ValueError):
+            ch.find_rad_or_diam_col(df)
 
     def test_merge(self):
         """Test spatial merge of crater dataframes."""
