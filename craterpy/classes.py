@@ -86,12 +86,18 @@ CRS_DICT = {
 class CraterDatabase:
     """Database of crater locations and shapefiles.
 
-    Attributes:
-        data (GeoDataFrame): GeoDataFrame containing the crater data.
-        lat (Series): Crater latitudes.
-        lon (Series): Crater longitudes.
-        rad (Series): Crater radii.
-        center (GeoSeries): Crater center (shapely.geometry Point).
+    Attributes
+    ----------
+    data : geopandas.GeoDataFrame
+        Dataframe containing the crater data.
+    lat : pandas.Series
+        Crater latitudes.
+    lon : pandas.Series
+        Crater longitudes.
+    rad : pandas.Series
+        Crater radii.
+    center : geopandas.GeoSeries of shapely.geometry.Point objects
+        Crater centers.
     """
 
     # Philosophy for database: Geopandas only allows 1 shape geometry per row
@@ -117,15 +123,20 @@ class CraterDatabase:
         """
         Initialize a CraterDatabase.
 
-        Parameters:
-            dataset (str or DataFrame):
-                if str, path to the file containing crater data.
-                if DataFrame, DataFrame containing crater data.
-            body (str): Planetary body, e.g. Moon, Vesta (default: Moon)
-            units (str): Length units of radius/diameter, m or km (default: m)
+        Parameters
+        ----------
+        dataset : str or pandas.DataFrame
+            if str, path to the file containing crater data.
+            if DataFrame, DataFrame containing crater data.
+        body : str
+            Planetary body, e.g. 'Moon', 'Vesta' (default: 'Moon')
+        units : str
+            Length units of radius/diameter, 'm' or 'km' (default: 'm')
 
-        Raises:
-            ValueError: If dataset is not a file or DataFrame.
+        Raises
+        ------
+            ValueError
+                If dataset is not a file or is not a pandas.DataFrame.
         """
         if not body:
             raise ValueError(
@@ -203,8 +214,17 @@ class CraterDatabase:
             are equal.
         - The optional _vesta_coord attribute (if present) is equal.
 
-        Returns:
-            bool: True if the two objects are equal, False otherwise.
+        Parameters
+        ----------
+        other : object
+            The other database (or object) to compare against
+
+         Returns
+        -------
+        bool or NotImplemented
+            - `True` if `other` is a CraterDatabase with equivalent data and metadata.
+            - `False` if `other` is a CraterDatabase but differs in any of the required attributes.
+            - `NotImplemented` if `other` is not a CraterDatabase instance.
         """
         if not isinstance(other, CraterDatabase):
             return NotImplemented
@@ -433,10 +453,12 @@ class CraterDatabase:
         precise: bool
             Precisely calculate each geometry in a local projection (default: True).
 
-        Examples:
-        - cdb.add_annuli("name", 1, 2) generates annuli from each crater rim to 1 crater radius beyond the rim.
-        - cdb.add_annuli("name", 1, 3) generates annuli from each crater rim to 1 crater diameter beyond the rim.
-        - cdb.add_annuli("name", 0, 1) generates a cicle capturing the interior of the crater rim.
+        Examples
+        --------
+        .. code-block:: python
+            cdb.add_annuli("name", 1, 2)  # generates annuli from each crater rim to 1 crater radius beyond the rim.
+            cdb.add_annuli("name", 1, 3)  # generates annuli from each crater rim to 1 crater diameter beyond the rim.
+            cdb.add_annuli("name", 0, 1)  # generates a cicle capturing the interior of the crater rim.
         """
         name = name or f"annulus_{inner}_{outer}"
         self.data[name] = self._gen_annulus(inner, outer, precise)
@@ -447,11 +469,11 @@ class CraterDatabase:
 
         Parameters
         ----------
-        name: str
+        name : str
             Name of geometry column (default: circle_{size}).
-        size: int or float
+        size : int or float
             Radius of circle around each crater in crater radii (default: 1).
-        precise: bool
+        precise : bool
             Precisely calculate each geometry in a local projection (default: True).
         """
         name = name or f"circle_{size}"
@@ -477,7 +499,32 @@ class CraterDatabase:
         return out
 
     def get_stats(self, rasters, regions, stats=STATS, nodata=None, n_jobs=1):
-        """Compute stats on polygons in a GeoDataFrame in parallel."""
+        """
+        Compute stats on polygons in a GeoDataFrame in parallel.
+
+        Parameters
+        ----------
+        rasters : str, rasterio.DatasetReader, or dict of {str: str or rasterio.DatasetReader}
+            Single raster path or open raster dataset, or a mapping of names to rasters.
+            If a single raster is provided, it will be wrapped in a dict with key '_'.
+        regions : str or list of str
+            Name or list of names of geometry columns in the crater database to use as regions.
+        stats : tuple of str, optional
+            Statistics to compute for each raster-region combination.
+            Default is ("mean", "std", "count").
+        nodata : number, None, or dict of {str: number}, optional
+            Nodata value to use for masking, or mapping of raster names to their nodata values.
+            If None, no nodata masking is applied.
+        n_jobs : int, optional
+            Number of parallel worker processes to use. Default is 1.
+
+        Returns
+        -------
+        pandas.DataFrame
+            DataFrame containing the original crater columns along with appended
+            statistics columns for each raster and region combination.
+        """
+
         if not isinstance(rasters, dict):
             rasters = {"_": rasters}  # Will be stripped from stats colname
         if isinstance(regions, str):
@@ -537,7 +584,8 @@ class CraterDatabase:
 
         Returns
         -------
-        ax: matplotlib.Axes
+        ax : matplotlib.Axes
+            Original axes, now with data plotted.
         """
         if fraster:
             if ax is not None:
@@ -680,14 +728,14 @@ class CraterDatabase:
 
         Plots the first 9 craters supplied in index.
 
-        Parameters:
-        -----------
+        Parameters
+        ----------
         cdb : object
             A CraterDatabase with region defined, e.g., with add_annuli().
         fraster : str
             A path to raster to clip rois from.
         region : str
-            The name CraterDatabase region geometry to plot.
+            The name of the CraterDatabase region geometry to plot.
         index : int, pd.Index, or iterable, optional
             Specifies which ROIs to plot. If an integer, take first n,
             otherwise plot all given indices. Default is 9.
@@ -698,15 +746,16 @@ class CraterDatabase:
             default settings for the raster image (`cmap`, `vmin`, `vmax`) or the ROI
             geometries (`color`, `facecolor`, `lw`, `alpha`, etc.).
 
-        Returns:
-        --------
+        Returns
+        -------
         axes : array of matplotlib.axes._subplots.AxesSubplot
 
-        Examples:
-        ---------
-        cdb = CraterDatabase(craters.csv, body="Moon")
-        cdb.add_circles("crater", 1.5)
-        cdb.plot_rois("moon.tif", region='crater', index=(1, 6, 9), alpha=0.2)
+        Examples
+        --------
+        .. code-block:: python
+            cdb = CraterDatabase(craters.csv, body="Moon")
+            cdb.add_circles("crater", 1.5)
+            cdb.plot_rois("moon.tif", region='crater', index=(1, 6, 9), alpha=0.2)
         """
         # Parse index an int, or pd Index otherwise pass to .iloc (e.g., range, tuple, list, array of indices should all work)
         gdf = self.data[region]
@@ -804,6 +853,11 @@ class CraterDatabase:
         -------
         CraterDatabase
             A new CraterDatabase instance with craters.
+
+        Raises
+        ------
+        ValueError
+            If CraterDatabase objects are from different bodies.
         """
         if cdb1.body != cdb2.body:
             raise ValueError(
@@ -838,7 +892,7 @@ class CraterDatabase:
 
         Notes
         -----
-        This method assumes the file was previously created by CraterDatabase.to_geojson()
+        This method assumes the file was previously created by `CraterDatabase.to_geojson()`
         or has a compatible format with lat/lon coordinates and radius or diameter information.
         """
         # Try to read metadata from GeoJSON first (if it's a GeoJSON file)

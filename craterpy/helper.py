@@ -7,38 +7,125 @@ from scipy.spatial import cKDTree
 
 # Geospatial helpers
 def bbox2extent(bbox):
-    """Convert rasterio/geopandas bounding box to matplotlib extent."""
+    """Convert rasterio/geopandas bounding box to matplotlib extent.
+
+    Parameters
+    ----------
+    bbox : array-like of float
+        Bounding box in the form (minx, miny, maxx, maxy).
+
+    Returns
+    -------
+    tuple of float
+        Extent in the form (xmin, xmax, ymin, ymax).
+    """
     return bbox[0], bbox[2], bbox[1], bbox[3]
 
 
 def lon360(lon):
-    """Return longitude in range [0, 360)."""
+    """Return longitude in range [0, 360).
+
+    Parameters
+    ----------
+    lon : float or array-like
+        Longitude values in degrees.
+
+    Returns
+    -------
+    float or array-like
+        Corresponding longitude values in the [0, 360) range.
+    """
     return (lon + 360) % 360
 
 
 def lon180(lon):
-    """Return longitude in range (-180, 180]."""
+    """Return longitude in range (-180, 180].
+
+    Parameters
+    ----------
+    lon : float or array-like
+        Longitude values in degrees.
+
+    Returns
+    -------
+    float or array-like
+        Corresponding longitude values in the (-180, 180] range.
+    """
     return ((lon + 180) % 360) - 180
 
 
 def deg2pix(degrees, ppd):
-    """Return degrees converted to pixels at ppd pixels/degree."""
+    """Return degrees converted to pixels at ppd pixels/degree.
+
+    Parameters
+    ----------
+    degrees : float
+        Angular distance in degrees.
+    ppd : float
+        Pixels per degree resolution.
+
+    Returns
+    -------
+    int
+        Equivalent number of pixels.
+    """
     return int(degrees * ppd)
 
 
 def get_ind(value, array):
-    """Return closest index of a value from array."""
+    """Return closest index of a value from array.
+
+    Parameters
+    ----------
+    value : float
+        Target value to find.
+    array : array-like
+        Array of values.
+
+    Returns
+    -------
+    int
+        Index of the nearest array element to `value`.
+    """
     ind = np.abs(array - value).argmin()
     return int(ind)
 
 
 def km2deg(dist, mpp, ppd):
-    """Return dist converted from kilometers to degrees."""
+    """Return dist converted from kilometers to degrees.
+
+    Parameters
+    ----------
+    dist : float
+        Distance in kilometers.
+    mpp : float
+        Meters per pixel.
+    ppd : float
+        Pixels per degree.
+
+    Returns
+    -------
+    float
+        Equivalent angular distance in degrees.
+    """
     return 1000 * dist / (mpp * ppd)
 
 
 def km2pix(dist, mpp):
-    """Return dist converted from kilometers to pixels"""
+    """Return dist converted from kilometers to pixels
+
+    Parameters
+    ----------
+    dist : float
+        Distance in kilometers.
+    mpp : float
+        Meters per pixel.
+
+    Returns
+    -------
+    int
+        Equivalent number of pixels.
+    """
     return int(1000 * dist / mpp)
 
 
@@ -47,10 +134,29 @@ def greatcircdist(lat1, lon1, lat2, lon2, radius):
 
     Uses Haversine formula for great circle distances.
 
+    Parameters
+    ----------
+    lat1 : float
+        Latitude of the first point in degrees.
+    lon1 : float
+        Longitude of the first point in degrees.
+    lat2 : float
+        Latitude of the second point in degrees.
+    lon2 : float
+        Longitude of the second point in degrees.
+    radius : float
+        Radius of the sphere (same units for output).
+
+    Returns
+    -------
+    float
+        Great circle distance between the points.
+
     Examples
     --------
-    >>> greatcircdist(36.12, -86.67, 33.94, -118.40, 6372.8)
-    2887.259950607111
+    .. code-block:: doctest
+        >>> greatcircdist(36.12, -86.67, 33.94, -118.40, 6372.8)
+        2887.259950607111
     """
     # Convert degrees to radians
     lat1, lon1, lat2, lon2 = np.radians([lat1, lon1, lat2, lon2])
@@ -70,20 +176,44 @@ def inglobal(lat, lon):
     Default coords: lat in (-90, 90) and lon in (-180, 180).
     mode='pos': lat in (-90, 90) and lon in (0, 360).
 
+    Parameters
+    ----------
+    lat : float
+        Latitude in degrees.
+    lon : float
+        Longitude in degrees.
+
+    Returns
+    -------
+    bool
+        True if latitude is between -90 and 90 and longitude normalized to 0-360.
+
     Examples
     --------
-    >>> inglobal(0, 0)
-    True
-    >>> inglobal(91, 0)
-    False
-    >>> inglobal(0, -50)
-    True
+    .. code-block:: doctest
+        >>> inglobal(0, 0)
+        True
+        >>> inglobal(91, 0)
+        False
+        >>> inglobal(0, -50)
+        True
     """
     return (-90 <= lat <= 90) and (0 <= lon360(lon) <= 360)
 
 
 def get_spheroid_rad_from_wkt(wkt):
-    """Return body radius from Well-Known Text coordinate reference system."""
+    """Return body radius from Well-Known Text coordinate reference system.
+
+    Parameters
+    ----------
+    wkt : str
+        WKT string of the coordinate reference system.
+
+    Returns
+    -------
+    float
+        Semi-major axis of the spheroid in the WKT.
+    """
     return float(wkt.lower().split("spheroid")[1].split(",")[1])
 
 
@@ -103,16 +233,30 @@ def findcol(df, names, exact=False):
         Exact matches only (case-insensitive). Otherwise match on column
         substring (default: False).
 
+    Returns
+    -------
+    str
+        Name of the first matching column.
+
+    Raises
+    ------
+    ValueError
+        If no matching column is found.
+
     Examples
     --------
-    >>> df = pd.DataFrame({'Lat': [10, -20., 80.0],
-                           'Lon': [14, -40.1, 317.2],
-                           'Diam': [2, 12., 23.7]})
-    >>> findcol(df, ['Latitude', 'Lat'])
-    'Lat'
-    >>> findcol(df, ['Radius'])
-    >>> findcol(df, 'diam')
-    'Diam'
+    .. code-block:: doctest
+        >>> df = pd.DataFrame({'Lat': [10, -20., 80.0],
+                            'Lon': [14, -40.1, 317.2],
+                            'Diam': [2, 12., 23.7]})
+        >>> findcol(df, ['Latitude', 'Lat'])
+        'Lat'
+        >>> findcol(df, ['Radius'])
+        Traceback (most recent call last):
+        ...
+        ValueError: No column containing ['Radius'] found.
+        >>> findcol(df, 'diam')
+        'Diam'
     """
     if isinstance(names, str):
         names = [names]
@@ -134,7 +278,23 @@ def findcol(df, names, exact=False):
 
 
 def find_rad_or_diam_col(df):
-    """Return the name of the radius or diameter column."""
+    """Return the name of the radius or diameter column.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        DataFrame to search for radius/diameter column names.
+
+    Returns
+    -------
+    str
+        Name of the column representing radius or diameter.
+
+    Raises
+    ------
+    ValueError
+        If no suitable column is found.
+    """
     # First search these names (case-insensitive) in order for exact matches
     names = "radius,diameter,rad,diam,r_km,d_km,r_m,d_m,r,d"
     try:
@@ -150,7 +310,28 @@ def find_rad_or_diam_col(df):
 
 
 def latlon_to_cartesian(lat, lon, radius):
-    """Convert lat, lon to cartesian (x, y, z)"""
+    """Convert lat, lon to cartesian (x, y, z)
+
+    Parameters
+    ----------
+    lat : float or array-like
+        Latitude in degrees.
+    lon : float or array-like
+        Longitude in degrees.
+    radius : float
+        Radius of the sphere.
+
+    Returns
+    -------
+    tuple of array-like or float
+        Cartesian coordinates (x, y, z).
+
+    Examples
+    --------
+    .. code-block:: doctest
+        >>> latlon_to_cartesian(0, 0, 1)
+        (1.0, 0.0, 0.0)
+    """
     lat, lon = np.radians(lat), np.radians(lon)
     x = radius * np.cos(lat) * np.cos(lon)
     y = radius * np.cos(lat) * np.sin(lon)
