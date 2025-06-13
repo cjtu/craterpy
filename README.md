@@ -49,33 +49,22 @@ Note: craterpy is not a detection algorithm (e.g., [PyCDA](https://github.com/Al
 
 **Note:** *Craterpy is in beta. We appreciate bug reports and feature requests on the [issues board](https://github.com/cjtu/craterpy/issues).*
 
+
+## Getting Started
+
+Check out the [Getting Started](https://craterpy.readthedocs.io/en/latest/getting_started.html#) page for detailed information on how to import a list of craters, add geometries to a `CraterDatabase`, extract statistics from a database, and more.
+
 ## Examples
 
-All craters on the Moon > 2km.
+Plot craters on a raster
 
 ```python
 from craterpy import CraterDatabase
-cdb = CraterDatabase('lunar_crater_database_robbins_2018.csv', "Moon", units="km")
-cdb.plot(linewidth=0.25, alpha=0.25, color='gray')
-```
+from craterpy import sample_data as sd
+import matplotlib.pyplot as plt
 
-![Lunar craters plot](https://github.com/cjtu/craterpy/raw/trunk/craterpy/data/_images/readme_moon_robbins.png)
-
-
-Define cicular/annular regions and export to GIS-ready shapefiles:
-
-```python
-cdb.add_circles("craters", size=1)  # Crater interiors
-cdb.add_annuli("ejecta", inner=1, outer=3)  # Annulus from rim to 2 radii past the rim (excludes interior)
-cdb.craters.to_file("lunar_craters.geojson")
-cdb.ejecta.to_file("lunar_ejecta.geojson")
-```
-
-Plot on a raster
-
-```python
-cdb = CraterDatabase('vesta_craters.csv', "Vesta", units="m")
-im = plt.imread('vesta.tif')
+cdb = CraterDatabase(sd['vesta_craters.csv'], "Vesta", units="m")
+im = plt.imread(sd['vesta.tif'])
 ax = cdb.plot(alpha=0.5, color='tab:green')
 ax.imshow(im, extent=(-180, 180, -90, 90), cmap='gray')
 ```
