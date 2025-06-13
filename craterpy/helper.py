@@ -262,7 +262,7 @@ def findcol(df, names, exact=False):
         ValueError: No column containing ['Radius'] found.
         >>> findcol(df, 'diam')
         'Diam'
-        
+
     """
     if isinstance(names, str):
         names = [names]
