@@ -457,9 +457,9 @@ class CraterDatabase:
         --------
         .. code-block:: python
 
-            cdb.add_annuli("name", 1, 2)  # generates annuli from each crater rim to 1 crater radius beyond the rim.
-            cdb.add_annuli("name", 1, 3)  # generates annuli from each crater rim to 1 crater diameter beyond the rim.
-            cdb.add_annuli("name", 0, 1)  # generates a cicle capturing the interior of the crater rim.
+            >>> cdb.add_annuli("name", 1, 2)  # generates annuli from each crater rim to 1 crater radius beyond the rim.
+            >>> cdb.add_annuli("name", 1, 3)  # generates annuli from each crater rim to 1 crater diameter beyond the rim.
+            >>> cdb.add_annuli("name", 0, 1)  # generates a cicle capturing the interior of the crater rim.
 
         """
         name = name or f"annulus_{inner}_{outer}"
@@ -756,9 +756,9 @@ class CraterDatabase:
         --------
         .. code-block:: python
 
-            cdb = CraterDatabase(craters.csv, body="Moon")
-            cdb.add_circles("crater", 1.5)
-            cdb.plot_rois("moon.tif", region='crater', index=(1, 6, 9), alpha=0.2)
+            >>> cdb = CraterDatabase(craters.csv, body="Moon")
+            >>> cdb.add_circles("crater", 1.5)
+            >>> cdb.plot_rois("moon.tif", region='crater', index=(1, 6, 9), alpha=0.2)
 
         """
         # Parse index an int, or pd Index otherwise pass to .iloc (e.g., range, tuple, list, array of indices should all work)
