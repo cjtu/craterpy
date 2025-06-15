@@ -76,6 +76,9 @@ Compute raster image statistics on each crater geometry.
 
 ```python
 import pandas as pd
+from craterpy import CraterDatabase
+from craterpy import sample_data as sd
+
 df = pd.DataFrame({'Name': ["Orientale", "Copernicus", "Tycho"],
                     'Lat': [-19.9, 9.62, -43.35],
                     'Lon': [-94.7, -20.08, -11.35],
@@ -88,15 +91,20 @@ cdb.add_annuli("floor", 0.3, 0.6)
 cdb.add_annuli("rim", 1.0, 1.2)
 
 # DEM is a geotiff with elevation relative to reference Moon in meters
-stats = cdb.get_stats("dem.tif", regions=['floor', 'peak', 'rim'], stats=['mean', 'std'])
+stats = cdb.get_stats(sd["moon_dem.tif"], regions=['floor', 'peak', 'rim'], stats=['mean', 'std'])
 print(stats)
 ```
 
-| **Name** | **Lat** | **Lon** | **Rad** | **mean_floor** | **std_floor** | **mean_peak** | **std_peak** | **mean_rim** | **std_rim** |
+<!-- | **Name** | **Lat** | **Lon** | **Rad** | **mean_floor** | **std_floor** | **mean_peak** | **std_peak** | **mean_rim** | **std_rim** |
 |---|---|---|---|---|---|---|---|---|---|
 | Orientale | -19.90 | -94.70 | 250.0 | -2400.0 | 400.0 | -2800.0 | 100.0 | 400.0 | 1100.0 |
 | Compernicus | 9.62 | -20.08 | 48.0 | -3400.0 | 200.0 | -3400.0 | 100.0 | -0.0 | 200.0 |
-| Tycho | -43.35 | -11.35 | 42.0 | -3200.0 | 400.0 | -2100.0 | 500.0 | 900.0 | 400.0 |
+| Tycho | -43.35 | -11.35 | 42.0 | -3200.0 | 400.0 | -2100.0 | 500.0 | 900.0 | 400.0 | -->
+| **Name**       |    **Lat** |    **Lon** |   **Rad** |   **mean_floor** |   **std_floor** |   **mean_peak** |   **std_peak** |   **mean_rim** |   **std_rim** |
+|:-----------|-------:|-------:|------:|-------------:|------------:|------------:|-----------:|-----------:|----------:|
+| Orientale  | -19.9  | -94.7  |   250 |     -2400.35 |     461.787 |    -2838.15 |    87.9599 |    437.366 |  1103.27  |
+| Copernicus |   9.62 | -20.08 |    48 |     -2946.59 |     714.68  |    -3352.57 |   153.847  |   -470.978 |   655.375 |
+| Tycho      | -43.35 | -11.35 |    42 |     -2634.63 |    1007.66  |    -2187.86 |  1010.25   |    174.735 |  1046.08  |
 
 
 See the full [craterpy documentation](https://readthedocs.org/projects/craterpy/) on Read the Docs.
