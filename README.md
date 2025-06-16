@@ -61,12 +61,9 @@ Plot craters on a raster
 ```python
 from craterpy import CraterDatabase
 from craterpy import sample_data as sd
-import matplotlib.pyplot as plt
 
 cdb = CraterDatabase(sd['vesta_craters.csv'], "Vesta", units="m")
-im = plt.imread(sd['vesta.tif'])
-ax = cdb.plot(alpha=0.5, color='tab:green')
-ax.imshow(im, extent=(-180, 180, -90, 90), cmap='gray')
+cdb.plot(sd['vesta.tif'], alpha=0.5, color='tab:green')
 ```
 
 ![Vesta map plot](https://github.com/cjtu/craterpy/raw/trunk/craterpy/data/_images/readme_vesta_cdb.png)
