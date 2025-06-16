@@ -17,14 +17,14 @@ Instantiating a `CraterDatabase` requires a table of craters (either a file or `
 
 If there are multiple columns that match, `craterpy` assumes the first matching column is desired.
 
-To specify specific columns or rows to use for the `lon`, `lat`, and `diam` or `rad` columns, first read the table into a `pandas.DataFrame` and pass in the desired columns. You may also filter the crater list. Here, we take only craters larger than 5 km:
+To specify specific columns or rows to use for the `lon`, `lat`, and `diam` or `rad` columns, first read the table into a `pandas.DataFrame` and pass in the desired columns. You may also filter the crater list. Here, we take only craters larger than 2 km radius:
 
 ```python
 from craterpy import sample_data as sd
 import pandas as pd
-df = pd.read_csv(sd["craters.csv"], usecols=[4, 8, 9], names=["lat", "lon", "diam"])
-df = df[df.diam > 5]
-cdb = CraterpyDatabase(df, body="Moon", units="km")
+df = pd.read_csv(sd["moon_craters.csv"])
+df = df[df['Rad'] > 2]
+cdb = CraterDatabase(df, body="Moon", units="km")
 ```
 
 The `CraterDatabase` will work with either a radius or diameter column. However, the length units of the craters must be specified as meters or kilometers (default is `units=m`).
@@ -48,7 +48,7 @@ Geometries are stored under the supplied name as `geopandas.GeoSeries` objects. 
 # Save to shapefile
 cdb.to_geojson("lunar_craters.geojson", "crater")
 # Read from shapefile
-new_cdb = CraterDatabase("lunar_craters.geojson")
+new_cdb = CraterDatabase("lunar_craters.geojson", body="Moon", units="km")
 ```
 
 Geometries can be shown on a plot with with or without an image (images should be converted to a georeferenced raster format before use with `craterpy`).
@@ -93,6 +93,24 @@ print(stats.head())
 For a list of valid statistics, see the [rasterstats documentation](https://pythonhosted.org/rasterstats/manual.html#zonal-statistics).
 
 The input raster file must be georeferenced and importable by `gdal`.
+
+## All craters on the moon > 2km
+
+To plot all > 2km craters on the moon, first download the [Lunar Crater Database](https://pdsimage2.wr.usgs.gov/Individual_Investigations/moon_lro.kaguya_multi_craterdatabase_robbins_2018/data/) (Robbins, 2018) in CSV format.
+
+Then run the following code to read in, filter, and ingest the database as a `CraterDatabase`, and then visualize it. **Note:** visualization of so many craters may take several minutes, or even tens of minutes depending on the machine, to appear.
+
+```python
+from craterpy import CraterDatabase
+import pandas as pd
+df = pd.read_csv('lunar_crater_database_robbins_2018.csv')
+df = df[df['DIAM_CIRC_IMG'] > 2]  # Filter out craters < 2 km diameter 
+cdb = CraterDatabase(df, "Moon", units="km")
+print('Plotting... (this may take several minutes)')
+cdb.plot(linewidth=0.25, alpha=0.25, color='gray')
+```
+
+![Lunar craters plot](https://github.com/cjtu/craterpy/raw/trunk/craterpy/data/_images/readme_moon_robbins.png)
 
 ## More help
 
