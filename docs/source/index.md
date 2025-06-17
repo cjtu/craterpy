@@ -16,7 +16,7 @@ api
 :caption: Development
 
 Contributing <https://github.com/cjtu/craterpy/blob/trunk/CONTRIBUTING.rst>
-Code of Conduct <https://github.com/cjtu/craterpy/blob/trunk/CODE_OF_CONDUCT.rst>
+Code of Conduct <https://github.com/cjtu/craterpy/blob/trunk/CODE_OF_CONDUCT.md>
 GitHub repo <https://github.com/cjtu/craterpy>
 ```
 

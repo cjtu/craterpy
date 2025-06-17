@@ -49,8 +49,8 @@ If you made it this far and you're still interested, that's great! Here are four
 
 6. Hack away!
 
-Preparing and a commit
-----------------------
+Preparing a commit
+------------------
 
 When you are ready to contribute your changes, make sure to:
 
@@ -116,7 +116,7 @@ Code of Conduct
 ---------------
 This community is governed by a `code of conduct`_. This is an inclusive community and attitudes or behaviours that make other members feel unsafe or uncomfortable will not be tolerated.
 
-.. _`code of conduct`: https://github.com/cjtu/craterpy/blob/master/CODE_OF_CONDUCT.rst
+.. _`code of conduct`: https://github.com/cjtu/craterpy/blob/master/CODE_OF_CONDUCT.md
 
 Happy contributing and have a great day!
 ========================================

@@ -1,6 +1,6 @@
-<div align="center">
+<h1 align="center">
   <strong>Craterpy:</strong><em> Impact crater data science in Python.</em>
-</div>
+</h1>
 
 <div align="center">
   <!-- PYPI version -->
@@ -30,6 +30,11 @@
     <img src="http://readthedocs.org/projects/craterpy/badge/?version=latest"
       alt="Cite on Zenodo" />
   </a>
+  <!-- Code of Conduct -->
+  <a href="CODE_OF_CONDUCT.md">
+    <img src="https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg"
+      alt="Contributor Covenant" />
+      </a>
   <!-- Code Style -->
   <a href="https://github.com/psf/black">
     <img src="https://img.shields.io/badge/code%20style-black-000000.svg"
@@ -45,113 +50,80 @@ Craterpy makes it easier to work with impact crater data in Python. Highlights:
 - extract zonal statistics associated with each crater in circlular or annular regions (rasterstats)
 - eliminate some pain points of planetary GIS analysis (antimeridian wrapping, projection conversions, etc.)
 
-Note: craterpy is not a detection algorithm (e.g., [PyCDA](https://github.com/AlliedToasters/PyCDA)), nor is it a crater count age dating tool (see [craterstats](https://github.com/ggmichael/craterstats)).
+Note: Craterpy is not a crater detection algorithm (e.g. [PyCDA](https://github.com/AlliedToasters/PyCDA)), nor is it a crater count age dating tool (see [craterstats](https://github.com/ggmichael/craterstats)).
 
-**Note:** *Craterpy is in beta. We appreciate bug reports and feature requests on the [issues board](https://github.com/cjtu/craterpy/issues).*
+**Note:** *Craterpy is in development. We appreciate bug reports and feature requests on the [issues board](https://github.com/cjtu/craterpy/issues).*
 
 
-## Getting Started
+## Quickstart
 
-Check out the [Getting Started](https://craterpy.readthedocs.io/en/latest/getting_started.html#) page for detailed information on how to import a list of craters, add geometries to a `CraterDatabase`, extract statistics from a database, and more.
+Install with `pip install craterpy` then follow the full worked example in the docs [Getting Started](https://craterpy.readthedocs.io/en/latest/getting_started.html).
 
-## Examples
+## Demo
 
-Plot craters on a raster
+Quickly import tabluar crater data from a CSV and visualize it on a geotiff in 2 lines of code:
 
 ```python
-from craterpy import CraterDatabase
-from craterpy import sample_data as sd
+from craterpy import CraterDatabase, sample_data
 
-cdb = CraterDatabase(sd['vesta_craters.csv'], "Vesta", units="m")
-cdb.plot(sd['vesta.tif'], alpha=0.5, color='tab:green')
+cdb = CraterDatabase(sample_data['vesta_craters.csv'], 'Vesta', units='m')
+cdb.plot(sample_data['vesta.tif'], alpha=0.5, color='tab:green')
 ```
 
 ![Vesta map plot](https://github.com/cjtu/craterpy/raw/trunk/craterpy/data/_images/readme_vesta_cdb.png)
 
-
-Compute raster image statistics on each crater geometry.
+Clip and plot targeted regions around each crater from large raster datasets.
 
 ```python
-import pandas as pd
-from craterpy import CraterDatabase
-from craterpy import sample_data as sd
-
-df = pd.DataFrame({'Name': ["Orientale", "Copernicus", "Tycho"],
-                    'Lat': [-19.9, 9.62, -43.35],
-                    'Lon': [-94.7, -20.08, -11.35],
-                    'Rad': [250., 48., 42.]})
-cdb = CraterDatabase(df, "Moon", units="km")
-
-# Define regions for central peak, crater floor, and rim (sizes in crater radii)
-cdb.add_annuli("peak", 0, 0.1)
-cdb.add_annuli("floor", 0.3, 0.6)
-cdb.add_annuli("rim", 1.0, 1.2)
-
-# DEM is a geotiff with elevation relative to reference Moon in meters
-stats = cdb.get_stats(sd["moon_dem.tif"], regions=['floor', 'peak', 'rim'], stats=['mean', 'std'])
-print(stats)
+cdb.add_circles('crater_rois', 3)
+cdb.plot_rois(sample_data['vesta.tif'], 'crater_rois')
+cdb.plot_rois(sample_data['vesta.tif'], 'crater_rois', range(1500, 1503))
 ```
 
-<!-- | **Name** | **Lat** | **Lon** | **Rad** | **mean_floor** | **std_floor** | **mean_peak** | **std_peak** | **mean_rim** | **std_rim** |
-|---|---|---|---|---|---|---|---|---|---|
-| Orientale | -19.90 | -94.70 | 250.0 | -2400.0 | 400.0 | -2800.0 | 100.0 | 400.0 | 1100.0 |
-| Compernicus | 9.62 | -20.08 | 48.0 | -3400.0 | 200.0 | -3400.0 | 100.0 | -0.0 | 200.0 |
-| Tycho | -43.35 | -11.35 | 42.0 | -3200.0 | 400.0 | -2100.0 | 500.0 | 900.0 | 400.0 | -->
-| **Name**       |    **Lat** |    **Lon** |   **Rad** |   **mean_floor** |   **std_floor** |   **mean_peak** |   **std_peak** |   **mean_rim** |   **std_rim** |
-|:-----------|-------:|-------:|------:|-------------:|------------:|------------:|-----------:|-----------:|----------:|
-| Orientale  | -19.9  | -94.7  |   250 |     -2400.35 |     461.787 |    -2838.15 |    87.9599 |    437.366 |  1103.27  |
-| Copernicus |   9.62 | -20.08 |    48 |     -2946.59 |     714.68  |    -3352.57 |   153.847  |   -470.978 |   655.375 |
-| Tycho      | -43.35 | -11.35 |    42 |     -2634.63 |    1007.66  |    -2187.86 |  1010.25   |    174.735 |  1046.08  |
+![Vesta plot rois](https://github.com/cjtu/craterpy/raw/trunk/craterpy/data/_images/readme_vesta_rois.png)
 
+Extract zonal statistics for crater regions of interest.
 
-See the full [craterpy documentation](https://readthedocs.org/projects/craterpy/) on Read the Docs.
+```python
+# Import lunar crater and define the floor and rim
+cdb = CraterDatabase(sample_data['moon_craters.csv'], 'Moon', units='km')
+cdb.add_annuli("floor", 0.4, 0.8)  # Crater floor (exclude central peak and rim)
+cdb.add_annuli("rim", 0.9, 1.1)  # Thin annulus at crater rim
 
+# Compute summary statistics for every ROI see docs for supported stats
+stats = cdb.get_stats(sample_data['moon_dem.tif'], regions=['floor', 'rim'], stats=['median'])
 
-## Installation
+# Compute crater depth as rim elevation - floor elevation
+stats['depth (m)'] = (stats.median_rim - stats.median_floor)
+print(stats.head(3).round(2))
 
-With pip:
-
-```bash
-pip install craterpy
+# Name     Rad      Lat     Lon     median_floor  median_rim  depth (m)
+# Olbers D  50.015  10.23  -78.03      -1452.50    -1322.88     129.62
+# Schuster   50.04   4.44  146.42        445.58     1976.97    1531.39
+# Gilbert  50.125  -3.20   76.16      -2213.66     -731.64    1482.02
 ```
-
-From the repo with [poetry](https://python-poetry.org/docs/) (for latest version & to contribute). First fork and clone the repository, then:
-
-```bash
-# Install craterpy with poetry
-$ cd craterpy
-$ poetry install
-
-# Check installation version
-poetry version
-
-# Activate the venv 
-$ poetry shell
-$ which python
-
-# Or open a Jupyter notebook
-$ poetry run jupyter notebook
-```
-- **Note**: Craterpy is currently only tested on Ubuntu and OS X. If you would like to use craterpy on Windows, check out the Windows Subsystem for Linux ([WSL](https://docs.microsoft.com/en-us/windows/wsl/install)). 
-
-Trouble installing craterpy? Let us know on the [issues](https://github.com/cjtu/craterpy/issues) board.
-
 
 ## Documentation
 
 Full API documentation and usage examples are available at [readthedocs](https://readthedocs.org/projects/craterpy/).
 
+
+## Installation
+
+We recommend pip installing craterpy into a virtual environment, e.g. with `conda` or `venv`:
+
+```bash
+pip install craterpy
+```
+- **Note**: Craterpy is currently only tested on Ubuntu and OS X but may work on some versions of Windows. 
+
 ## Contributing
 
 There are two major ways you can help improve craterpy:
 
-### Bug Reporting and Feature Requests
+- Report bugs or request new features on the [issues](https://github.com/cjtu/craterpy/issues) board.
 
-You can report bugs or request new features on the [issues](https://github.com/cjtu/craterpy/issues) board.
-
-### Contributing Directly
-
-Want to fix a bug / implement a feature / fix some documentation? We welcome pull requests from all new contributors! You (yes you!) can help us make craterpy as good as it can be! See [CONTRIBUTING.rst](https://github.com/cjtu/craterpy/blob/trunk/CONTRIBUTING.rst) for details on how to get started - first time GitHub contributors welcome - and encouraged!
+- Contributing directly. See [CONTRIBUTING.rst](https://github.com/cjtu/craterpy/blob/trunk/CONTRIBUTING.rst) for full details. First time open source contributors are welcome!
 
 ## Citing craterpy
 
