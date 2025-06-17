@@ -1,0 +1,15 @@
+cff-version: 1.2.0
+type: software
+message: "If you use this software, please cite it as below."
+authors:
+- family-names: "Tai Udovicic"
+  given-names: "Christian J."
+  affiliation: University of Hawaii at Manoa
+  orcid: "https://orcid.org/0000-0001-9972-1534"
+- family-names: "Essunfeld"
+  given-names: "Ari"
+  orcid: "https://orcid.org/0000-0001-8689-0734"
+title: "Craterpy"
+doi: 10.5281/zenodo.830057
+url: "https://github.com/cjtu/craterpy"
+license: MIT
