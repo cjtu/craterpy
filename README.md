@@ -76,7 +76,6 @@ Clip and plot targeted regions around each crater from large raster datasets.
 
 ```python
 cdb.add_circles('crater_rois', 3)
-cdb.plot_rois(sample_data['vesta.tif'], 'crater_rois')
 cdb.plot_rois(sample_data['vesta.tif'], 'crater_rois', range(1500, 1503))
 ```
 
