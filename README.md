@@ -15,7 +15,7 @@
   </a>
   <!-- Test Coverage (codecov) -->
   <a href="https://codecov.io/gh/cjtu/craterpy">
-    <img src="https://codecov.io/gh/cjtu/craterpy/branch/trunk/graph/badge.svg?token=9K567x0YUJ"
+    <img src="https://codecov.io/gh/cjtu/craterpy/branch/main/graph/badge.svg?token=9K567x0YUJ"
       alt="Code Coverage" />
   </a>
 </div>
@@ -70,7 +70,7 @@ cdb = CraterDatabase(sample_data['vesta_craters.csv'], 'Vesta', units='m')
 cdb.plot(sample_data['vesta.tif'], alpha=0.5, color='tab:green')
 ```
 
-![Vesta map plot](https://github.com/cjtu/craterpy/raw/trunk/craterpy/data/_images/readme_vesta_cdb.png)
+![Vesta map plot](https://github.com/cjtu/craterpy/raw/main/craterpy/data/_images/readme_vesta_cdb.png)
 
 Clip and plot targeted regions around each crater from large raster datasets.
 
@@ -79,7 +79,7 @@ cdb.add_circles('crater_rois', 3)
 cdb.plot_rois(sample_data['vesta.tif'], 'crater_rois', range(1500, 1503))
 ```
 
-![Vesta plot rois](https://github.com/cjtu/craterpy/raw/trunk/craterpy/data/_images/readme_vesta_rois.png)
+![Vesta plot rois](https://github.com/cjtu/craterpy/raw/main/craterpy/data/_images/readme_vesta_rois.png)
 
 Extract zonal statistics for crater regions of interest.
 
@@ -122,7 +122,7 @@ There are two major ways you can help improve craterpy:
 
 - Report bugs or request new features on the [issues](https://github.com/cjtu/craterpy/issues) board.
 
-- Contributing directly. See [CONTRIBUTING.rst](https://github.com/cjtu/craterpy/blob/trunk/CONTRIBUTING.rst) for full details. First time open source contributors are welcome!
+- Contributing directly. See [CONTRIBUTING.rst](https://github.com/cjtu/craterpy/blob/main/CONTRIBUTING.rst) for full details. First time open source contributors are welcome!
 
 ## Citing craterpy
 

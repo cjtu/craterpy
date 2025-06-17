@@ -110,7 +110,7 @@ print('Plotting... (this may take several minutes)')
 cdb.plot(linewidth=0.25, alpha=0.25, color='gray')
 ```
 
-![Lunar craters plot](https://github.com/cjtu/craterpy/raw/trunk/craterpy/data/_images/readme_moon_robbins.png)
+![Lunar craters plot](https://github.com/cjtu/craterpy/raw/main/craterpy/data/_images/readme_moon_robbins.png)
 
 ## More help
 

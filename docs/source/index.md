@@ -15,8 +15,8 @@ api
 :hidden:
 :caption: Development
 
-Contributing <https://github.com/cjtu/craterpy/blob/trunk/CONTRIBUTING.rst>
-Code of Conduct <https://github.com/cjtu/craterpy/blob/trunk/CODE_OF_CONDUCT.md>
+Contributing <https://github.com/cjtu/craterpy/blob/main/CONTRIBUTING.rst>
+Code of Conduct <https://github.com/cjtu/craterpy/blob/main/CODE_OF_CONDUCT.md>
 GitHub repo <https://github.com/cjtu/craterpy>
 ```
 
@@ -25,5 +25,5 @@ GitHub repo <https://github.com/cjtu/craterpy>
 :caption: Attribution
 
 Citation <https://zenodo.org/badge/latestdoi/88457986>
-License <https://github.com/cjtu/craterpy/blob/trunk/LICENSE.txt>
+License <https://github.com/cjtu/craterpy/blob/main/LICENSE.txt>
 ```
