@@ -59,11 +59,6 @@ docs = [
 [tool.black]
 line-length=79
 
-[tool.pylint.reports]
-output-format="colorized"
-reports="y"
-disable=["R0913","C0103","W0212","R0914","E1121","W0511","C0209"]
-msg-template="{msg_id}:{line:3d},{column}: {obj}: {msg}"
 
 [tool.pytest.ini_options]
 addopts = "--cov=craterpy --cov-branch --cov-report term-missing  -v --color=yes"

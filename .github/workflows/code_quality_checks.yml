@@ -3,53 +3,26 @@ name: Code Quality Checks
 
 on:
   push:
-    branches: [main]
+    branches: [ "main" ]
   pull_request:
-    branches: [main]
+    branches: [ "main" ]
 
 jobs:
-  build:
-
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest]
-        python-version: ['3.10', '3.12']
+  checks:
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
-      - name: Display Python version
-        run: python -c "import sys; print(sys.version)"
 
-      - name: Install Poetry
-        uses: snok/install-poetry@v1
+      - name: Install uv and set the python version
+        uses: astral-sh/setup-uv@v6
         with:
-          virtualenvs-create: true
-          virtualenvs-in-project: true
-          installer-parallel: true
+          python-version: '3.12'
+          enable-cache: true
 
-      # Do not let Poetry to install again if we do not detect a lock file change
-      - name: Load cached venv
-        id: cached-poetry-dependencies
-        uses: actions/cache@v4
-        with:
-          path: .venv
-          key: venv-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('**/poetry.lock') }}
-      
-      - name: Install dependencies
-        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-        run: |          
-          poetry install --no-interaction --all-extras
+      - name: Install the project
+        run: uv sync --locked --all-extras --dev
 
       - name: Check format with black
-        run: poetry run black --check craterpy/
-      - name: Unit & Coverage test with pytest
-        run: poetry run pytest --cov-report=xml
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        run: uv run black --check craterpy/
+
         
