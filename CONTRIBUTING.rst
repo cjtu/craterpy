@@ -35,13 +35,13 @@ If you made it this far and you're still interested, that's great! Here are four
     git clone https://github.com/your_username/craterpy.git
     cd craterpy
 
-3. Install the dependencies using poetry::
+3. Install uv from https://docs.astral.sh/uv/#installation then download dependencies using uv::
 
-    poetry install
+    uv sync
 
 4. Make sure the package installed correctly::
 
-    poetry run pytest craterpy
+    uv run pytest craterpy
 
 5. Make a new git branch::
 
@@ -58,17 +58,13 @@ When you are ready to contribute your changes, make sure to:
 
 2. Test your changes::
 
-    poetry run pytest craterpy
+    uv run pytest craterpy
 
 3. Apply automatic code formatting with black::
 
-    poetry run black craterpy
+    uv run black craterpy
 
-4. Run pylint to check your code style and fix any errors::
-
-    poetry run pylint craterpy
-
-8. If linting and tests look good locally, add and commit your changes::
+4. Add and commit your changes::
     
     git add . 
     git commit -m "Descriptive commit message here" 
