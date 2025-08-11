@@ -1,7 +1,7 @@
 """craterpy module"""
 
 from importlib import metadata, resources
-from craterpy.classes import CraterDatabase
+from craterpy.classes import CraterDatabase, CRS_DICT
 
 sample_data = {
     k: str(resources.files(__name__).joinpath("data", k))
@@ -13,6 +13,7 @@ sample_data = {
         "moon_dem.tif",
     )
 }
+all_bodies = list(CRS_DICT.keys())
 
 __version__ = metadata.version(__package__)
 del metadata

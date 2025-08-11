@@ -3,37 +3,51 @@
 The basis of `craterpy` is the `CraterDatabase` which reads, digitizes, plots, and extracts statistics from supplied crater locations.
 
 ```python
-from craterpy import CraterpyDatabase
-cdb = CraterpyDatabase("my_craters.csv", body="Moon", units="km")
+from craterpy import CraterDatabase
+cdb = CraterDatabase("/path/to/craters.csv", body="Moon")
 ```
 
 ## Importing a list of craters
 
-Instantiating a `CraterDatabase` requires a table of craters (either a file or `pandas.DataFrame`) with the following columns (case-insensitive):
+Instantiating a `CraterDatabase` requires a table of craters, the planetary body, and the length units of the radius/diameter column ("m" or "km"). Data can be supplied as a file path or `pandas.DataFrame` that must contain the following named columns in any order (case-insensitive):
 
 - `Latitude` or `Lat`
 - `Longitide` or `Lon`
 - `Radius` or `Rad` or `Diameter` or `Diam`
 
-If there are multiple columns that match, `craterpy` assumes the first matching column is desired.
+When multiple columns match, `craterpy` uses the first column found.
 
-To specify specific columns or rows to use for the `lon`, `lat`, and `diam` or `rad` columns, first read the table into a `pandas.DataFrame` and pass in the desired columns. You may also filter the crater list. Here, we take only craters larger than 2 km radius:
-
-```python
-from craterpy import sample_data as sd
-import pandas as pd
-df = pd.read_csv(sd["moon_craters.csv"])
-df = df[df['Rad'] > 2]
-cdb = CraterDatabase(df, body="Moon", units="km")
+```{note}
+To choose specific columns or filter to desired rows, first read the table into a `pandas.DataFrame` and pass the filtered subset dataframe to `CraterDatabase`.
 ```
 
-The `CraterDatabase` will work with either a radius or diameter column. However, the length units of the craters must be specified as meters or kilometers (default is `units=m`).
+Here we read a sample list of lunar craters, filter it to larger than 55 km and import it into a `CraterDatabase`:
 
-The planetary `body` must also be specified to ensure the correct coordinate reference system (CRS) is used.
+```python
+from craterpy import CraterDatabase, sample_data as sd
+import pandas as pd
+df = pd.read_csv(sd["moon_craters.csv"])
+df = df[df['Rad'] > 55]
+cdb = CraterDatabase(df, body="Moon", units="km")
+print(cdb)
+# CraterDatabase of length 203 with attributes lat, lon, rad, center.
+```
+
+Planetary `body` is required to ensure the correct coordinate reference system (CRS) is used. Supported bodies can be printed with:
+
+```python
+import craterpy
+print(craterpy.all_bodies)
+# ['moon', 'mars', 'mercury', 'venus', 'europa', 'ceres', 'vesta']
+```
+
+```{note}
+Crater sizes can be given as radius or diameter, however, the length units should be specified as meters (`m`) or kilometers (`km`). Default is `units="m"`.
+```
 
 ## Adding geometries to a CraterDatabase
 
-A new geometry can be defined for each crater in the database. Circular and annular geometries have sizes specified in units of number of crater radii from the center of the crater (e.g. size=1 is a circle at the crater rim, size=2 is one radius beyond the rim, size=3 is one diameter beyond the rim, etc). Circles enclose all area within `size` radii from each crater. Annuli cut out a circle at the center and enclose the area from `inner` to `outer`.
+A new geometry can be defined for each crater in the database. Circular and annular geometries have sizes specified in units of number of crater radii from the center of the crater (e.g. `size=1` is a circle at the crater rim, `size=2` is one radius beyond the rim, size=3 is one diameter beyond the rim, etc). Circles enclose all area within `size` radii from each crater. Annuli cut out a circle at the center and enclose the area from `inner` to `outer`.
 
 ```python
 # Cicles centeres on each crater
