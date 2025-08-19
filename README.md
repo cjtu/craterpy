@@ -1,5 +1,5 @@
 <h1 align="center">
-  <strong>Craterpy:</strong><em> Impact crater data science in Python.</em>
+  <strong>Craterpy:</strong><em> Impact crater data science in Python</em>
 </h1>
 
 <div align="center">
