@@ -73,6 +73,7 @@ filterwarnings = [
 [tool.coverage.run]
 branch = true
 source = ["craterpy/craterpy"]
+omit = ["craterpy/tests/*"]
 
 [tool.coverage.report]
 exclude_also = [

@@ -8,6 +8,7 @@ import json
 import os
 import pyproj
 from pyproj import CRS
+from pyogrio.errors import DataSourceError
 import pandas as pd
 import geopandas as gpd
 import numpy as np
@@ -24,6 +25,7 @@ class TestCraterDatabase(unittest.TestCase):
 
     def setUp(self):
         self.moon_tif = craterpy.sample_data["moon.tif"]
+        self.moon_dem = craterpy.sample_data["moon_dem.tif"]
         self.moon_craters = craterpy.sample_data["moon_craters.csv"]
         self.vesta_tif = craterpy.sample_data["vesta.tif"]
         self.vesta_craters = craterpy.sample_data["vesta_craters.csv"]
@@ -53,12 +55,18 @@ class TestCraterDatabase(unittest.TestCase):
         """Test getting statistics on a region for a raster."""
         cdb = self.moon_cdb.copy()
         cdb.add_annuli("rim", 1, 1.1)
-        stats = cdb.get_stats(self.moon_tif, "rim", ["count"])
-        self.assertIn("count_rim", stats.columns)
+        stats = cdb._get_stats(self.moon_tif, "rim", suffix="test")
+        self.assertIn("count_test", stats.columns)
 
     def test_get_stats_parallel(self):
         """Test parallellization of get_stats for multiple rasters/regions."""
-        pass
+        cdb = self.moon_cdb.copy()
+        cdb.add_annuli("rim", 1, 1.1)
+        stats = cdb.get_stats(
+            {"moon": self.moon_tif, "dem": self.moon_dem}, "rim", ["count"]
+        )
+        self.assertIn("count_moon_rim", stats.columns)
+        self.assertIn("count_dem_rim", stats.columns)
 
     def test_body_crs_all(self):
         """Test that every defined CRS loads."""
@@ -116,21 +124,103 @@ class TestCraterDatabase(unittest.TestCase):
             cdb = CraterDatabase(test_df, "moon")
             self.assertEqual(cdb.rad.iloc[0], 10.0)
 
-    def test_gen_annulus_simple(self):
-        """Test generating simple annuli."""
-        pass
+    def test_bool_and_eq(self):
+        """Test __bool__ and __eq__ methods."""
+        # Test empty database
+        empty_df = pd.DataFrame({"lat": [], "lon": [], "radius": []})
+        empty_cdb = CraterDatabase(empty_df, "moon")
+        self.assertFalse(bool(empty_cdb))
 
-    def test_gen_annulus_precise(self):
-        """Test generating precise annuli."""
-        pass
+        # Test non-empty database
+        self.assertTrue(bool(self.moon_cdb))
 
-    def test_antimeridian_splitting(self):
-        """Test generating annuli when split over the antimeridian."""
-        pass
+        # Test equality with same data
+        cdb1 = self.moon_cdb.copy()
+        cdb2 = self.moon_cdb.copy()
+        self.assertEqual(cdb1, cdb2)
 
-    def test_pole_crossing(self):
-        """Test annuli that cross the North or South pole."""
-        pass
+        # Test inequality with different data
+        cdb2.data.loc[0, "lat"] = 0.0
+        self.assertNotEqual(cdb1, cdb2)
+
+        # Test inequality with different type
+        self.assertNotEqual(cdb1, "not a CraterDatabase")
+
+    def test_gen_point_edge_cases(self):
+        """Test _gen_point with various edge cases."""
+        # Test with points at poles
+        df = pd.DataFrame(
+            {"lat": [90.0, -90.0], "lon": [0.0, 180.0], "radius": [1.0, 1.0]}
+        )
+        cdb = CraterDatabase(df, "moon")
+        points = cdb._gen_point()
+        self.assertEqual(len(points), 2)
+        self.assertTrue(all(isinstance(p, Point) for p in points))
+
+    def test_get_annular_buffer(self):
+        """Test _get_annular_buffer with different parameters."""
+        cdb = self.moon_cdb.copy()
+        point = Point(0, 0)
+
+        # Test with inner=0 (circle)
+        buf = cdb._get_annular_buffer(point, 1, inner=0, outer=1)
+        self.assertTrue(isinstance(buf, shapely.geometry.Polygon))
+
+        # Test with inner>0 (annulus)
+        buf = cdb._get_annular_buffer(point, 1, inner=0.5, outer=1)
+        self.assertTrue(isinstance(buf, shapely.geometry.Polygon))
+        self.assertTrue(buf.interiors)  # Should have an inner ring
+
+        # Test with different number of vertices
+        buf = cdb._get_annular_buffer(point, 1, inner=0, outer=1, nvert=16)
+        self.assertEqual(
+            len(buf.exterior.coords), 17
+        )  # nvert=16 means 16 segments + closing point
+
+    def test_gen_annulus_precise_poles(self):
+        """Test _gen_annulus_precise with polar crossing."""
+        # Create a crater that crosses the north pole
+        df = pd.DataFrame(
+            {
+                "lat": [89.0],
+                "lon": [0.0],
+                "radius": [200000.0],  # Large enough to cross pole
+            }
+        )
+        cdb = CraterDatabase(df, "moon")
+
+        # Generate annulus that should cross the pole
+        annuli = cdb._gen_annulus_precise(
+            cdb.center, cdb.rad, inner=0, outer=1
+        )
+        self.assertEqual(len(annuli), 1)
+
+        # Verify that the annulus crosses the pole
+        bounds = annuli[0].bounds
+        self.assertGreater(bounds[3], 89.9)  # maxy should be near 90
+
+    def test_gen_annulus_precise_antimeridian(self):
+        """Test _gen_annulus_precise with antimeridian crossing."""
+        # Create a crater near the antimeridian
+        df = pd.DataFrame(
+            {
+                "lat": [0.0],
+                "lon": [179.5],
+                "radius": [100000.0],  # Large enough to cross antimeridian
+            }
+        )
+        cdb = CraterDatabase(df, "moon")
+
+        # Generate annulus that should cross the antimeridian
+        annuli = cdb._gen_annulus_precise(
+            cdb.center, cdb.rad, inner=0, outer=1
+        )
+
+        # Verify that the annulus was properly split at antimeridian
+        self.assertEqual(len(annuli), 1)
+        bounds = annuli[0].bounds
+        self.assertLess(bounds[0], -179)  # Should wrap to negative longitude
+        self.assertGreater(bounds[2], 179)  # Should include positive longitude
 
     def test_to_geojson_basic(self):
         """Test basic export to GeoJSON string."""
@@ -280,6 +370,75 @@ class TestCraterDatabase(unittest.TestCase):
         pole_converted = CraterDatabase.to_crs(cdb, moon_north_crs)
         self.assertEqual(pole_converted.data.crs, moon_north_crs)
         self.assertEqual(len(pole_converted.data), len(cdb.data))
+
+    def test_merge(self):
+        """Test merging two CraterDatabases."""
+        # Create two databases to merge
+        df1 = pd.DataFrame(
+            {"lat": [0.0, 10.0], "lon": [0.0, 10.0], "rad": [1.0, 2.0]}
+        )
+        df2 = pd.DataFrame(
+            {"lat": [20.0, 30.0], "lon": [20.0, 30.0], "rad": [3.0, 4.0]}
+        )
+        cdb1 = CraterDatabase(df1, "moon")
+        cdb2 = CraterDatabase(df2, "moon")
+
+        # Test successful merge
+        merged = CraterDatabase.merge(cdb1, cdb2)
+        self.assertEqual(len(merged), len(cdb1) + len(cdb2))
+
+        # Test merge with different bodies raises error
+        cdb3 = CraterDatabase(df2, "vesta_claudia_dp")
+        with self.assertRaises(ValueError):
+            CraterDatabase.merge(cdb1, cdb3)
+
+    def test_read_shapefile_errors(self):
+        """Test error handling in read_shapefile."""
+        # Test with invalid file
+        with self.assertRaises(DataSourceError):
+            CraterDatabase.read_shapefile("nonexistent.geojson")
+
+        # Test with missing required columns
+        df = pd.DataFrame({"x": [1], "y": [2]})  # Missing lat/lon
+        with NamedTemporaryFile(suffix=".geojson") as tmp:
+            gpd.GeoDataFrame(
+                df, geometry=[Point(1, 2)], crs="EPSG:4326"
+            ).to_file(tmp.name, driver="GeoJSON")
+            with self.assertRaises(ValueError):
+                CraterDatabase.read_shapefile(tmp.name)
+
+    def test_read_shapefile_with_metadata(self):
+        """Test reading shapefile with metadata."""
+        # Create a GeoJSON with metadata
+        df = pd.DataFrame({"lat": [0.0], "lon": [0.0], "radius": [1.0]})
+        geojson_data = {
+            "type": "FeatureCollection",
+            "metadata": {"body": "Moon", "units": "km"},
+            "features": [
+                {
+                    "type": "Feature",
+                    "geometry": {"type": "Point", "coordinates": [0.0, 0.0]},
+                    "properties": {"lat": 0.0, "lon": 0.0, "radius": 1.0},
+                }
+            ],
+        }
+
+        ftmp = NamedTemporaryFile(suffix=".geojson", delete=False)
+        ftmp.close()
+        with open(ftmp.name, "w") as tmp:
+            json.dump(geojson_data, tmp)
+            tmp.flush()
+
+        # Read with explicit parameters (should override metadata)
+        cdb = CraterDatabase.read_shapefile(ftmp.name, body="Mars", units="m")
+        self.assertEqual(cdb.body, "Mars")
+
+        # Read without parameters (should use metadata)
+        cdb = CraterDatabase.read_shapefile(tmp.name)
+        self.assertEqual(cdb.body, "Moon")
+        self.assertEqual(
+            cdb.rad.iloc[0], 1000.0
+        )  # Should be converted from km to m
 
     def test_to_crs_vesta(self):
         """Test Vesta-specific coordinate system handling."""

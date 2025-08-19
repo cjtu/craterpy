@@ -881,8 +881,10 @@ class CraterDatabase:
             raise ValueError(
                 "Cannot merge CraterDatabases from different bodies!"
             )
-        merged = ch.merge(cdb1.data, cdb2.data, rbody=cdb1._rbody)
-        return cls(merged, body=cdb1.body, units=cdb1.units)
+        merged = ch.merge(
+            cdb1.data, cdb2.data, radcol=cdb1._radcol, rbody=cdb1._rbody
+        )
+        return cls(merged, body=cdb1.body, units="m")
 
     @classmethod
     def read_shapefile(

@@ -205,22 +205,6 @@ def inglobal(lat, lon):
     return (-90 <= lat <= 90) and (0 <= lon360(lon) <= 360)
 
 
-def get_spheroid_rad_from_wkt(wkt):
-    """Return body radius from Well-Known Text coordinate reference system.
-
-    Parameters
-    ----------
-    wkt : str
-        WKT string of the coordinate reference system.
-
-    Returns
-    -------
-    float
-        Semi-major axis of the spheroid in the WKT.
-    """
-    return float(wkt.lower().split("spheroid")[1].split(",")[1])
-
-
 # DataFrame helpers
 def findcol(df, names, exact=False):
     """Return first matching column in df matching a string given in names.
