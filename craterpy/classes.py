@@ -559,6 +559,8 @@ class CraterDatabase:
         band=1,
         alpha=0.5,
         color="tab:blue",
+        savefig=None,
+        savefig_kwargs=None,
         **kwargs,
     ):
         """Plot crater geometries.
@@ -581,6 +583,10 @@ class CraterDatabase:
             Transparancy of the ROI geometries (0-1, default: 0.2).
         color : str
             Color of the ROI geometries.
+        savefig : str, optional
+            If provided, save the figure to this path.
+        savefig_kwargs : dict, optional
+            Additional keyword arguments to pass to plt.savefig().
         **kwargs
             Keyword arguments supplied to GeoSeries.plot().
 
@@ -619,6 +625,14 @@ class CraterDatabase:
         ax.set_ylabel("Latitude")
         label = " " + region if not region.startswith("_") else ""
         ax.set_title(f"CraterDatabase{label} (N={len(self.data)})")
+
+        if savefig is not None:
+            # Set up default savefig options that can be overridden
+            save_options = {"dpi": dpi, "bbox_inches": "tight"}
+            if savefig_kwargs:
+                save_options.update(savefig_kwargs)
+            plt.savefig(savefig, **save_options)
+
         return ax
 
     def to_geojson(

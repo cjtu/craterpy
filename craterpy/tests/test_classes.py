@@ -60,12 +60,6 @@ class TestCraterDatabase(unittest.TestCase):
         """Test parallellization of get_stats for multiple rasters/regions."""
         pass
 
-    def test_plot(self):
-        """Test CraterDatabase summary plot."""
-        cdb = self.moon_cdb.copy()
-        ax = cdb.plot()
-        self.assertIsInstance(ax, Axes)
-
     def test_body_crs_all(self):
         """Test that every defined CRS loads."""
         for body in CRS_DICT.keys():
@@ -326,6 +320,34 @@ class TestCraterDatabase(unittest.TestCase):
         ax = cdb.plot(self.moon_tif, size=4, dpi=50)
         self.assertEqual(len(ax.images), 1)  # Has raster image
         self.assertEqual(len(ax.collections), 1)  # Has ROI overlay
+
+        # Test saving plot to file
+        with NamedTemporaryFile(suffix=".png", delete=False) as tmp:
+            tmp_path = tmp.name
+
+        try:
+            # Test basic plot saving
+            ax = cdb.plot(savefig=tmp_path)
+            self.assertTrue(os.path.exists(tmp_path))
+            self.assertTrue(
+                os.path.getsize(tmp_path) > 0
+            )  # File should not be empty
+
+            # Test plot saving with custom kwargs
+            ax = cdb.plot(
+                savefig=tmp_path,
+                savefig_kwargs={"dpi": 300, "bbox_inches": None},
+            )
+            self.assertTrue(os.path.exists(tmp_path))
+            self.assertTrue(os.path.getsize(tmp_path) > 0)
+
+            # Test plot saving with raster backdrop
+            ax = cdb.plot(self.moon_tif, savefig=tmp_path)
+            self.assertTrue(os.path.exists(tmp_path))
+            self.assertTrue(os.path.getsize(tmp_path) > 0)
+        finally:
+            if os.path.exists(tmp_path):
+                os.remove(tmp_path)
 
     def test_plot_rois(self):
         """Test ROI subplot generation and filtering."""
