@@ -86,12 +86,6 @@ build-backend  = 'hatchling.build'
 requires       = ['hatchling']
 
 [tool.hatch.build.targets.sdist]
-include-only = [
-    "craterpy/*.py",
-]
 exclude = [
-    "craterpy/data/_images/",
+    "craterpy/data/_images/*",
 ]
-
-[tool.hatch.build.force-include]
-"craterpy/data" = "craterpy/data"
