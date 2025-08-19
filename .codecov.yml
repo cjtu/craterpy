@@ -1,3 +1,5 @@
 coverage:
   round: down
   range: 25..100
+ignore:
+    - "**/tests/**"
