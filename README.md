@@ -26,7 +26,7 @@
       alt="Cite on Zenodo" />
   </a>
   <!-- ReadTheDocs -->
-  <a href="http://craterpy.readthedocs.io/en/latest/?badge=latest">
+  <a href="http://craterpy.readthedocs.io/latest/?badge=latest">
     <img src="http://readthedocs.org/projects/craterpy/badge/?version=latest"
       alt="Cite on Zenodo" />
   </a>
@@ -57,7 +57,7 @@ Note: Craterpy is not a crater detection algorithm (e.g. [PyCDA](https://github.
 
 ## Quickstart
 
-Install with `pip install craterpy` then follow the full worked example in the docs [Getting Started](https://craterpy.readthedocs.io/en/latest/getting_started.html).
+Install with `pip install craterpy` then follow the full worked example in the docs [Getting Started](https://craterpy.readthedocs.io/latest/getting_started.html).
 
 ## Demo
 
