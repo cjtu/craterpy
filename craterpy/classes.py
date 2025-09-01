@@ -8,6 +8,7 @@ import antimeridian
 import numpy as np
 import pandas as pd
 import geopandas as gpd
+import matplotlib.image as mpli
 import matplotlib.pyplot as plt
 import rasterio as rio
 import shapely
@@ -595,23 +596,26 @@ class CraterDatabase:
         ax : matplotlib.Axes
             Original axes, now with data plotted.
         """
+        if ax is None:
+            minx, miny, maxx, maxy = self.data.total_bounds
+            aspect = (maxx - minx) / (maxy - miny)
+            figsize = (size, size / aspect)
+            _, ax = plt.subplots(figsize=figsize, dpi=dpi)
+            ax.set_xlim(minx, maxx)
+            ax.set_ylim(miny, maxy)
+        else:
+            ax = ax.axes if isinstance(ax, mpli.AxesImage) else ax
+            figsize = ax.figure.get_size_inches()
+            dpi = ax.figure.get_dpi()
         if fraster:
-            if ax is not None:
-                size = ax.figure.get_size_inches()
-                dpi = ax.figure.get_dpi()
             with rio.open(fraster) as src:
-                if isinstance(size, (int, float)):
-                    aspect = src.width / src.height
-                    size = (size, size / aspect)
-                height_npix = int(size[1] * dpi)
-                width_npix = int(size[0] * dpi)
+                height_npix = int(figsize[1] * dpi)
+                width_npix = int(figsize[0] * dpi)
                 # By default does nearest-neighbor interp to out_shape (super fast reads for low dpi)
                 data = src.read(
                     indexes=band, out_shape=(height_npix, width_npix)
                 )
                 extent = ch.bbox2extent(src.bounds)
-            if ax is None:
-                fig, ax = plt.subplots(figsize=size, dpi=dpi)
             ax.imshow(data, cmap="gray", extent=extent)
         if not region:
             # Store crater circles in .data with leading "_" to not be mistaken
@@ -620,7 +624,9 @@ class CraterDatabase:
             if region not in self.data.columns:
                 self.data[region] = self._gen_annulus(0, 1, precise=False)
         rois = self.data.loc[:, region].boundary  # plot outline of ROI
-        ax = rois.plot(ax=ax, alpha=alpha, color=color, **kwargs)
+        ax = rois.plot(
+            ax=ax, alpha=alpha, color=color, autolim=False, **kwargs
+        )
         ax.set_xlabel("Longitude")
         ax.set_ylabel("Latitude")
         label = " " + region if not region.startswith("_") else ""

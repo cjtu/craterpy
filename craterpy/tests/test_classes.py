@@ -1,7 +1,6 @@
 """Unittest classes.py."""
 
 import warnings
-from pathlib import Path
 import unittest
 from tempfile import NamedTemporaryFile
 import json
@@ -13,6 +12,8 @@ import pandas as pd
 import geopandas as gpd
 import numpy as np
 from matplotlib.axes import Axes
+import matplotlib.pyplot as plt
+import rasterio as rio
 import shapely
 from shapely.testing import assert_geometries_equal
 from shapely.geometry import Point
@@ -477,6 +478,15 @@ class TestCraterDatabase(unittest.TestCase):
 
         # Test plotting with raster backdrop
         ax = cdb.plot(self.moon_tif, size=4, dpi=50)
+        self.assertEqual(len(ax.images), 1)  # Has raster image
+        self.assertEqual(len(ax.collections), 1)  # Has ROI overlay
+
+        # Test plotting on existing raster axes
+        plt.figure()
+        with rio.open(self.moon_tif) as src:
+            img = src.read(1)
+        ax = plt.imshow(img, extent=(-180, 180, -90, 90))
+        ax = cdb.plot(region="test_region", ax=ax)
         self.assertEqual(len(ax.images), 1)  # Has raster image
         self.assertEqual(len(ax.collections), 1)  # Has ROI overlay
 
