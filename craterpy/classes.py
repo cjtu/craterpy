@@ -426,7 +426,7 @@ class CraterDatabase:
     @property
     def center(self):
         """Crater center point geometry."""
-        return self.data["_center"]
+        return gpd.GeoSeries(self.data["_center"], crs=self._crs)
 
     @property
     def _rbody(self):

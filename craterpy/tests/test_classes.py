@@ -235,6 +235,8 @@ class TestCraterDatabase(unittest.TestCase):
             self.assertIn("_center_active_wkt", gdf.columns)
 
             newdb = CraterDatabase.read_shapefile(fcenter.name)
+            newdb.add_circles("import_test")
+            self.assertIn("import_test", newdb.data.columns)
             self.assertIn("_center", newdb.data.columns)
             self.assertNotIn("geometry", newdb.data.columns)
             self.assertEqual(newdb.body, "Moon")
