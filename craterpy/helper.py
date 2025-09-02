@@ -1,8 +1,24 @@
 """This file contains various helper functions for craterpy"""
 
+import contextlib
+import warnings
 import numpy as np
 import pandas as pd
 from scipy.spatial import cKDTree
+import joblib
+from tqdm import tqdm
+import antimeridian
+from rasterstats import zonal_stats
+from joblib import Parallel, delayed
+from shapely.geometry import Point
+from shapely.ops import transform
+from pyproj import Transformer
+from pyproj.crs import ProjectedCRS
+from pyproj.crs.coordinate_operation import AzimuthalEquidistantConversion
+
+# Suppress antimeridian warning
+warnings.filterwarnings("ignore", category=antimeridian.FixWindingWarning)
+warnings.filterwarnings("ignore", "Setting nodata.*", module=r".*rasterstats")
 
 
 # Geospatial helpers
@@ -203,6 +219,210 @@ def inglobal(lat, lon):
 
     """
     return (-90 <= lat <= 90) and (0 <= lon360(lon) <= 360)
+
+
+# Shape geometry helpers
+def gen_annuli(centers, rads, inner, outer, crs, **kwargs):
+    """
+    Generate annuli using a local azimuthal equidistant projection for each crater.
+    This version processes craters in parallel to improve performance.
+    """
+    # Use joblib to run _create_single_annulus on all available CPU cores.
+    # n_jobs=-1 means use all available cores except one.
+    n_jobs = kwargs.get("n_jobs", -2)
+    tasks = (
+        delayed(create_single_annulus)(
+            center, rad, inner, outer, crs, **kwargs
+        )
+        for center, rad in zip(centers, rads)
+    )
+    with tqdm_joblib(tqdm(desc="Generating polygons", total=len(centers))):
+        annuli = Parallel(n_jobs=n_jobs)(tasks)
+    return annuli
+
+
+def create_single_annulus(center, rad, inner, outer, geodetic_crs, **kwargs):
+    """
+    Processes a single center point to create a precise geodetic annulus.
+    (This contains the logic from your original for loop)
+    """
+    # Create a local azimuthal equidistant projection for the crater
+    local_crs = ProjectedCRS(
+        name=f"AzimuthalEquidistant({center.y:.2f}N, {center.x:.2f}E)",
+        conversion=AzimuthalEquidistantConversion(center.y, center.x),
+        geodetic_crs=geodetic_crs,
+    )
+
+    # Generate the buffer in the local, flat projection
+    # Assumes self._get_annular_buffer is available or moved here
+    buf = get_annular_buffer(Point(0, 0), rad, inner, outer, **kwargs)
+
+    # Create transformer and unproject the buffer to the geodetic CRS
+    to_geodetic = Transformer.from_crs(
+        local_crs, geodetic_crs, always_xy=True
+    ).transform
+    annulus = transform(to_geodetic, buf)
+
+    # Fix antimeridian wrapping if necessary
+    if annulus.bounds[2] - annulus.bounds[0] >= 300:
+        annulus = fix_antimeridian_wrap(
+            annulus, rad, outer, geodetic_crs, local_crs, **kwargs
+        )
+
+    return annulus
+
+
+def get_annular_buffer(point, rad, inner, outer, **kwargs):
+    """ """
+    # Num vertices to make each circular poly
+    nvert = kwargs.get("nvert", 32)
+    outer_scaled = rad * outer
+    inner_scaled = rad * inner
+    outer_poly = point.buffer(outer_scaled, quad_segs=nvert // 4)
+    if inner_scaled <= 0:
+        return outer_poly
+    inner_poly = point.buffer(inner_scaled, quad_segs=nvert // 4)
+    return outer_poly.difference(inner_poly)
+
+
+def fix_antimeridian_wrap(
+    annulus, rad, outer, geodetic_crs, local_crs, **kwargs
+):
+    """Fixes a polygon that has wrapped incorrectly across the antimeridian."""
+    to_projected = Transformer.from_crs(
+        geodetic_crs, local_crs, always_xy=True
+    ).transform
+
+    # Create a solid buffer (from radius 0 to outer) for pole checking
+    solid_buffer = get_annular_buffer(Point(0, 0), rad, 0, outer, **kwargs)
+
+    # Check if North or South pole is contained within the buffer
+    covers_north_pole = solid_buffer.contains(
+        transform(to_projected, Point(0, 90))
+    )
+    covers_south_pole = solid_buffer.contains(
+        transform(to_projected, Point(0, -90))
+    )
+
+    return antimeridian.fix_polygon(
+        annulus,
+        force_north_pole=covers_north_pole,
+        force_south_pole=covers_south_pole,
+    )
+
+
+def compute_zonal_stats(geometries, index, raster, stats, nodata, suffix=""):
+    """
+    Computes zonal statistics for a given set of geometries and a single raster.
+
+    This function is designed to be called in parallel.
+    """
+    # Perform the core calculation
+    zstats = zonal_stats(
+        geometries,
+        raster,
+        stats=stats,
+        nodata=nodata,
+        all_touched=True,
+    )
+    df = pd.DataFrame(zstats, index=index)
+
+    # Return only requested stat columns with suffix, if given
+    if suffix and not suffix.startswith("_"):
+        suffix = f"_{suffix}"
+    out = df[list(stats)].add_suffix(suffix)
+    return out
+
+
+def get_stats(
+    gdf,
+    rasters,
+    regions,
+    stats=("mean", "std", "count"),
+    nodata=None,
+    n_jobs=-2,
+):
+    """
+    Compute stats on polygons in a GeoDataFrame in parallel.
+
+    Parameters
+    ----------
+    gdf : geopandas.GeoDataFrame
+        GeoDataFrame containing polygon regions as columns.
+    rasters : str, rasterio.DatasetReader, or dict of {str: str or rasterio.DatasetReader}
+        Single raster path or open raster dataset, or a mapping of names to rasters.
+    regions : str or list of str
+        Name or list of names of geometry columns in gdf to use as regions.
+    stats : tuple of str, optional
+        Statistics to compute for each raster-region combination. Default: ("mean", "std", "count").
+    nodata : number, None, or dict of {str: number}, optional
+        Nodata value to use for masking, or mapping of raster names to their nodata values.
+        If None, no nodata masking is applied.
+    n_jobs : int, optional
+        Number of parallel worker processes to use. Default is 1.
+
+    Returns
+    -------
+    pandas.DataFrame
+        DataFrame containing the original crater columns along with appended
+        statistics columns for each raster and region combination.
+    """
+    if isinstance(rasters, (tuple, list, np.ndarray)):
+        raise ValueError(
+            "Specify multiple rasters as dict (ex. {'name1':'raster1.tif', ...})"
+        )
+    if not isinstance(rasters, dict):
+        rasters = {"_": rasters}
+    if isinstance(regions, str):
+        regions = [regions]
+    if nodata is not None and not isinstance(nodata, dict):
+        nodata = {k: nodata for k in rasters.keys()}
+    else:
+        nodata = nodata or {}  # Ensure nodata is a dict
+
+    # Create a list of tasks, where each task has all the info for one worker call
+    tasks = []
+    for region_name in regions:
+        for raster_name, raster_file in rasters.items():
+            tasks.append(
+                delayed(compute_zonal_stats)(
+                    geometries=gdf[region_name],
+                    index=gdf.index,
+                    raster=raster_file,
+                    stats=stats,
+                    nodata=nodata.get(raster_name),  # Safely get nodata value
+                    suffix=f"{raster_name}_{region_name}".strip("_"),
+                )
+            )
+    # Compute in parallel
+    total_tasks = len(rasters) * len(regions)
+    with tqdm_joblib(tqdm(desc="Computing Zonal Stats", total=total_tasks)):
+        list_of_dfs = Parallel(n_jobs=n_jobs)(tasks)
+
+    return list_of_dfs
+
+
+# Misc
+@contextlib.contextmanager
+def tqdm_joblib(tqdm_object):
+    """
+    Context manager to patch joblib to report into tqdm progress bar given as argument.
+    See: https://stackoverflow.com/a/58936697
+
+    """
+
+    class TqdmBatchCompletionCallback(joblib.parallel.BatchCompletionCallBack):
+        def __call__(self, *args, **kwargs):
+            tqdm_object.update(n=self.batch_size)
+            return super().__call__(*args, **kwargs)
+
+    old_batch_callback = joblib.parallel.BatchCompletionCallBack
+    joblib.parallel.BatchCompletionCallBack = TqdmBatchCompletionCallback
+    try:
+        yield tqdm_object
+    finally:
+        joblib.parallel.BatchCompletionCallBack = old_batch_callback
+        tqdm_object.close()
 
 
 # DataFrame helpers

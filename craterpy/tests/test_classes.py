@@ -40,34 +40,35 @@ class TestCraterDatabase(unittest.TestCase):
         cdb.add_annuli("ejecta", 1, 2)
 
         # Check that ejecta appears in the string repr
-        self.assertIn("ejecta", str(cdb))
+        self.assertIn("ejecta", cdb.__repr__())
+
+        # Test that crater was registered as a propety and contains a shapely geom
+        self.assertIsInstance(cdb.crater[0], shapely.geometry.Polygon)
 
         # Test that ejecta was registered as a propety and contains a shapely geom
         self.assertIsInstance(cdb.ejecta[0], shapely.geometry.Polygon)
-
-    def test_annuli_precision(self):
-        """Test that simple and precise annuli mostly agree."""
-        cdb = self.moon_cdb.copy()
-        cdb.add_circles("precise", 1, precise=True)
-        cdb.add_annuli("simple", 0, 1, precise=False)
-        assert_geometries_equal(cdb.precise, cdb.simple, tolerance=0.5)
 
     def test_get_stats(self):
         """Test getting statistics on a region for a raster."""
         cdb = self.moon_cdb.copy()
         cdb.add_annuli("rim", 1, 1.1)
-        stats = cdb._get_stats(self.moon_tif, "rim", suffix="test")
-        self.assertIn("count_test", stats.columns)
+        stats = cdb.get_stats(self.moon_tif, "rim")
+        self.assertIn("count_rim", stats.columns)
+        self.assertIn("Lat", stats.columns)
+        self.assertFalse(any(stats["mean_rim"].isna()))  # No null values
 
     def test_get_stats_parallel(self):
         """Test parallellization of get_stats for multiple rasters/regions."""
         cdb = self.moon_cdb.copy()
         cdb.add_annuli("rim", 1, 1.1)
         stats = cdb.get_stats(
-            {"moon": self.moon_tif, "dem": self.moon_dem}, "rim", ["count"]
+            {"moon": self.moon_tif, "dem": self.moon_dem},
+            "rim",
+            ["median", "count"],
         )
         self.assertIn("count_moon_rim", stats.columns)
         self.assertIn("count_dem_rim", stats.columns)
+        self.assertFalse(any(stats["median_moon_rim"].isna()))
 
     def test_body_crs_all(self):
         """Test that every defined CRS loads."""
@@ -157,71 +158,6 @@ class TestCraterDatabase(unittest.TestCase):
         points = cdb._gen_point()
         self.assertEqual(len(points), 2)
         self.assertTrue(all(isinstance(p, Point) for p in points))
-
-    def test_get_annular_buffer(self):
-        """Test _get_annular_buffer with different parameters."""
-        cdb = self.moon_cdb.copy()
-        point = Point(0, 0)
-
-        # Test with inner=0 (circle)
-        buf = cdb._get_annular_buffer(point, 1, inner=0, outer=1)
-        self.assertTrue(isinstance(buf, shapely.geometry.Polygon))
-
-        # Test with inner>0 (annulus)
-        buf = cdb._get_annular_buffer(point, 1, inner=0.5, outer=1)
-        self.assertTrue(isinstance(buf, shapely.geometry.Polygon))
-        self.assertTrue(buf.interiors)  # Should have an inner ring
-
-        # Test with different number of vertices
-        buf = cdb._get_annular_buffer(point, 1, inner=0, outer=1, nvert=16)
-        self.assertEqual(
-            len(buf.exterior.coords), 17
-        )  # nvert=16 means 16 segments + closing point
-
-    def test_gen_annulus_precise_poles(self):
-        """Test _gen_annulus_precise with polar crossing."""
-        # Create a crater that crosses the north pole
-        df = pd.DataFrame(
-            {
-                "lat": [89.0],
-                "lon": [0.0],
-                "radius": [200000.0],  # Large enough to cross pole
-            }
-        )
-        cdb = CraterDatabase(df, "moon")
-
-        # Generate annulus that should cross the pole
-        annuli = cdb._gen_annulus_precise(
-            cdb.center, cdb.rad, inner=0, outer=1
-        )
-        self.assertEqual(len(annuli), 1)
-
-        # Verify that the annulus crosses the pole
-        bounds = annuli[0].bounds
-        self.assertGreater(bounds[3], 89.9)  # maxy should be near 90
-
-    def test_gen_annulus_precise_antimeridian(self):
-        """Test _gen_annulus_precise with antimeridian crossing."""
-        # Create a crater near the antimeridian
-        df = pd.DataFrame(
-            {
-                "lat": [0.0],
-                "lon": [179.5],
-                "radius": [100000.0],  # Large enough to cross antimeridian
-            }
-        )
-        cdb = CraterDatabase(df, "moon")
-
-        # Generate annulus that should cross the antimeridian
-        annuli = cdb._gen_annulus_precise(
-            cdb.center, cdb.rad, inner=0, outer=1
-        )
-
-        # Verify that the annulus was properly split at antimeridian
-        self.assertEqual(len(annuli), 1)
-        bounds = annuli[0].bounds
-        self.assertLess(bounds[0], -179)  # Should wrap to negative longitude
-        self.assertGreater(bounds[2], 179)  # Should include positive longitude
 
     def test_to_geojson_basic(self):
         """Test basic export to GeoJSON string."""
@@ -476,7 +412,7 @@ class TestCraterDatabase(unittest.TestCase):
         # Test plotting with ROI region
         cdb.add_circles("test_region")
         ax = cdb.plot(region="test_region", color="red", alpha=0.8)
-        self.assertIn("test_region", ax.get_title())
+        self.assertEqual(len(ax.collections), 1)  # Has ROI overlay
 
         # Test plotting with raster backdrop
         ax = cdb.plot(self.moon_tif, size=4, dpi=50)

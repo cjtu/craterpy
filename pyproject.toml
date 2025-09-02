@@ -18,6 +18,8 @@ dependencies = [
     "geopandas<2.0.0,>=1.0.1",
     "scipy<2.0.0,>=1.13.1",
     "antimeridian<1.0.0,>=0.4.0",
+    "tqdm>=4.67.1",
+    "joblib>=1.5.2",
 ]
 classifiers = [
     "Development Status :: 4 - Beta",

@@ -3,7 +3,13 @@
 import unittest
 import numpy as np
 import pandas as pd
-import pandas.testing as pdt
+import geopandas as gpd
+import shapely
+from shapely.testing import assert_geometries_equal
+from shapely.geometry import Point
+from pyproj.crs import ProjectedCRS
+from pyproj.crs.coordinate_operation import AzimuthalEquidistantConversion
+
 from craterpy import helper as ch
 
 
@@ -111,6 +117,159 @@ class Test_geo_helpers(unittest.TestCase):
         self.assertFalse(ch.inglobal(91, 0))
         self.assertTrue(ch.inglobal(0, 181))
         self.assertTrue(ch.inglobal(0, -1))
+
+
+class Test_shape_geometry_helpers(unittest.TestCase):
+    """Test shape geometry helper functions."""
+
+    def test_get_annular_buffer(self):
+        """Test get_annular_buffer with different parameters."""
+        point = Point(0, 0)
+
+        # Test with inner=0 (circle)
+        buf = ch.get_annular_buffer(point, 1, inner=0, outer=1)
+        self.assertTrue(isinstance(buf, shapely.geometry.Polygon))
+
+        # Test with inner>0 (annulus)
+        buf = ch.get_annular_buffer(point, 1, inner=0.5, outer=1)
+        self.assertTrue(isinstance(buf, shapely.geometry.Polygon))
+        self.assertTrue(buf.interiors)  # Should have an inner ring
+
+        # Test with different number of vertices
+        buf = ch.get_annular_buffer(point, 1, inner=0, outer=1, nvert=16)
+        self.assertEqual(
+            len(buf.exterior.coords), 17
+        )  # nvert=16 means 16 segments + closing point
+
+    def test_fix_antimeridian_wrap(self):
+        """Test fix_antimeridian_wrap with various edge cases."""
+        geodetic_crs = "IAU_2015:30100"  # Moon CRS
+        local_crs = ProjectedCRS(
+            name="AzimuthalEquidistant(0N, 180E)",
+            conversion=AzimuthalEquidistantConversion(0, 180),
+            geodetic_crs=geodetic_crs,
+        )
+
+        # Test antimeridian wrapping
+        antimeridian_annulus = Point(180, 0).buffer(
+            20
+        )  # 20 degree buffer at 180°E
+        fixed = ch.fix_antimeridian_wrap(
+            antimeridian_annulus, 20, 1.0, geodetic_crs, local_crs
+        )
+        # Check the polygon was properly split at antimeridian
+        self.assertLess(
+            fixed.bounds[0], -170
+        )  # minx should be in western hemisphere
+        self.assertGreater(
+            fixed.bounds[2], 170
+        )  # maxx should be in eastern hemisphere
+
+        # Test North pole crossing
+        north_local_crs = ProjectedCRS(
+            name="AzimuthalEquidistant(85N, 0E)",
+            conversion=AzimuthalEquidistantConversion(85, 0),
+            geodetic_crs=geodetic_crs,
+        )
+        pole_annulus = Point(0, 85).buffer(
+            10
+        )  # 10 degree buffer near North pole
+        fixed = ch.fix_antimeridian_wrap(
+            pole_annulus, 10, 1.0, geodetic_crs, north_local_crs
+        )
+        # Check that the polygon extends to the pole
+        self.assertGreater(fixed.bounds[3], 89)  # maxy should be near 90°N
+
+        # Test South pole crossing
+        south_local_crs = ProjectedCRS(
+            name="AzimuthalEquidistant(-85S, 0E)",
+            conversion=AzimuthalEquidistantConversion(-85, 0),
+            geodetic_crs=geodetic_crs,
+        )
+        pole_annulus = Point(0, -85).buffer(
+            10
+        )  # 10 degree buffer near South pole
+        fixed = ch.fix_antimeridian_wrap(
+            pole_annulus, 10, 1.0, geodetic_crs, south_local_crs
+        )
+        # Check that the polygon extends to the pole
+        self.assertLess(fixed.bounds[1], -89)  # miny should be near 90°S
+
+        # Control case - polygon that doesn't need fixing
+        normal_annulus = Point(0, 0).buffer(
+            5
+        )  # Small buffer at prime meridian
+        fixed = ch.fix_antimeridian_wrap(
+            normal_annulus, 5, 1.0, geodetic_crs, local_crs
+        )
+        # Check that the polygon bounds are unchanged
+        self.assertTrue(
+            abs(normal_annulus.bounds[0] - fixed.bounds[0]) < 1e-10
+            and abs(normal_annulus.bounds[2] - fixed.bounds[2]) < 1e-10
+        )
+
+        # Test both antimeridian and pole crossing
+        complex_local_crs = ProjectedCRS(
+            name="AzimuthalEquidistant(85N, 180E)",
+            conversion=AzimuthalEquidistantConversion(85, 180),
+            geodetic_crs=geodetic_crs,
+        )
+        complex_annulus = Point(180, 85).buffer(
+            15
+        )  # Large buffer near pole and antimeridian
+        fixed = ch.fix_antimeridian_wrap(
+            complex_annulus, 15, 1.0, geodetic_crs, complex_local_crs
+        )
+        # Check both pole and antimeridian conditions
+        self.assertGreater(fixed.bounds[3], 89)  # Extends to North pole
+        self.assertLess(fixed.bounds[0], -170)  # Crosses antimeridian westward
+        self.assertGreater(
+            fixed.bounds[2], 170
+        )  # Crosses antimeridian eastward
+
+    def test_gen_annuli(self):
+        """Test gen_annuli with parallel processing."""
+        # Setup test data
+        centers = [Point(0, 0), Point(45, 45), Point(90, 0)]
+        rads = [10, 15, 20]
+
+        # Generate annuli
+        annuli = ch.gen_annuli(
+            centers, rads, inner=0.5, outer=1, crs="IAU_2015:30100", n_jobs=2
+        )
+
+        self.assertEqual(len(list(annuli)), 3)
+        self.assertTrue(
+            all(isinstance(a, shapely.geometry.Polygon) for a in annuli)
+        )
+
+    def test_create_single_annulus(self):
+        """Test create_single_annulus with different scenarios."""
+        geodetic_crs = "IAU_2015:30100"
+
+        # Basic case
+        center = Point(0, 0)
+        annulus = ch.create_single_annulus(
+            center, rad=1000, inner=0.5, outer=1, geodetic_crs=geodetic_crs
+        )
+        self.assertTrue(isinstance(annulus, shapely.geometry.Polygon))
+
+        # Antimeridian case
+        center = Point(179.9, 0)
+        annulus = ch.create_single_annulus(
+            center, rad=10000, inner=0.5, outer=1, geodetic_crs=geodetic_crs
+        )
+        self.assertTrue(isinstance(annulus, shapely.geometry.MultiPolygon))
+
+        # Pole case
+        center = Point(0, 89.9)
+        annulus = ch.create_single_annulus(
+            center, rad=10000, inner=0, outer=1, geodetic_crs=geodetic_crs
+        )
+        self.assertEqual(annulus.bounds[0], -180.0)
+        self.assertGreater(annulus.bounds[1], 89.5)
+        self.assertEqual(annulus.bounds[2], 180.0)
+        self.assertEqual(annulus.bounds[3], 90.0)
 
 
 class Test_dataframe_helpers(unittest.TestCase):
