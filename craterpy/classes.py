@@ -23,58 +23,28 @@ import craterpy.helper as ch
 # Default stats for rasterstats
 STATS = ("mean", "std", "count")
 
-# CRS for units / coord transformations (convention is only Ocentric )
-CRS_DICT = {
-    # body: (Geographic2D [deg], Equirect [m] (clon=0), Equirect [m] (clon=180),  Npole Stereo [m], Spole Stereo [m])
-    "moon": (
-        "IAU_2015:30100",
-        "IAU_2015:30110",
-        "IAU_2015:30115",
-        "IAU_2015:30130",
-        "IAU_2015:30135",
-    ),
-    "mars": (
-        "IAU_2015:49900",
-        "IAU_2015:49910",
-        "IAU_2015:49915",
-        "IAU_2015:49930",
-        "IAU_2015:49935",
-    ),
-    "mercury": (
-        "IAU_2015:19900",
-        "IAU_2015:19910",
-        "IAU_2015:19915",
-        "IAU_2015:19930",
-        "IAU_2015:19935",
-    ),
-    "venus": (
-        "IAU_2015:29900",
-        "IAU_2015:29910",
-        "IAU_2015:29915",
-        "IAU_2015:29930",
-        "IAU_2015:29935",
-    ),
-    "europa": (
-        "IAU_2015:50200",
-        "IAU_2015:50210",
-        "IAU_2015:50215",
-        "IAU_2015:50230",
-        "IAU_2015:50235",
-    ),
-    "ceres": (
-        "IAU_2015:200000100",
-        "IAU_2015:200000110",
-        "IAU_2015:200000115",
-        "IAU_2015:200000130",
-        "IAU_2015:200000135",
-    ),
-    "vesta": (
-        "IAU_2015:200000400",
-        "IAU_2015:200000410",
-        "IAU_2015:200000415",
-        "IAU_2015:200000430",
-        "IAU_2015:200000435",
-    ),
+# CRS for units / coord transformations (convention is only Ocentric)
+BODIES = {
+    "mercury": 199,
+    "venus": 299,
+    "moon": 301,
+    "earth": 399,
+    "phobos": 401,
+    "mars": 499,
+    "ceres": 2000001,
+    "vesta": 2000004,
+    "europa": 502,
+    "ganymede": 503,
+    "callisto": 504,
+    "enceladus": 602,
+    "tethys": 603,
+    "dione": 604,
+    "rhea": 605,
+    "titan": 606,
+    "iapetus": 608,
+    "triton": 801,
+    "charon": 901,
+    "pluto": 999,
 }
 
 
@@ -112,7 +82,7 @@ class CraterDatabase:
     def __init__(
         self,
         dataset: Union[str, pd.DataFrame],
-        body: str = "",
+        body: str,
         units: str = "m",
     ):
         """
@@ -124,7 +94,7 @@ class CraterDatabase:
             if str, path to the file containing crater data.
             if DataFrame, DataFrame containing crater data.
         body : str
-            Planetary body, e.g. 'Moon', 'Vesta' (default: 'Moon')
+            Planetary body, e.g. 'Moon', 'Vesta'
         units : str
             Length units of radius/diameter, 'm' or 'km' (default: 'm')
 
@@ -133,15 +103,17 @@ class CraterDatabase:
             ValueError
                 If dataset is not a file or is not a pandas.DataFrame.
         """
-        if not body:
-            raise ValueError(
-                f"Please specify a planetary body from, {list(CRS_DICT.keys())}"
-            )
-        lon_offset = 0
-        if "vesta" in body.lower():
+        body = body.lower()
+        lon_offset = 0  # Standardizes coordinate systems (for Vesta) if necessary
+        if "vesta" in body:
             body, lon_offset = self._vesta_check(body)
             self._vesta_coord = body
             body = "vesta"
+        if not body or body not in BODIES:
+            raise ValueError(
+                f"Please specify a planetary body from, {list(BODIES.keys())}"
+            )
+
         self.body = body
         (
             self._crs,
@@ -248,7 +220,10 @@ class CraterDatabase:
 
     def _load_crs(self, body):
         """Return the pyproj CRSs for the body."""
-        return [CRS.from_user_input(crs) for crs in CRS_DICT[body.lower()]]
+        pre = f"IAU_2015:{BODIES[body]}"
+        # (Geodetic2D [deg], Equirect [m] (clon=0), Equirect [m] (clon=180), Npole Stereo [m], Spole Stereo [m])
+        crs = ["00", "10", "15", "30", "35"]
+        return [CRS.from_user_input(f"{pre}{suf}") for suf in crs]
 
     def _gen_point(self):
         """Return point geometry (lon, lat) for each row."""

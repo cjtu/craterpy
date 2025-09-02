@@ -2,6 +2,7 @@
 
 import contextlib
 import warnings
+from pathlib import Path
 
 import antimeridian
 import joblib
@@ -50,7 +51,7 @@ def lon360(lon):
     Returns
     -------
     float or array-like
-        Corresponding longitude values in the [0, 360) range.
+        Corresponding longitude values in the [0, 360] range.
     """
     return (lon + 360) % 360
 
@@ -465,44 +466,43 @@ def get_stats(
         DataFrame containing the original crater columns along with appended
         statistics columns for each raster and region combination.
     """
-    if isinstance(rasters, (tuple, list, np.ndarray)):
-        raise ValueError(
-            "Specify multiple rasters as dict (ex. {'name1':'raster1.tif', ...})"
-        )
+
+    def _name_raster(i, raster):
+        return Path(raster).name if isinstance(raster, str) else f"raster{i}"
+
+    if isinstance(rasters, dict):
+        rdict = rasters
+    elif isinstance(rasters, (tuple, list)):
+        # Set up dict for column naming. Choose filename if str, else "raster{i}" (e.g., if given file descriptors)
+        rdict = {
+            _name_raster(i, raster): Path(raster).as_posix()
+            for i, raster in enumerate(rasters)
+        }
+    else:
+        rdict = {"_": rasters}
     if isinstance(regions, str):
         regions = [regions]
-    if not isinstance(nodata, dict) and isinstance(rasters, dict):
-        nodata = dict.fromkeys(
-            rasters.keys(), nodata
-        )  # Else assume single raster, single nodata
+    if not isinstance(nodata, dict):
+        nodata = dict.fromkeys(rdict, nodata)
 
-    total_tasks = len(rasters) * len(regions)
-    if total_tasks > 1:
-        # Create a list of tasks, where each task has all the info for one worker call
-        tasks = []
-        for region_name in regions:
-            rasters = {"_": rasters} if not isinstance(rasters, dict) else rasters
-            for raster_name, raster_file in rasters.items():
-                nd = nodata.get(raster_name) if isinstance(nodata, dict) else nodata
-                tasks.append(
-                    delayed(compute_zonal_stats)(
-                        geometries=gdf[region_name],
-                        raster=raster_file,
-                        stats=stats,
-                        nodata=nd,  # Safely get nodata value
-                        suffix=f"{raster_name}_{region_name}".strip("_"),
-                    )
+    total_tasks = len(rdict) * len(regions)
+    # Create a list of tasks, where each task has all the info for one worker call
+    tasks = []
+    for region_name in regions:
+        for raster_name, raster_file in rdict.items():
+            tasks.append(
+                delayed(compute_zonal_stats)(
+                    geometries=gdf[region_name],
+                    raster=raster_file,
+                    stats=stats,
+                    nodata=nodata.get(raster_name),  # Safely get nodata value
+                    suffix=f"{raster_name}_{region_name}".strip("_"),
                 )
-        # Compute in parallel
-        with tqdm_joblib(tqdm(desc="Computing Zonal Stats", total=total_tasks)):
-            all_stats = Parallel(n_jobs=n_jobs)(tasks)
-        stats = pd.concat(all_stats, axis=1)
-    else:
-        # Only one raster and region
-        stats = compute_zonal_stats(
-            gdf[regions[0]], rasters, stats=stats, nodata=nodata
-        )
-    return stats
+            )
+    # Compute in parallel
+    with tqdm_joblib(tqdm(desc="Computing Zonal Stats", total=total_tasks)):
+        all_stats = Parallel(n_jobs=n_jobs)(tasks)
+        return pd.concat(all_stats, axis=1)
 
 
 # Misc
@@ -511,7 +511,6 @@ def tqdm_joblib(tqdm_object):
     """
     Context manager to patch joblib to report into tqdm progress bar given as argument.
     See: https://stackoverflow.com/a/58936697
-
     """
 
     class TqdmBatchCompletionCallback(joblib.parallel.BatchCompletionCallBack):
