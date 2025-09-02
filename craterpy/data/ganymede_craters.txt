@@ -1,0 +1,242 @@
+				-	-	Diameter (km)	-	-	-	-									
+Name	Crater Type	Latitude	Longitude	dome/depression	central pit/ring	rim	rim (predicted)	pedestal	ejecta	rings	Terrace  Width	Rimwall Width	Rim Height	Depth	Depth Method	Terrain	Image	Resolution	Note
+
+Gilgamesh	MR	-62	124	144	306	588	N/A	769	1073	~1000				1 to 3	"sh, st"	b	20639.15	0.6	"inner massif ring & smooth area, outer furrow ring; see 20638.14; Galileo NIMS target"
+
+Galileo-Marius Regio	MV	-21	179				<3000			>8300						dc	numerous	0.7	"multiple furrows, center obscured; see 20631.01-11; Galileo target"
+Nicholson Regio	MV	38	32				<3000			>6000						dc	numerous	1.2	"multiple furrows, center obscured; Galileo target"
+Perrine Regio	MV	56	46				<1000			~1580						dc	16405.46	1.1	"multiple furrows, center obscured; see also 16402.02"
+E. Marius Regio	MV	-28	153				<500			~500						dc	20637.50	0.8	"several furrows, smooth central feature; Galileo target"
+
+ZS23:018	PA	-23	18				301	~460								dc	16404.44	1.3	"irregular shape, crosscut by bright terrain, high-sun view"
+Thebes Facula	PA	7	201				245	~380								dc	20635.45	1.3	"irregular shape, high-sun view; Galileo target"
+Busiris Facula	PA	15	215				231	~360								dc	20635.45	1.3	"crosscut by bright terrain, high-sun view"
+Memphis Facula	PA	16	133	~61	~114	215	227	355								dc	20638.29	0.7	type example; Galileo target
+Coptos Facula	PA	10	209				207	325								dc	20635.45	1.3	"crosscut by bright terrain, high-sun view"
+ZN28:189	PA	28	189				200	315								dc	20635.37	1.3	crosscut by bright terrain
+ZS10:211	PA	-10	211				200	~315								dc	20635.56	1.3	"disrupted and crosscut by bright terrain, high-sun view"
+ZN73:138	PA	73	138				172	~275								dc	20608.11	9.6	"oblique view, low resolution"
+Siwah Facula	PA	8	143				160	257								dc	20637.11	1.0	"irregular shape, crosscut by bright terrain"
+ZN22:195	PA	22	195				155	250								dc	20635.37	1.3	crosscut by bright terrain
+ZN10:008	PA	10	8				149	240								dc	16402.22	2.1	crosscut by bright terrain
+ZN29:356	PA	29	356		49		122	~200								dc	16405.28	1.1	half buried by bright terrain
+ZS20:325	PA	-20	325	38			121	198								dc	16405.04	1.2	concentric rings; possible penepalimpsest
+ZN00:356	PA	0	356				119	195								dc	16406.06	1.0	crosscut by bright terrain
+Abydos Facula	PA	35	154				115	190								dc	20636.56	1.0	
+ZN02:356	PA	2	356				114	188								dc	16406.06	1.0	
+ZS04:222	PA	-4	222	37	60	104	112	186								dc	20635.56	1.3	"concentric lineaments, high-sun view"
+Edfu Facula	PA	27	148	33	52	98	111	184								dc	20636.59	1.0	Galileo NIMS target
+Tettu Facula	PA	39	162			105	109	180								dc	20636.56	1.0	
+ZS03:357	PA	-3	357				102	170								dc	16404.46	1.3	crosscut by bright terrain
+Abydos Facula 'A' 	PA	37	155	28	54	91	92	155								dc	20636.56	1.0	concentric rings; possible penepalimpsest
+ZN35:144	PA	35	144		52	~88	92	~155								dc	20636.59	1.0	
+ZN25:137	PA	25	137		~42		85	143								dc	20637.02	1.0	
+ZN10:194	PA	10	194	34			83	140								dc	20635.49	1.3	
+ZN21:152	PA	21	152	20		73	78	133								dc	20637.08	1.0	
+Buto Facula 'A'	PA	17	206				70	120								dc	20635.45	1.3	
+ZS11:333	PA	-11	333				67	115								dc	16405.12	1.2	
+
+ZN23:181	PP	23	181		115	207	N/A	308	457							dc/b	20637.05	1.0	high-sun view; Galileo target
+Nidaba	PP	19	124	62	128	180	N/A	295	416							dc	20638.31	0.7	type example
+ZN30:335	PP	30	335	43	91	162	N/A	261	327							b	16405.30	1.1	Galileo target
+Buto Facula	PP	12	203	~43	72	145	N/A	232	~290							dc	20635.45	1.3	"concentric ridges, secondaries, high-sun view"
+Hathor	PP	-70	267	37	64	123	N/A	175	264							b	20640.51	0.5	
+Hathor 'A'	PP	-72	281	~37	~55		115									b	20640.31	0.5	crosscut by late forming bright terrain
+ZS11:329	PP	-11	329	22	37	62	N/A	95								dc	16405.12	1.2	
+
+Western Equator Basin	UC	-6	121			175	N/A	256	422							b	20638.39	0.6	possible penepalimpsest
+Kittu	UC	0	337	N/A	?	28	N/A			N/A						b	16405.18	1.2	"type dark ray crater, 28x32 km; Galileo target"
+ZN02:153	UC	2	153	N/A	N/A	16	N/A			N/A						b	20637.20	0.9	"type dark floor crater, central peak; Galileo target"
+ZS46:357	UC	-46	357		27	61	N/A			N/A						dc	16404.54	1.3	"degraded or relaxed, possible central dome crater"
+
+Ilus	AD	-11	111	41	93	187	N/A									b	20631.33	2.4	
+ZN64:062	AD	64	62	48	99	177	N/A	236	442							b	16405.56	1.1	oblique view
+Ombus Facula	AD	4	236	35	81	160	N/A									dc	20635.53	1.3	"bright dome, massif ring, and bright annulus, high-sun view"
+Neith	AD	29	9	44	83	154	N/A		355							dc/b	16405.28	1.1	high-sun view; see also16402.12; Galileo target
+ZS35:139	AD	-35	139	54	81	138	N/A		325							b	20639.53	0.5	
+ZN05:175	AD	5	175	29	66	114	N/A		250							dc/b	20637.17	0.9	type example
+Gad	AD	-13	138	29	54	110	N/A		231							b	20637.23	0.9	
+ZS25:177	AD	-25	177	27	56	101	N/A		263							b	20637.41	0.8	
+ZN42:118	AD	42	118	28	51	100	N/A									dc	20636.50	1.0	
+ZS26:341	AD	-26	341	22		100	N/A									dc	16405.02	1.2	
+ZN29:165	AD	29	165	24	39	82	N/A									dc	20636.56	1.0	
+ZN31:116	AD	31	116	18	32	70	N/A									dc	20636.50	1.0	partially obscured by central pit crater
+ZN34:126	AD	34	126	17	29	60	N/A									dc	20636.50	1.0	
+ZS15:338	AD	-15	338	15	24	60	N/A									dc	16405.02	1.2	
+ZN28:133	AD	28	133	14	25	57	N/A									dc	20636.50	1.0	
+ZN06:357	AD	6	357	12	29		46									dc	16406.06	1.1	
+ZS22:324	AD	-22	324	13			50									dc	16405.04	1.2	
+ZS16:342	AD	-16	342	8	18	44	N/A									dc	16405.02	1.2	
+ZN06:183	AD	6	183	11			42									dc	20635.49	1.3	
+
+ZS29:005	CD	-29	5	41	78	178	N/A			N/A						dc	16404.44	1.3	asymmetric central pit and crater rim
+Punt Facula	CD	-26	242	38	70	155	N/A	226	364	N/A						dc	20636.08	1.2	"bright rays (dark to north), bright dome, high-sun view: Galileo NIMS target"
+Selket	CD	15	106	50	71	148	N/A	235		N/A						dc	20631.15	2.4	
+Enkidu	CD	-28	328	29	48	123	N/A		305	N/A		5.2-11.8		1.04	sh	b/dc	16405.02	1.2	type example
+Irkalla	CD	-31	115	27	46	115	N/A			N/A						b	20631.29	2.4	
+Anubis	CD	-83	120	?	43	112	N/A			N/A						b	20638.20	0.7	central dome in shadow
+ZS34:255	CD	-34	255	27	46	109	N/A			N/A						b	20636.20	1.2	
+Osiris	CD	-38	165	16	34	108	N/A	183	301	N/A		4.2-12.1				dc	20637.59	0.8	prominent bright rays; Galileo NIMS target
+Melkart	CD	-10	186	20	35	107	N/A	184	281	N/A						b/dc	20635.59	1.2	
+Seker	CD	-41	351	21	38	106	N/A	154		N/A						dc/b	16405.02	1.2	
+Amon	CD	33	223	21	32	102	N/A			N/A						b	20635.33	1.4	high-sun view; Galileo NIMS target
+Thoth	CD	-42	146	15	34	101	N/A			N/A						b/dc	20639.01	0.6	
+Ta-urt	CD	27	306	?	37	98	N/A	156		N/A						b	16403.54	1.6	central dome in shadow
+Eshmun	CD	-18	192	19	36	98	N/A	140	220	N/A						b	20639.49	0.5	Galileo target
+Sati	CD	31	14	18	33	97	N/A			N/A						dc	16402.02	2.2	
+Mush	CD	-13	115	15	32	97	N/A			N/A						b	20637.26	0.9	see also 20631.29
+Tros	CD	11	31	20	36	94	N/A	~150		N/A						b/dc	16404.22	1.4	"bright rays, bright pedestal, high-sun view"
+Hapi	CD	-31	212	14	32	94	N/A	136	245	N/A						b	20636.11	1.2	
+Kulla	CD	35	115	17	37	93	N/A			N/A						dc	20636.50	1.0	central dome in shadow
+Isimu	CD	8	2	22	35	93	N/A			N/A						dc/b	16406.06	1.0	
+ZS09:107	CD	-9	107	?	34	92	N/A			N/A						b	20631.33	2.4	central dome in shadow
+ZN35:053	CD	35	53	?	30	92	N/A			N/A						dc	16402.02	2.2	bright floor
+ZN34:019	CD	34	19	16	25	92	N/A			N/A						b	16402.02	2.2	elliptical central pit
+Ninlil	CD	8	119	20	33	91	N/A			N/A		8.9-9.9	0.8	1.17	sh	dc	20631.15	2.4	
+Halieus	CD	35	169	12	?	91	N/A			N/A						dc	20636.56	1.0	center obscured by younger crater
+Misharu	CD	-5	338	12	28	90	N/A	154		N/A	~6.0	6.3-11.8				b/dc	16403.02	1.8	
+Nut	CD	-58	270	?	26	88	N/A			N/A						b	20640.51	0.5	oblique view obscures dome
+Ninsum	CD	-13	141	14	24	88	N/A		227	N/A	4.6	8.6-9.7				b	20637.23	0.9	dark halo ejecta
+Ashima	CD	-38	122	9	23	87	N/A	136	218	N/A	3.8	3.3-10.3	0.62	0.92	pc	b	20638.59	0.6	
+ZN42:047	CD	42	47	?	32	86	N/A			N/A						dc	16402.02	2.2	bright floor
+ZS03:016	CD	-3	16	12	21	86	N/A			N/A						b/dc	16402.22	2.1	
+ZS08:109	CD	-8	109	?	32	85	N/A			N/A						b	20631.33	2.4	pit dome in shadow
+Kadi	CD	49	181	14	26	85	N/A			N/A						b	20636.53	1.0	
+Kingu	CD	-36	227	14	32	81	N/A			N/A						b	20636.20	1.2	high-sun view
+Kishar	CD	71	351	?	26	81	N/A			N/A						dc	16405.50	1.1	irregular central pit
+ZN46:180	CD	46	180	7	25	80	N/A			N/A						b	20636.41	1.1	partially obscured by Kadi ejecta
+ZN36:108	CD	36	108	?	22	80	N/A			N/A						dc	20631.15	2.4	
+Khonsu	CD	-38	190	10	21	80	N/A			N/A						b	20636.11	1.2	
+ZS48:185	CD	-48	185	9	19	79	N/A			N/A						b	20638.08	0.8	
+ZS42:357	CD	-42	357	8	19	79	N/A			N/A						dc	16404.54	1.3	
+Ninkasi	CD	57	54	?	25	78	N/A			N/A						b	16405.46	1.1	oblique view
+Ilah	CD	23	161	?	?	77	N/A			N/A						dc	20637.08	1.0	center obscured by crater
+ZN02:110	CD	2	110	?	24	77	N/A			N/A						b	20631.15	2.4	central pit in shadow
+ZS44:155	CD	-44	155	8	23	77	N/A			N/A						b	20639.01	0.6	
+ZS08:148	CD	-8	148	8	22	77	N/A			N/A		5				b	20637.20	0.9	dark halo ejecta
+ZS11:024	CD	-11	24	?	18	77	N/A			N/A						b	16404.44	1.3	"bright ejecta, irregular central pit"
+Bau	CD	25	53	?	15	77	N/A			N/A						b/dc	16402.12	2.1	"oblique high-sun view, central pit obscured"
+ZS11:120	CD	-11	120	9	23	74	N/A			N/A			0.73	1.08	sh	b	20638.43	0.6	
+ZN21:036	CD	21	36	8	19	74	N/A			N/A						dc/b	16404.22	1.4	
+Gir	CD	35	147	6	15	74	N/A			N/A		4.0-11.0				pa	20636.59	1.0	
+ZS30:144	CD	-30	144	6	18	73	N/A	118	187	N/A						b	20637.35	0.9	
+Ishkur	CD	0	11	?	19	70	N/A			N/A						dc	16402.22	2.1	bright rays
+ZN23:195	CD	23	195	10	21	69	N/A			N/A						pa	20635.37	1.3	embayed by bright terrain; Galileo target
+ZN21:169	CD	21	169	6	13	68	N/A			N/A						dc	20637.05	1.0	
+ZS02:167	CD	-2	167	4	13	67	N/A			N/A						b	20637.17	0.9	
+ZS43:175	CD	-43	175	?	12	66	N/A			N/A						dc	20637.56	0.8	partially obscured by Osiris ejecta
+ZS84:170	CD	-84	170	?	14	65	N/A			N/A			0.43	1.00	sh	b	20640.41	0.5	central pit in shadow
+ZN05:128	CD	5	128	6	12	65	N/A			N/A				1.19	sh	dc	20638.35	0.7	
+ZS10:022	CD	-10	22	3	12	65	N/A			N/A						b	16404.44	1.3	
+ZS28:143	CD	-28	143	3	13	62	N/A			N/A						b	20637.35	0.9	
+ZS02:353	CD	-2	353	5	13	61	N/A			N/A						b/dc	16405.18	1.1	
+Ammura	CD	31	343	4	13	61	N/A	92*		N/A						b	16405.28	1.1	dark halo ejecta
+ZS49:124	CD	-49	124	3	9	55	N/A			N/A			>0.28	0.83	sh	b	20639.11	0.6	partially buried by Gilgamesh ejecta
+ZS57:185	CD	-57	185	7	13	54	N/A			N/A						b	20638.08	0.8	
+ZS25:144	CD	-25	144	4	10	54	N/A			N/A						dc/b	20637.35	0.9	
+
+Isis	CP	-68	197	?	17	73	N/A	117	177	N/A	3.9	3.9-11.9	0.76	1.29	pc	b	20640.33	0.5	Galileo NIMS target
+Agrotes	CP	62	200	?	?	72	N/A			N/A						b/dc	20636.53	1.0	oblique view
+Agreus	CP	15	235	?	?	68	N/A			N/A						b/dc	20635.41	1.3	oblique view
+ZS19:126	CP	-19	126	?	12	68	N/A		180	N/A	4.1	7.0-10.8	0.38	0.95	pc	b	20638.45	0.6	
+ZN18:125	CP	18	125	N/A	11	68	N/A			N/A		7.0-12.0				pp	20638.31	0.7	
+Sebek	CP	60	358	N/A	13	64	N/A	120	187	N/A		8.0-10.0				b	16405.48	1.1	
+ZS53:152	CP	-53	152	N/A	12	62	N/A			N/A						b	20638.02	0.8	
+ZN30:052	CP	30	52	N/A	11	62	N/A			N/A						b	16402.12	2.1	
+Bes	CP	-26	180	N/A	11	62	N/A			N/A						b	20637.41	0.8	Galileo target
+Geb	CP	58	187	N/A	11	62	N/A			N/A						b	20636.41	1.1	bright rays
+ZN41:176	CP	41	176	N/A	13	61	N/A			N/A						dc	20636.53	1.0	
+ZN30:115	CP	30	115	N/A	12	61	N/A			N/A						dc	20636.50	1.0	see also 20631.15
+ZN52:179	CP	52	179	N/A	11	61	N/A			N/A						b	20636.53	1.0	
+ZS44:157	CP	-44	157	N/A	11	61	N/A			N/A						b/dc	20638.02	0.8	
+ZN33:140	CP	33	140	N/A	10	61	N/A			N/A						pa	20636.47	1.1	
+Neheh	CP	71	62	N/A	8	61	N/A			N/A						b	16405.56	1.1	
+ZS67:144	CP	-67	144	N/A	12	60	N/A			N/A				1.11	sh	b	20639.19	0.6	fractured by outer Gilgamesh ring
+ZN20:014	CP	20	14	N/A	9	60	N/A			N/A						b	16404.22	1.4	
+ZS35:162	CP	-35	162	N/A	10	59	N/A			N/A						b	20637.47	0.8	covered by bright Osiris ejecta
+ZS74:233	CP	-74	233	N/A	14	58	N/A			N/A						b	20640.45	0.5	
+ZN52:129	CP	52	129	N/A	12	58	N/A			N/A						dc	20636.47	1.1	
+ZS06:171	CP	-6	171	N/A	10	58	N/A			N/A						dc	20635.59	1.3	
+ZS30:163	CP	-30	163	N/A	10	58	N/A			N/A						b	20637.47	0.8	covered by bright Osiris ejecta
+Sapas	CP	57	38	N/A	9	58	N/A			N/A						b	16405.46	1.1	
+ZN02:151	CP	2	151	N/A	9	58	N/A			N/A						b	20637.20	0.9	dark halo ejecta
+Anu	CP	64	346	N/A	?	57	N/A			N/A						b	16405.48	1.1	central structure tectonically disrupted
+ZS47:125	CP	-47	125	N/A	11	57	N/A			N/A				0.96	pc	b	20639.05	0.6	
+ZN15:008	CP	15	8	N/A	10	57	N/A			N/A						b	16402.12	2.1	
+ZN07:210	CP	7	210	N/A	10	57	N/A			N/A						pa	20635.45	1.3	see Coptos Facula
+Khumbam	CP	-25	339	N/A	9	57	N/A			N/A						dc	16405.02	1.2	
+ZS08:169	CP	-8	169	N/A	11	56	N/A			N/A						dc	20635.59	1.3	
+Danel	CP	-4	25	N/A	10	56	N/A			N/A						b/dc	16402.22	2.1	
+ZS06:021	CP	-6	21	N/A	10	56	N/A			N/A						dc	16402.22	2.1	
+Ninki	CP	-7	121	N/A	11	55	N/A			N/A		11	0.45	1.06	sh	cm	20638.41	0.7	
+Andjeti	CP	-52	159	N/A	9	55	N/A			N/A		7.0-9.2		1.24	pc	b	20637.59	0.8	
+ZS14:332	CP	-14	332	N/A	8	55	N/A			N/A						dc	16405.12	1.2	
+ZS34:123	CP	-34	122	N/A	8	54	N/A			N/A	3	1.7-8.7	0.41	1.16	pc	b	20638.59	0.6	
+Nigirsu	CP	-61	328	N/A	14	53	N/A			N/A						dc	16404.56	1.3	oblong central pit
+ZS20:135	CP	-20	135	N/A	11	53	N/A			N/A						b/dc	20637.38	0.9	
+ZS41:137	CP	-41	137	N/A	9	53	N/A			N/A		8		0.77	pc	b	20639.03	0.6	
+ZS34:140	CP	-34	140	N/A	8	53	N/A			N/A		5.3-9.6	0.49	1.10	pc	pp	20639.53	0.5	
+ZS12:173	CP	-12	173	N/A	8	53	N/A			N/A						dc	20636.02	1.2	split by fracture
+ZN27:218	CP	27	218	N/A	11	52	N/A			N/A						b/dc	20635.33	1.4	
+Adapa	CP	72	30	N/A	9	52	N/A			N/A						dc/b	16405.56	1.1	
+ZS09:318	CP	-9	318	N/A	9	52	N/A			N/A						b/dc	16404.48	1.3	multiple central pits
+ZN39:123	CP	39	123	N/A	8	52	N/A			N/A						dc	20636.50	1.0	
+ZN38:116	CP	38	116	N/A	12	51	N/A			N/A						dc	26036.50	1.0	
+ZS29:167	CP	-29	167	N/A	10	51	N/A			N/A						b	20637.47	0.8	
+ZN23:133	CP	23	133	N/A	8	51	N/A			N/A						dc	20638.29	0.7	
+Geinos	CP	18	221	N/A	8	51	N/A			N/A						dc	20635.45	1.3	
+ZS58:195	CP	-58	195	N/A	5	51	N/A			N/A						b	20638.17	0.7	
+ZN30:138	CP	30	138	N/A	10	50	N/A			N/A						dc	20636.59	1.0	
+ZN53:128	CP	53	128	N/A	10	50	N/A			N/A						dc	20636.47	1.1	
+ZN37:181	CP	37	181	N/A	10	50	N/A			N/A						dc	20636.53	1.0	
+ZN00:139	CP	0	139	N/A	9	50	N/A			N/A						dc	20638.37	0.7	
+ZS12:348	CP	-12	348	N/A	8	50	N/A			N/A						dc	16405.02	1.2	
+ZN09:140	CP	9	140	N/A	7	50	N/A			N/A						dc	20638.33	0.7	
+Shu	CP	43	358	N/A	7	50	N/A			N/A						b	16402.02	2.2	bright rays
+ZS29:153	CP	-29	153	N/A	3	50	N/A			N/A						b	20637.35	0.9	
+ZS13:211	CP	-13	211	N/A	9	49	N/A			N/A						pa	20635.45	1.3	
+ZN09:358	CP	9	358	N/A	8	49	N/A			N/A						dc	16406.06	1.1	
+ZS17:325	CP	-17	325	N/A	7	49	N/A			N/A						dc	16404.14	1.4	
+ZS13:327	CP	-13	327	N/A	6	49	N/A			N/A						dc	16404.14	1.4	
+ZN24:358	CP	24	358	N/A	11	48	N/A			N/A						dc	16405.28	1.1	irregular central pit
+ZS03:140	CP	-3	140	N/A	10	48	N/A			N/A						dc	20638.37	0.7	
+ZN24:139	CP	24	139	N/A	9	48	N/A			N/A						dc	20637.02	1.0	
+ZN21:148	CP	21	148	N/A	8	48	N/A			N/A						dc	20636.59	1.0	
+ZS44:120	CP	-44	120	N/A	8	48	N/A			N/A						b	20639.05	0.6	
+ZS46:169	CP	-46	169	N/A	7	47	N/A			N/A						b	20637.59	0.8	
+ZS81:159	CP	-81	159	N/A	7	47	N/A			N/A		8.1-10.2		0.97	sh	b	20640.41	0.5	
+ZN56:172	CP	56	172	N/A	10	46	N/A			N/A						pp	20636.53	1.0	
+ZS87:212	CP	-87	212	N/A	17	45	N/A			N/A						b	20640.41	0.5	degraded structure
+ZN38:146	CP	38	146	N/A	10	45	N/A			N/A						dc	20636.59	1.0	
+ZS67:187	CP	-67	187	N/A	9	45	N/A			N/A						dc	20638.17	0.7	
+Ba'al	CP	26	332	N/A	8	45	N/A	65*		N/A						b	16405.30	1.1	
+ZN50:151	CP	50	151	N/A	8	44	N/A			N/A						dc	20636.44	1.1	
+ZS06:135	CP	-6	135	N/A	7	44	N/A	79*		N/A	1.7	2.4-9.9	0.43	1.07	pc	b	20638.37	0.7	dark halo ejecta
+ZS02:330	CP	-2	330	N/A	9	43	N/A	79*		N/A						b	16405.12	1.2	
+Diment	CP	22	353	N/A	8	42	N/A			N/A						dc/b	16405.28	1.1	
+ZS26:121	CP	-26	121	N/A	8	40	N/A			N/A						b	20638.45	0.6	
+ZS28:135	CP	-28	135	N/A	8	40	N/A	65	105	N/A		3.1-6.7		1.02	pc	b	20638.51	0.6	
+ZN11:137	CP	11	137	N/A	7	40	N/A			N/A						dc	20638.33	0.7	
+ZS14:131	CP	-14	131	N/A	7	40	N/A			N/A						b	20637.23	0.9	
+ZS27:160	CP	-27	160	N/A	7	40	N/A			N/A						dc/b	20637.47	0.8	
+ZS63:178	CP	-63	178	N/A	6	40	N/A			N/A						b	20638.17	0.7	
+ZS37:139	CP	-37	139	N/A	5	40	N/A			N/A		2.4-7.9				pp	20639.35	0.5	central pit off-center
+ZN12:211	CP	12	211	N/A	8	39	N/A			N/A						pa	20635.45	1.3	topographically relaxed
+ZN12:151	CP	12	151	N/A	7	39	N/A			N/A						dc	20637.08	1.0	
+ZN31:358	CP	31	358	N/A	6	39	N/A			N/A						b	16405.28	1.1	
+ZN04:353	CP	4	353	N/A	5	39	N/A			N/A						dc	16406.06	1.1	
+ZS09:208	CP	-9	208	N/A	9	38	N/A			N/A						pa	20635.45	1.3	
+Seima	CP	17	217	N/A	7	38	N/A			N/A						pa	20635.43	1.3	
+ZN23:125	CP	23	125	N/A	7	38	N/A			N/A				1.16	sh	dc	20638.29	0.7	
+ZS01:160	CP	-1	160	N/A	5	38	N/A	65*		N/A						b	20637.17	0.9	
+ZN30:147	CP	30	147	N/A	7	37	N/A			N/A						dc	20636.59	1.0	
+ZS15:336	CP	-15	336	N/A	7	36	N/A			N/A						dc	16405.02	1.2	
+ZS04:315	CP	-4	315	N/A	6	36	N/A	64*		N/A						b	16404.48	1.3	
+ZN13:124	CP	13	124	N/A	5	34	N/A			N/A				1.24	sh	dc	20638.35	0.7	
+ZS52:147	CP	-52	147	N/A	4	34	N/A	55*		N/A						b	20639.09	0.6	
+ZN12:346	CP	12	346	N/A	3	34	N/A	60*		N/A						b	16405.18	1.1	
+ZS10:149	CP	-10	149	N/A	8	33	N/A	55*		N/A						b/dc	20637.20	0.9	
+ZS78:227	CP	-78	227	N/A	8	33	N/A			N/A						b	20640.41	0.5	lava-filled or viscously relaxed
+ZS01:132	CP	-1	132	N/A	4	30	N/A	51*		N/A		3.3		1.21	sh	b	20638.37	0.7	bright rays
+ZS59:131	CP	-59	131	N/A	4	30	N/A			N/A		5.4-6.7		1.05	sh	cm	20639.15	0.6
+ZS02:164	CP	-2	164	N/A	4	29	N/A	50*		N/A						dc/b	20637.17	0.9

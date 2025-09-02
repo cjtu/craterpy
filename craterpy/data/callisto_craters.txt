@@ -1,0 +1,139 @@
+				-	-	Diameter (km)	-	-	-										
+Name	Crater Type	Latitude	Longitude	central dome	central pit/ring	rim	rim (predicted)	pedestal	ejecta	rings	Terrace Width	Rimwall Width	Rim Height	Depth	Depth Method	Terrain	Image	Resolution	Note
+
+Valhalla	MV	15	56				980		~1800	~3800						dc	numerous	1.0	"numerous furrows, ridges, central bright floor deposit; Galileo target"
+Asgard	MV	32	142				660		~1400	~1880						dc	20606.21	3.0	"numerous furrows, central bright floor deposit; Galileo target; see also 16428.09"
+ZS05:232	MV	-5	232							~550						dc	20617.21	1.7	furrows
+ZN34:358	MV	34	358							~350						dc	16421.43	1.7	furrows; Galileo target
+
+ZS64:350	PA	-64	350				295	~450								dc	16418.06	2.7	oblique view; Galileo target
+ZS26:158	PA	-26	158				227	350								dc	20606.33	3.0	concentric outer dark lineament
+ZN04:021	PA	4	21		52		137	220								dc	16421.47	1.7	"somewhat irregular shape, central bright ring or dome"
+ZN14:351	PA	14	351				123	200								dc	16421.43	1.7	"irregular shape, concentric and radial lineaments; Galileo target"
+ZN26:018	PA	26	18	68			99	165											
+
+Adlinda 'A'	PP	-47	31				410	~600								dc	16418.14	2.7	"outer scarp, concentric ridges, smooth texture, see also 16421.21; Galileo target"
+Asgard 'A'	PP	46	135				370	550								dc	16428.07	1.3	"outer scarp, ridges, smooth, superposed on Asgard, image smear; see 20606.25; Galileo target"
+
+Adlinda	UC	-56	23			330										dc	16418.06	2.7	bright floor/rays; Galileo target
+Adlinda 'B'	UC	-64	355			200										pa	16418.06	2.7	"large bright spot (image saturated), superposed on PA, oblique view; Galileo target"
+ZS02:189	UC	-2	189			160	157	~250								dc	20606.33	3.0	"irregular circular lineament, embayed by dark material"
+ZN52:274	UC	52	274			140										dc	20616.45	1.7	degraded circular ridge or scarp
+
+Buri	AD	-40	44	52	~110	250	N/A									dc	16418.14	2.7	"bright floor, dark halo craters"
+ZN54:083	AD	54	83	55	98	200	N/A									dc	16424.50	1.0	"bright floor, radial grooves"
+Grimr	AD	41	215	60	95	200	N/A									dc	20616.53	1.7	high-sun view
+ZS29:180	AD	-29	180	53		180	N/A									dc	20606.37	3.0	"bright floor, dark halo craters, high-sun view"
+Alfr	AD	-11	223		~90	180	N/A									dc	20617.21	1.7	high-sun view
+Ymir	AD	51	101	~50	~90	180	N/A									dc	16425.08	1.0	"irregular outline, image smeared"
+ZN18:338	AD	18	338	45	85		170									dc	16421.43	1.7	
+Nori	AD	45	344	56	87		165									dc	16426.36	1.0	
+ZN28:192	AD	28	192	39	78	163	N/A									dc	20606.25	3.0	
+Anarr	AD	43	359	43	66	163	N/A									dc	16421.43	1.7	
+Loni	AD	-4	215	43	82	160	N/A									dc	20617.21	1.7	
+ZS45:192	AD	-45	192	46	~80	155	N/A									dc	20606.37	3.0	
+ZN17:217	AD	17	217	42	80		159									dc	20617.05	1.7	highly degraded
+ZN10:167	AD	10	167	35	71	150	N/A									dc	20606.33	3.0	
+ZS31:204	AD	-31	204	36	70	150	N/A									dc	20606.37	3.0	
+ZN00:015	AD	0	15	34	54	144	N/A									dc	16421.33	1.7	
+ZN69:029	AD	69	29	~40	70	140	N/A									dc	16426.44	1.0	"bright floor, ejecta, irregular morphology"
+ZN58:236	AD	58	236	~30	~60	130	N/A									dc	20616.41	1.7	
+Tyn	AD	71	234	28	60		129									dc	20616.41	1.7	
+ZN60:356	AD	60	356	30	52	120	N/A									dc	16422.03	1.6	
+Har	AD	-3	358	21	50	105	N/A									dc	16421.30	1.7	Galileo target
+ZS39:262	AD	-39	262	28	57	100	N/A									dc	20617.41	1.7	
+Njord	AD	16	133	13	42	100	N/A									dc	16428.09	1.3	"bright floor, image smeared"
+Nerrivik	AD	-17	57	23	53	99	N/A									dc	16421.51	1.7	
+ZN33:042	AD	33	42	14	42	85	N/A									mv	16424.32	1.1	fractured floor
+ZS13:268	AD	-13	268	15	35	84	N/A									dc	20617.25	1.7	
+ZN71:339	AD	71	339	19	31	80	N/A									dc	16426.46	1.0	"embayed by dark material, cut by fracture"
+ZN53:252	AD	53	252	12	28	75	N/A									dc	20616.57	1.7	partial rim preserved
+
+Bran	CD	-25	206	~34	~51	159	N/A			N/A						dc	20606.37	3.0	"asymmetric central pit and floor, bright rays, high-sun image"
+ZN27:085	CD	27	85	25	48	118	N/A			N/A						dc	16424.34	1.1	high-sun view
+ZS07:069	CD	-7	69	26	39	110	N/A	175		N/A						dc	16421.51	1.7	
+Gloi	CD	49	245	19	42	107	N/A	178	302	N/A						dc	20616.57	1.7	
+Igaluk	CD	5	316	17	36	107	N/A			N/A				0.79	sh	dc	16421.27	1.8	irregular central pit
+Valfodr	CD	-1	248	16	44	98	N/A	143		N/A						dc	20617.09	1.7	bright floor
+ZN39:062	CD	39	62	?	28	96	N/A			N/A						mv	16424.34	1.1	irregular central pit
+Tornarsuk	CD	28	128	?	28	92	N/A			N/A						mv	16428.09	1.3	image smeared
+Skuld	CD	10	38	?	32	91	N/A			N/A						mv	16421.47	1.7	"fractured floor, superposed catena obscures center; Galileo target"
+ZN37:066	CD	37	66	12	25	85	N/A			N/A						mv	16424.50	1.0	
+ZN34:075	CD	34	75	?	26	84	N/A			N/A						dc	16424.34	1.1	fractured floor
+Hoenir	CD	-34	262	12	28	83	N/A			N/A						dc	20617.41	1.7	
+Bavarr	CD	49	20	?	28	82	N/A			N/A						dc	16421.33	1.7	"degraded, center obscured"
+ZN08:167	CD	8	167	14	27	82	N/A			N/A						dc	20606.21	3.0	partly buried by ejecta
+ZN32:233	CD	32	233	12	27	78	N/A			N/A						dc	20616.53	1.7	
+Vidarr	CD	12	194	14	24	77	N/A			N/A						dc	20606.21	3.0	
+Fadir	CD	57	13	9	19	77	N/A			N/A		4.4				dc	16425.50	1.0	viscously relaxed
+Tindr	CD	-2	356	12	22	76	N/A			N/A						dc	16421.30	1.7	see also 16424.40; Galileo target
+Finnr	CD	16	4	9	17	76	N/A			N/A						dc	16421.33	1.7	
+Vestri	CD	45	53	?	17	75	N/A			N/A		6.1-13.2				dc	16424.48	1.0	irregular central pit
+Hogni	CD	-13	8	8	33	72	N/A			N/A						dc	16421.33	1.7	complex central structure
+Ivarr	CD	-6	321	?	15	71	N/A			N/A						dc	16421.27	1.8	central pit in shadow
+Haki	CD	25	315	5	19	67	N/A			N/A						dc	16421.39	1.7	image smeared
+Agroi	CD	43	11	7	14	63	N/A			N/A						dc	16424.40	1.0	
+
+ZN07:165	CP	7	165	?	15	81	N/A			N/A						dc	20606.33	3.0	low resolution
+Seqinek	CP	56	26	?	14	78	N/A			N/A						dc	16424.46	1.0	crater floor fractured
+ZN07:268	CP	7	268	?	13	78	N/A			N/A						dc	20617.25	1.7	"central pit in shadow, topographically relaxed"
+ZN06:168	CP	6	167	N/A	17	74	N/A			N/A						dc	20606.33	3.0	
+ZS09:161	CP	-9	161	N/A	15	74	N/A			N/A						dc	20606.33	3.0	
+ZN26:256	CP	26	256	?	14	72	N/A			N/A						dc	20616.53	1.7	
+Brami	CP	29	19	N/A	10	72	N/A			N/A		6.2-12.4				dc	16424.44	1.0	irregular central pit
+Burr	CP	43	135	N/A	12	71	N/A			N/A						pp	16428.09	1.3	"bright rays, image smear"
+Nuada	CP	62	273	?	18	67	N/A			N/A						dc	20616.45	1.7	central pit in shadow
+ZS09:257	CP	-9	257	?	12	67	N/A			N/A						dc	20617.25	1.7	irregular central pit
+Pekko	CP	18	5	?	?	66	N/A			N/A						dc	16424.42	1.0	center obscured
+Askr	CP	52	324	?	15	65	N/A			N/A		4.0-11.7		1.10	sh	dc	16425.18	1.0	
+ZN53:352	CP	53	352	N/A	12	65	N/A			N/A		7.1				dc	16426.40	1.0	"bright floor, irregular central pit"
+ZN26:191	CP	26	191	N/A	14	64	N/A			N/A						dc	20606.25	3.0	
+Blakr	CP	29	12	?	12	64	N/A			N/A						dc	16424.44	1.0	"irregular central pit, fractured floor"
+ZN27:239	CP	27	239	?	14	62	N/A			N/A						dc	20616.53	1.7	irregular central pit
+ZS02:009	CP	-2	9	?	14	62	N/A			N/A						dc	16421.33	1.8	possible central dome
+ZS06:271	CP	-6	271	N/A	12	62	N/A			N/A						dc	20617.25	1.7	
+ZS41:265	CP	-41	265	N/A	11	62	N/A			N/A						dc	20617.41	1.7	
+ZN17:198	CP	17	198	N/A	10	62	N/A			N/A						dc	20614.06	1.8	
+ZS15:018	CP	-15	18	N/A	14	61	N/A			N/A						dc	16421.33	1.8	
+ZS07:209	CP	-7	209	N/A	12	61	N/A			N/A						dc	20606.37	3.0	
+ZN49:353	CP	49	353	N/A	11	61	N/A			N/A						dc	16426.40	1.0	
+ZS11:237	CP	-11	237	N/A	9	61	N/A			N/A						dc	20617.21	1.7	
+ZN34:265	CP	34	265	N/A	14	60	N/A			N/A		4.4-9.9				dc	20616.57	1.7	
+ZN30:257	CP	30	257	N/A	14	60	N/A			N/A		6.2-7.4				dc	20616.57	1.7	
+ZS17:275	CP	-17	275	N/A	10	60	N/A			N/A						dc	20617.25	1.7	
+Bragi	CP	76	61	N/A	8	60	N/A			N/A						dc	16428.19	1.3	
+ZN10:257	CP	10	257	N/A	12	59	N/A			N/A						dc	20617.09	1.7	
+ZN35:191	CP	35	191	N/A	10	59	N/A			N/A						dc	20606.25	3.0	
+Nirkes	CP	30	164	N/A	9	59	N/A			N/A						dc	20606.25	3.0	
+ZS04:273	CP	-4	273	N/A	12	58	N/A			N/A						dc	20617.25	1.7	
+ZS13:201	CP	-13	201	N/A	12	57	N/A			N/A						dc	20606.37	3.0	
+ZN60:240	CP	60	240	N/A	11	57	N/A			N/A						dc	20616.41	1.7	
+ZN07:239	CP	7	239	N/A	10	57	N/A			N/A						dc	20617.21	1.7	
+ZS05:231	CP	-5	231	N/A	9	57	N/A			N/A						dc	20617.21	1.7	
+Fulla	CP	74	105	N/A	8	57	N/A			N/A				1.23	sh	dc	16428.19	1.3	
+ZN48:258	CP	48	258	N/A	12	55	N/A			N/A						dc	20616.57	1.7	
+ZN60:246	CP	60	246	N/A	11	54	N/A			N/A						dc	20616.41	1.7	
+ZN11:032	CP	11	32	N/A	10	54	N/A			N/A						dc	16424.30	1.1	
+ZS03:007	CP	-3	7	N/A	10	54	N/A			N/A						dc	16421.33	1.8	
+ZN18:261	CP	18	261	N/A	10	53	N/A			N/A						dc	20617.09	1.7	
+ZN44:017	CP	44	17	N/A	10	53	N/A			N/A						dc	16424.46	1.0	
+ZN18:229	CP	18	229	N/A	9	53	N/A			N/A						dc	20617.09	1.7	
+Freki	CP	80	351	N/A	9	53	N/A			N/A		4.2-6.1		0.77	sh	dc	16426.46	1.0	
+ZN44:050	CP	44	50	N/A	11	52	N/A			N/A		4.0-11.0				dc	16424.48	1.0	
+ZN30:259	CP	30	259	N/A	11	52	N/A			N/A						dc	20616.57	1.7	fractured floor
+ZS01:269	CP	-1	269	N/A	9	52	N/A			N/A						dc	20617.25	1.7	
+ZS17:256	CP	-17	256	N/A	9	52	N/A			N/A						dc	20617.25	1.7	
+ZN15:197	CP	15	197	N/A	8	51	N/A			N/A						dc	20614.26	1.8	
+ZS11:010	CP	-11	10	N/A	9	50	N/A			N/A						dc	16421.33	1.8	
+ZN38:261	CP	38	261	N/A	10	49	N/A			N/A						dc	20616.57	1.7	
+ZN35:040	CP	35	40	N/A	9	49	N/A			N/A						mv	16424.32	1.1	
+Sigyn	CP	35	29	N/A	9	49	N/A			N/A						dc	16424.30	1.1	bright rays
+ZS10:261	CP	-10	261	N/A	9	48	N/A			N/A						dc	20617.25	1.7	
+ZN50:351	CP	50	351	N/A	9	48	N/A			N/A						dc	16426.40	1.0	
+ZN22:245	CP	22	245	N/A	9	48	N/A			N/A						dc	20616.53	1.7	
+ZN78:115	CP	78	115	N/A	7	48	N/A			N/A				1.00	sh	dc	16428.19	1.3	
+ZN11:321	CP	11	321	N/A	8	45	N/A			N/A				0.88	sh	dc	16421.27	1.8	
+ZN44:001	CP	44	1	N/A	9	44	N/A			N/A						cm	16426.34	1.0	see Anarr
+ZN39:262	CP	39	262	N/A	8	44	N/A			N/A						dc	20616.57	1.7	
+ZN28:016	CP	28	16	N/A	9	40	N/A			N/A						dc	16424.30	1.1	
+ZN68:339	CP	68	339	N/A	7	38	N/A			N/A						dc	16426.46	1.0	

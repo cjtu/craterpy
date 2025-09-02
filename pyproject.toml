@@ -82,6 +82,9 @@ extend-select = [
 ]
 ignore = [ "E501" ]
 
+[tool.ruff.lint.per-file-ignores]
+"*.ipynb" = ["I", "Q", "W"]
+
 [tool.pytest.ini_options]
 addopts = "--cov=craterpy --cov-branch --cov-report term-missing  -v --color=yes"
 python_files = "tests.py test_*.py *_tests.py"

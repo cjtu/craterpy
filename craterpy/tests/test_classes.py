@@ -19,7 +19,7 @@ from pyproj import CRS
 from shapely.geometry import Point
 
 import craterpy
-from craterpy.classes import CRS_DICT, CraterDatabase
+from craterpy.classes import BODIES, CraterDatabase
 
 
 class TestCraterDatabase(unittest.TestCase):
@@ -32,6 +32,8 @@ class TestCraterDatabase(unittest.TestCase):
         self.vesta_tif = craterpy.sample_data["vesta.tif"]
         self.vesta_craters = craterpy.sample_data["vesta_craters.csv"]
         self.moon_cdb = CraterDatabase(self.moon_craters, "moon", units="km")
+        self.moon_cdb_rim = self.moon_cdb.copy()
+        self.moon_cdb_rim.add_annuli("rim", 1, 1.1)
         self.vesta_cdb = CraterDatabase(self.vesta_craters, "vesta_claudia_dp")
 
     def test_add_circles_annuli(self):
@@ -51,21 +53,27 @@ class TestCraterDatabase(unittest.TestCase):
 
     def test_get_stats(self):
         """Test getting statistics on a region for a raster."""
-        cdb = self.moon_cdb.copy()
-        cdb.add_annuli("rim", 1, 1.1)
-        stats = cdb.get_stats(self.moon_tif, "rim")
+        stats = self.moon_cdb_rim.get_stats(self.moon_tif, "rim")
         self.assertIn("count_rim", stats.columns)
         self.assertIn("Lat", stats.columns)
         self.assertFalse(any(stats["mean_rim"].isna()))  # No null values
 
-    def test_get_stats_parallel(self):
+    def test_get_stats_list_rasters(self):
+        """Test parallellization of get_stats for multiple rasters in list."""
+        stats = self.moon_cdb_rim.get_stats(
+            [self.moon_tif, self.moon_dem], ["rim"], nodata=0
+        )
+        self.assertIn("count_raster0_rim", stats.columns)
+        self.assertIn("count_raster1_rim", stats.columns)
+        self.assertFalse(any(stats["count_raster0_rim"].isna()))
+
+    def test_get_stats_multi_rasters_regions(self):
         """Test parallellization of get_stats for multiple rasters/regions."""
-        cdb = self.moon_cdb.copy()
-        cdb.add_annuli("rim", 1, 1.1)
-        stats = cdb.get_stats(
+        stats = self.moon_cdb_rim.get_stats(
             {"moon": self.moon_tif, "dem": self.moon_dem},
-            "rim",
+            ["rim"],
             ["median", "count"],
+            nodata={"moon": 0, "dem": 0},
         )
         self.assertIn("count_moon_rim", stats.columns)
         self.assertIn("count_dem_rim", stats.columns)
@@ -73,7 +81,7 @@ class TestCraterDatabase(unittest.TestCase):
 
     def test_body_crs_all(self):
         """Test that every defined CRS loads."""
-        for body in CRS_DICT:
+        for body in BODIES:
             with warnings.catch_warnings():
                 warnings.filterwarnings("ignore", message="Vesta*")
                 cdb = CraterDatabase(self.moon_craters, body)
@@ -172,7 +180,7 @@ class TestCraterDatabase(unittest.TestCase):
             self.assertIn("import_test", newdb.data.columns)
             self.assertIn("_center", newdb.data.columns)
             self.assertNotIn("geometry", newdb.data.columns)
-            self.assertEqual(newdb.body, "Moon")
+            self.assertEqual(newdb.body, "moon")
 
     def test_to_geojson_with_custom_geometry(self):
         """Test export with a custom geometry column."""
@@ -274,7 +282,7 @@ class TestCraterDatabase(unittest.TestCase):
         # Basic CRS conversion
         cdb = self.moon_cdb.copy()
         initial_crs = cdb.data.crs
-        moon_equirect_crs = CRS.from_user_input(CRS_DICT["moon"][1])
+        moon_equirect_crs = CRS.from_user_input(cdb._crs180)
 
         # Test with CRS object
         converted_cdb = CraterDatabase.to_crs(cdb, moon_equirect_crs)
@@ -288,7 +296,7 @@ class TestCraterDatabase(unittest.TestCase):
         np.testing.assert_array_almost_equal(converted_cdb.rad.values, cdb.rad.values)
 
         # Test with string CRS input
-        str_converted = CraterDatabase.to_crs(cdb, CRS_DICT["moon"][1])
+        str_converted = CraterDatabase.to_crs(cdb, "IAU_2015:30110")
         self.assertEqual(str_converted.data.crs, moon_equirect_crs)
 
         # Test converting to same CRS
@@ -296,7 +304,7 @@ class TestCraterDatabase(unittest.TestCase):
         self.assertEqual(same_crs, cdb)
 
         # Test with north pole projection
-        moon_north_crs = CRS.from_user_input(CRS_DICT["moon"][3])
+        moon_north_crs = CRS.from_user_input(cdb._crsnorth)
         pole_converted = CraterDatabase.to_crs(cdb, moon_north_crs)
         self.assertEqual(pole_converted.data.crs, moon_north_crs)
         self.assertEqual(len(pole_converted.data), len(cdb.data))
@@ -358,11 +366,11 @@ class TestCraterDatabase(unittest.TestCase):
 
         # Read with explicit parameters (should override metadata)
         cdb = CraterDatabase.read_shapefile(ftmp.name, body="Mars", units="m")
-        self.assertEqual(cdb.body, "Mars")
+        self.assertEqual(cdb.body, "mars")
 
         # Read without parameters (should use metadata)
         cdb = CraterDatabase.read_shapefile(tmp.name)
-        self.assertEqual(cdb.body, "Moon")
+        self.assertEqual(cdb.body, "moon")
         self.assertEqual(cdb.rad.iloc[0], 1000.0)  # Should be converted from km to m
 
     def test_to_crs_vesta(self):
@@ -381,8 +389,7 @@ class TestCraterDatabase(unittest.TestCase):
         self.assertEqual(cdb._vesta_coord, "vesta_claudia_dp")
 
         # Test preservation through CRS conversion
-        vesta_equirect_crs = CRS.from_user_input(CRS_DICT["vesta"][1])
-        converted_cdb = CraterDatabase.to_crs(cdb, vesta_equirect_crs)
+        converted_cdb = CraterDatabase.to_crs(cdb, cdb._crs180)
         self.assertEqual(converted_cdb._vesta_coord, "vesta_claudia_dp")
 
     def test_plot(self):
