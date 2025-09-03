@@ -1,24 +1,25 @@
 """Unittest classes.py."""
 
-import warnings
-import unittest
-from tempfile import NamedTemporaryFile
 import json
 import os
-import pyproj
-from pyproj import CRS
-from pyogrio.errors import DataSourceError
-import pandas as pd
+import unittest
+import warnings
+from tempfile import NamedTemporaryFile
+
 import geopandas as gpd
-import numpy as np
-from matplotlib.axes import Axes
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import pyproj
 import rasterio as rio
 import shapely
-from shapely.testing import assert_geometries_equal
+from matplotlib.axes import Axes
+from pyogrio.errors import DataSourceError
+from pyproj import CRS
 from shapely.geometry import Point
+
 import craterpy
-from craterpy.classes import CraterDatabase, CRS_DICT
+from craterpy.classes import CRS_DICT, CraterDatabase
 
 
 class TestCraterDatabase(unittest.TestCase):
@@ -72,20 +73,16 @@ class TestCraterDatabase(unittest.TestCase):
 
     def test_body_crs_all(self):
         """Test that every defined CRS loads."""
-        for body in CRS_DICT.keys():
+        for body in CRS_DICT:
             with warnings.catch_warnings():
                 warnings.filterwarnings("ignore", message="Vesta*")
                 cdb = CraterDatabase(self.moon_craters, body)
-                for crs in [
-                    v for k, v in cdb.__dict__.items() if k.startswith("_crs")
-                ]:
+                for crs in [v for k, v in cdb.__dict__.items() if k.startswith("_crs")]:
                     self.assertIsInstance(crs, pyproj.CRS)
 
     def test_vesta_coord_correction(self):
         """Test Vesta's various coordinate systems."""
-        df = pd.DataFrame(
-            {"lat": [0, 10], "lon": [-90, 120], "radius": [1, 2]}
-        )
+        df = pd.DataFrame({"lat": [0, 10], "lon": [-90, 120], "radius": [1, 2]})
         cdb = CraterDatabase(df, "vesta_claudia_double_prime")  # 0 offset
         self.assertEqual(cdb.lon.iloc[0], -90)
         self.assertEqual(cdb.lon.iloc[1], 120)
@@ -286,15 +283,9 @@ class TestCraterDatabase(unittest.TestCase):
         self.assertIsNot(converted_cdb, cdb)
 
         # Test data preservation (only need to test once)
-        np.testing.assert_array_almost_equal(
-            converted_cdb.lat.values, cdb.lat.values
-        )
-        np.testing.assert_array_almost_equal(
-            converted_cdb.lon.values, cdb.lon.values
-        )
-        np.testing.assert_array_almost_equal(
-            converted_cdb.rad.values, cdb.rad.values
-        )
+        np.testing.assert_array_almost_equal(converted_cdb.lat.values, cdb.lat.values)
+        np.testing.assert_array_almost_equal(converted_cdb.lon.values, cdb.lon.values)
+        np.testing.assert_array_almost_equal(converted_cdb.rad.values, cdb.rad.values)
 
         # Test with string CRS input
         str_converted = CraterDatabase.to_crs(cdb, CRS_DICT["moon"][1])
@@ -313,9 +304,7 @@ class TestCraterDatabase(unittest.TestCase):
     def test_merge(self):
         """Test merging two CraterDatabases."""
         # Create two databases to merge
-        df1 = pd.DataFrame(
-            {"lat": [0.0, 10.0], "lon": [0.0, 10.0], "rad": [1.0, 2.0]}
-        )
+        df1 = pd.DataFrame({"lat": [0.0, 10.0], "lon": [0.0, 10.0], "rad": [1.0, 2.0]})
         df2 = pd.DataFrame(
             {"lat": [20.0, 30.0], "lon": [20.0, 30.0], "rad": [3.0, 4.0]}
         )
@@ -340,16 +329,15 @@ class TestCraterDatabase(unittest.TestCase):
         # Test with missing required columns
         df = pd.DataFrame({"x": [1], "y": [2]})  # Missing lat/lon
         with NamedTemporaryFile(suffix=".geojson") as tmp:
-            gpd.GeoDataFrame(
-                df, geometry=[Point(1, 2)], crs="EPSG:4326"
-            ).to_file(tmp.name, driver="GeoJSON")
+            gpd.GeoDataFrame(df, geometry=[Point(1, 2)], crs="EPSG:4326").to_file(
+                tmp.name, driver="GeoJSON"
+            )
             with self.assertRaises(ValueError):
                 CraterDatabase.read_shapefile(tmp.name)
 
     def test_read_shapefile_with_metadata(self):
         """Test reading shapefile with metadata."""
         # Create a GeoJSON with metadata
-        df = pd.DataFrame({"lat": [0.0], "lon": [0.0], "radius": [1.0]})
         geojson_data = {
             "type": "FeatureCollection",
             "metadata": {"body": "Moon", "units": "km"},
@@ -362,7 +350,7 @@ class TestCraterDatabase(unittest.TestCase):
             ],
         }
 
-        ftmp = NamedTemporaryFile(suffix=".geojson", delete=False)
+        ftmp = NamedTemporaryFile(suffix=".geojson", delete=False)  # Noqa
         ftmp.close()
         with open(ftmp.name, "w") as tmp:
             json.dump(geojson_data, tmp)
@@ -375,9 +363,7 @@ class TestCraterDatabase(unittest.TestCase):
         # Read without parameters (should use metadata)
         cdb = CraterDatabase.read_shapefile(tmp.name)
         self.assertEqual(cdb.body, "Moon")
-        self.assertEqual(
-            cdb.rad.iloc[0], 1000.0
-        )  # Should be converted from km to m
+        self.assertEqual(cdb.rad.iloc[0], 1000.0)  # Should be converted from km to m
 
     def test_to_crs_vesta(self):
         """Test Vesta-specific coordinate system handling."""
@@ -436,9 +422,7 @@ class TestCraterDatabase(unittest.TestCase):
             # Test basic plot saving
             ax = cdb.plot(savefig=tmp_path)
             self.assertTrue(os.path.exists(tmp_path))
-            self.assertTrue(
-                os.path.getsize(tmp_path) > 0
-            )  # File should not be empty
+            self.assertTrue(os.path.getsize(tmp_path) > 0)  # File should not be empty
 
             # Test plot saving with custom kwargs
             ax = cdb.plot(
@@ -464,17 +448,13 @@ class TestCraterDatabase(unittest.TestCase):
         # Test basic ROI plotting
         axes = cdb.plot_rois(self.moon_tif, "test_region", index=2)
         self.assertTrue(
-            all(
-                isinstance(ax, Axes) for ax in axes.flatten() if ax is not None
-            )
+            all(isinstance(ax, Axes) for ax in axes.flatten() if ax is not None)
         )
 
         # Test different index types
         axes = cdb.plot_rois(self.moon_tif, "test_region", index=[0, 2])
         self.assertTrue(
-            all(
-                isinstance(ax, Axes) for ax in axes.flatten() if ax is not None
-            )
+            all(isinstance(ax, Axes) for ax in axes.flatten() if ax is not None)
         )
 
         # Test polar/antimeridian warning
@@ -489,8 +469,7 @@ class TestCraterDatabase(unittest.TestCase):
         polar_cdb.add_circles("test_region")
 
         with self.assertRaises(ValueError):
-            with self.assertRaises(Warning):
-                polar_cdb.plot_rois(self.moon_tif, "test_region")
+            polar_cdb.plot_rois(self.moon_tif, "test_region")
 
         # Test custom styling
         axes = cdb.plot_rois(
@@ -503,7 +482,5 @@ class TestCraterDatabase(unittest.TestCase):
             grid_kw={"alpha": 0.7},
         )
         self.assertTrue(
-            all(
-                isinstance(ax, Axes) for ax in axes.flatten() if ax is not None
-            )
+            all(isinstance(ax, Axes) for ax in axes.flatten() if ax is not None)
         )

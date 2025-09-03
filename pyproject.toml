@@ -48,8 +48,9 @@ documentation = "https://readthedocs.org/projects/craterpy/"
 dev = [
     "pytest<9.0.0,>=8.3.5",
     "jupyter<2.0.0,>=1.1.1",
-    "black<26.0.0,>=25.1.0",
     "pytest-cov<7.0.0,>=6.0.0",
+    "ruff>=0.12.11",
+    "pre-commit>=4.3.0",
 ]
 docs = [
     "myst-parser<2.0.0,>=1.0.0",
@@ -58,9 +59,28 @@ docs = [
     "sphinx-autobuild<2025.0.0,>=2024.10.3",
 ]
 
-[tool.black]
-line-length=79
-
+[tool.ruff.lint]
+extend-select = [
+    "B",        # Bugbear rules (static bug finder)
+    "C90",      # Mccabe complexity check
+    "F",        # Pyflakes rules
+    "W",        # PyCodeStyle warnings
+    "E",        # PyCodeStyle errors
+    "I",        # Sort imports properly
+    "C4",       # Catch incorrect use of comprehensions, dict, list, etc
+    "FA",       # Enforce from __future__ import annotations
+    "ISC",      # Good use of string concatenation
+    "ICN",      # Use common import conventions
+    "N",        # Naming conventions
+    "Q",        # Quotes best practices
+    "RET",      # Good return practices
+    "S",        # Security issues
+    "SIM",      # Common simplification rules
+    "TID",      # Some good import practices
+    "TC",       # Enforce importing certain types in a TYPE_CHECKING block
+    "NPY",      # Some numpy-specific things
+]
+ignore = [ "E501" ]
 
 [tool.pytest.ini_options]
 addopts = "--cov=craterpy --cov-branch --cov-report term-missing  -v --color=yes"

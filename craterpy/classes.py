@@ -1,21 +1,23 @@
 import json
-from copy import deepcopy
-from typing import Union
 import warnings
+from copy import deepcopy
 from pathlib import Path
-import numpy as np
-import pandas as pd
+from typing import Union
+
+import cartopy.crs as ccrs
 import geopandas as gpd
 import matplotlib.image as mpli
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 import rasterio as rio
 import shapely
-from shapely.geometry import Point
+from cartopy.feature import ShapelyFeature
+from cartopy.mpl.gridliner import LATITUDE_FORMATTER, LONGITUDE_FORMATTER
 from pyproj import CRS
 from rasterstats import gen_zonal_stats
-import cartopy.crs as ccrs
-from cartopy.feature import ShapelyFeature
-from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
+from shapely.geometry import Point
+
 import craterpy.helper as ch
 
 # Default stats for rasterstats
@@ -165,9 +167,7 @@ class CraterDatabase:
         self.data[self._loncol] = pd.to_numeric(self.data[self._loncol])
         # Look for radius / diam column, store as _radius_m
         rcol = ch.find_rad_or_diam_col(self.data)
-        div = (
-            2 if rcol.lower().startswith("d") else 1
-        )  # diam -> rad conversion
+        div = 2 if rcol.lower().startswith("d") else 1  # diam -> rad conversion
         self.data["_radius_m"] = pd.to_numeric(self.data[rcol]) / div
         self._radcol = "_radius_m"
 
@@ -184,16 +184,12 @@ class CraterDatabase:
 
         # Set geometry and covert to GeoDataFrame if not already
         if not isinstance(self.data, gpd.GeoDataFrame):
-            self.data = gpd.GeoDataFrame(
-                self.data, geometry="_center", crs=self._crs
-            )
+            self.data = gpd.GeoDataFrame(self.data, geometry="_center", crs=self._crs)
         elif "geometry" not in self.data.columns:
             self.data.set_geometry("_center", inplace=True)
 
     def __repr__(self):
-        attrs = ", ".join(
-            [p for p in self._get_properties() if not p.startswith("_")]
-        )
+        attrs = ", ".join([p for p in self._get_properties() if not p.startswith("_")])
         return f"CraterDatabase of length {len(self.data)} with attributes {attrs}."
 
     def __str__(self):
@@ -257,7 +253,7 @@ class CraterDatabase:
     def _gen_point(self):
         """Return point geometry (lon, lat) for each row."""
         # Note: list comprehension is faster than df.apply
-        return [Point(xy) for xy in zip(self.lon, self.lat)]
+        return [Point(xy) for xy in zip(self.lon, self.lat, strict=True)]
 
     def _gen_annulus(self, inner, outer, **kwargs):
         """Return annular geometry for each row."""
@@ -286,11 +282,11 @@ class CraterDatabase:
         body = body.lower()
         if body in ["vesta_claudia_dp", "vesta_claudia_double_prime"]:
             return "vesta_claudia_dp", 0
-        elif body in ["vesta_claudia_p", "vesta_claudia_prime"]:
+        if body in ["vesta_claudia_p", "vesta_claudia_prime"]:
             return "vesta_claudia_p", 190
-        elif body in ["vesta_claudia", "vesta_dawn_claudia"]:
+        if body in ["vesta_claudia", "vesta_dawn_claudia"]:
             return "vesta_claudia", 150
-        elif body in ["vesta_iau_2000", "vesta_iau2000"]:
+        if body in ["vesta_iau_2000", "vesta_iau2000"]:
             raise NotImplementedError(
                 "Vesta IAU 2000 coordinate system is not supported."
             )
@@ -300,7 +296,8 @@ class CraterDatabase:
             "Vesta has multiple coordinate systems. Defaulting to vesta_claudia_dp... "
             "Specify one of (vesta_claudia_dp, vesta_claudia_p, vesta_claudia). to "
             "avoid this warning. Type help(CraterDatabase()._vesta_check)"
-            "for more info."
+            "for more info.",
+            stacklevel=2,
         )
         return "vesta_claudia_dp", 0
 
@@ -312,7 +309,7 @@ class CraterDatabase:
     def _get_properties(self):
         """Return list of property names."""
         class_items = self.__class__.__dict__.items()
-        return list(k for k, v in class_items if isinstance(v, property))
+        return [k for k, v in class_items if isinstance(v, property)]
 
     @property
     def lat(self):
@@ -410,10 +407,8 @@ class CraterDatabase:
             DataFrame containing the original crater columns along with appended
             statistics columns for each raster and region combination.
         """
-        results = ch.get_stats(
-            self.data, rasters, regions, stats, nodata, n_jobs
-        )
-        return pd.concat([self.data[self.orig_cols], *results], axis=1)
+        results = ch.get_stats(self.data, rasters, regions, stats, nodata, n_jobs)
+        return pd.concat([self.data[self.orig_cols], results], axis=1)
 
     def plot(
         self,
@@ -477,9 +472,7 @@ class CraterDatabase:
                 height_npix = int(figsize[1] * dpi)
                 width_npix = int(figsize[0] * dpi)
                 # By default does nearest-neighbor interp to out_shape (super fast reads for low dpi)
-                data = src.read(
-                    indexes=band, out_shape=(height_npix, width_npix)
-                )
+                data = src.read(indexes=band, out_shape=(height_npix, width_npix))
                 extent = ch.bbox2extent(src.bounds)
             ax.imshow(data, cmap="gray", extent=extent)
         if not region:
@@ -489,13 +482,11 @@ class CraterDatabase:
             if region not in self.data.columns:
                 self.data[region] = self._gen_annulus(0, 1, precise=False)
         rois = self.data.loc[:, region].boundary  # plot outline of ROI
-        ax = rois.plot(
-            ax=ax, alpha=alpha, color=color, autolim=False, **kwargs
-        )
+        ax = rois.plot(ax=ax, alpha=alpha, color=color, autolim=False, **kwargs)
         ax.set_xlabel("Longitude")
         ax.set_ylabel("Latitude")
         label = " " + region if not region.startswith("_") else ""
-        ax.set_title(str(self))
+        ax.set_title(str(self) + label)
 
         if savefig is not None:
             # Set up default savefig options that can be overridden
@@ -550,9 +541,7 @@ class CraterDatabase:
             ]
         else:
             # Check if any specified cols don't exist
-            missing_cols = [
-                col for col in keep_cols if col not in self.data.columns
-            ]
+            missing_cols = [col for col in keep_cols if col not in self.data.columns]
             if missing_cols:
                 raise ValueError(f"Columns not found: {missing_cols}")
 
@@ -570,12 +559,10 @@ class CraterDatabase:
         # Get the rest of the geometry type colums (minus the one called geometry)
         other_geom_cols = set(data.select_dtypes("geometry")) - {"geometry"}
         for col in other_geom_cols:
-            data[col] = data.apply(lambda x: x[col].wkt, axis=1)
+            data[col] = data.apply(lambda x, col=col: x[col].wkt, axis=1)
             # TODO: there should be a better way to store these without all the naming hacks
             data.rename(columns={col: col + "_wkt"}, inplace=True)
-        data.rename(
-            columns={geom_col + "_wkt": geom_col + "_active_wkt"}, inplace=True
-        )
+        data.rename(columns={geom_col + "_wkt": geom_col + "_active_wkt"}, inplace=True)
 
         if crs is not None:
             data = data.to_crs(crs)
@@ -602,12 +589,11 @@ class CraterDatabase:
 
         if inplace:
             self.data.to_crs(crs, inplace=True)
-            return
-        else:
-            # Make a copy of the whole instance and do to_crs inplace on the copy
-            new_crater_db = self.copy()
-            new_crater_db.to_crs(crs, inplace=True)
-            return new_crater_db
+            return None
+        # Make a copy of the whole instance and do to_crs inplace on the copy
+        new_crater_db = self.copy()
+        new_crater_db.to_crs(crs, inplace=True)
+        return new_crater_db
 
     def plot_rois(self, fraster, region, index=9, grid_kw=None, **kwargs):
         """
@@ -653,10 +639,12 @@ class CraterDatabase:
 
         # TODO: find a way to display these
         # Filter out polar or antimeridian crossing rois
-        polar = (gdf.bounds.miny < -89) | (89 < gdf.bounds.maxy)
+        polar = (gdf.bounds.miny < -89) | (gdf.bounds.maxy > 89)
         oob = gdf.bounds.maxx - gdf.bounds.minx >= 300
         if any(polar | oob):
-            warnings.warn("Skipping ROIs that cross pole or antimeridian...")
+            warnings.warn(
+                "Skipping ROIs that cross pole or antimeridian...", stacklevel=2
+            )
         gdf = gdf.loc[~polar & ~oob]
         if len(gdf) == 0:
             raise ValueError(
@@ -673,7 +661,7 @@ class CraterDatabase:
             "vmin": kwargs.pop("vmin", None),
             "vmax": kwargs.pop("vmax", None),
         }
-        shp_kw = dict(color="tab:green", facecolor="none", lw=2, alpha=0.5)
+        shp_kw = {"color": "tab:green", "facecolor": "none", "lw": 2, "alpha": 0.5}
         shp_kw = {**shp_kw, **kwargs}
 
         # Make projection
@@ -703,7 +691,7 @@ class CraterDatabase:
             subplot_kw={"projection": pc},
             gridspec_kw={"wspace": 0.4, "hspace": 0.2},
         )
-        for geom, roi, ax in zip(gdf.geometry, rois, axes.flatten()):
+        for geom, roi, ax in zip(gdf.geometry, rois, axes.flatten(), strict=False):
             img = roi["mini_raster_array"]
             extent = ch.bbox2extent(geom.bounds)
             ax.imshow(img, extent=extent, aspect="auto", **im_kw)
@@ -717,7 +705,7 @@ class CraterDatabase:
         for ax in np.atleast_1d(axes).flatten():
             # Parse gridline kws, overwrite defaults if given
             grid_kw = {} if grid_kw is None else grid_kw
-            gl_kw = dict(draw_labels=True, dms=False, ls="--", alpha=0.5)
+            gl_kw = {"draw_labels": True, "dms": False, "ls": "--", "alpha": 0.5}
             gl_kw = {**gl_kw, **grid_kw}
             gl = ax.gridlines(**gl_kw)
             gl.top_labels = False
@@ -749,12 +737,8 @@ class CraterDatabase:
             If CraterDatabase objects are from different bodies.
         """
         if cdb1.body != cdb2.body:
-            raise ValueError(
-                "Cannot merge CraterDatabases from different bodies!"
-            )
-        merged = ch.merge(
-            cdb1.data, cdb2.data, radcol=cdb1._radcol, rbody=cdb1._rbody
-        )
+            raise ValueError("Cannot merge CraterDatabases from different bodies!")
+        merged = ch.merge(cdb1.data, cdb2.data, radcol=cdb1._radcol, rbody=cdb1._rbody)
         return cls(merged, body=cdb1.body, units="m")
 
     @classmethod
@@ -823,14 +807,13 @@ class CraterDatabase:
         for col in data.columns:
             if col.endswith("_wkt"):
                 data[col] = data.apply(
-                    lambda x: shapely.wkt.loads(x[col]), axis=1
+                    lambda x, col=col: shapely.wkt.loads(x[col]), axis=1
                 )
             if col.endswith("_active_wkt"):
                 data.drop(columns="geometry", inplace=True)
         data.rename(
             columns={
-                c: c.removesuffix("_wkt").removesuffix("_active")
-                for c in data.columns
+                c: c.removesuffix("_wkt").removesuffix("_active") for c in data.columns
             },
             inplace=True,
         )

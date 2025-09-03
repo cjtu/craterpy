@@ -35,11 +35,6 @@
     <img src="https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg"
       alt="Contributor Covenant" />
       </a>
-  <!-- Code Style -->
-  <a href="https://github.com/psf/black">
-    <img src="https://img.shields.io/badge/code%20style-black-000000.svg"
-      alt="Code Style: Black" />
-      </a>
 </div>
 
 # Overview
