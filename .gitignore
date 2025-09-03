@@ -2,7 +2,7 @@
 *.DS_store
 *.cache
 *.pyc
-*.coverage
+*.coverage*
 *coverage.xml
 *.egg*
 __pycache__

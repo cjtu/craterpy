@@ -1,19 +1,18 @@
 """Unittest helper.py."""
 
 import unittest
+
 import numpy as np
 import pandas as pd
-import geopandas as gpd
 import shapely
-from shapely.testing import assert_geometries_equal
-from shapely.geometry import Point
 from pyproj.crs import ProjectedCRS
 from pyproj.crs.coordinate_operation import AzimuthalEquidistantConversion
+from shapely.geometry import Point
 
 from craterpy import helper as ch
 
 
-class Test_geo_helpers(unittest.TestCase):
+class TestGeoHelpers(unittest.TestCase):
     """Test Geospatial Helper Functions"""
 
     def test_lon360(self):
@@ -119,7 +118,7 @@ class Test_geo_helpers(unittest.TestCase):
         self.assertTrue(ch.inglobal(0, -1))
 
 
-class Test_shape_geometry_helpers(unittest.TestCase):
+class TestShapeGeometryHelpers(unittest.TestCase):
     """Test shape geometry helper functions."""
 
     def test_get_annular_buffer(self):
@@ -151,19 +150,13 @@ class Test_shape_geometry_helpers(unittest.TestCase):
         )
 
         # Test antimeridian wrapping
-        antimeridian_annulus = Point(180, 0).buffer(
-            20
-        )  # 20 degree buffer at 180°E
+        antimeridian_annulus = Point(180, 0).buffer(20)  # 20 degree buffer at 180°E
         fixed = ch.fix_antimeridian_wrap(
             antimeridian_annulus, 20, 1.0, geodetic_crs, local_crs
         )
         # Check the polygon was properly split at antimeridian
-        self.assertLess(
-            fixed.bounds[0], -170
-        )  # minx should be in western hemisphere
-        self.assertGreater(
-            fixed.bounds[2], 170
-        )  # maxx should be in eastern hemisphere
+        self.assertLess(fixed.bounds[0], -170)  # minx should be in western hemisphere
+        self.assertGreater(fixed.bounds[2], 170)  # maxx should be in eastern hemisphere
 
         # Test North pole crossing
         north_local_crs = ProjectedCRS(
@@ -171,9 +164,7 @@ class Test_shape_geometry_helpers(unittest.TestCase):
             conversion=AzimuthalEquidistantConversion(85, 0),
             geodetic_crs=geodetic_crs,
         )
-        pole_annulus = Point(0, 85).buffer(
-            10
-        )  # 10 degree buffer near North pole
+        pole_annulus = Point(0, 85).buffer(10)  # 10 degree buffer near North pole
         fixed = ch.fix_antimeridian_wrap(
             pole_annulus, 10, 1.0, geodetic_crs, north_local_crs
         )
@@ -186,9 +177,7 @@ class Test_shape_geometry_helpers(unittest.TestCase):
             conversion=AzimuthalEquidistantConversion(-85, 0),
             geodetic_crs=geodetic_crs,
         )
-        pole_annulus = Point(0, -85).buffer(
-            10
-        )  # 10 degree buffer near South pole
+        pole_annulus = Point(0, -85).buffer(10)  # 10 degree buffer near South pole
         fixed = ch.fix_antimeridian_wrap(
             pole_annulus, 10, 1.0, geodetic_crs, south_local_crs
         )
@@ -196,9 +185,7 @@ class Test_shape_geometry_helpers(unittest.TestCase):
         self.assertLess(fixed.bounds[1], -89)  # miny should be near 90°S
 
         # Control case - polygon that doesn't need fixing
-        normal_annulus = Point(0, 0).buffer(
-            5
-        )  # Small buffer at prime meridian
+        normal_annulus = Point(0, 0).buffer(5)  # Small buffer at prime meridian
         fixed = ch.fix_antimeridian_wrap(
             normal_annulus, 5, 1.0, geodetic_crs, local_crs
         )
@@ -223,9 +210,7 @@ class Test_shape_geometry_helpers(unittest.TestCase):
         # Check both pole and antimeridian conditions
         self.assertGreater(fixed.bounds[3], 89)  # Extends to North pole
         self.assertLess(fixed.bounds[0], -170)  # Crosses antimeridian westward
-        self.assertGreater(
-            fixed.bounds[2], 170
-        )  # Crosses antimeridian eastward
+        self.assertGreater(fixed.bounds[2], 170)  # Crosses antimeridian eastward
 
     def test_gen_annuli(self):
         """Test gen_annuli with parallel processing."""
@@ -239,9 +224,7 @@ class Test_shape_geometry_helpers(unittest.TestCase):
         )
 
         self.assertEqual(len(list(annuli)), 3)
-        self.assertTrue(
-            all(isinstance(a, shapely.geometry.Polygon) for a in annuli)
-        )
+        self.assertTrue(all(isinstance(a, shapely.geometry.Polygon) for a in annuli))
 
     def test_create_single_annulus(self):
         """Test create_single_annulus with different scenarios."""
@@ -272,7 +255,7 @@ class Test_shape_geometry_helpers(unittest.TestCase):
         self.assertEqual(annulus.bounds[3], 90.0)
 
 
-class Test_dataframe_helpers(unittest.TestCase):
+class TestDataframeHelpers(unittest.TestCase):
     """Test pandas.DataFrame helper functions"""
 
     def setUp(self):
@@ -369,6 +352,4 @@ class Test_dataframe_helpers(unittest.TestCase):
 
         # Test rtol parameter
         merged_strict = ch.merge(df1, df2, rtol=0.05)
-        self.assertEqual(
-            len(merged_strict), 6
-        )  # No matches with stricter rtol
+        self.assertEqual(len(merged_strict), 6)  # No matches with stricter rtol

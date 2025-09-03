@@ -3,9 +3,9 @@
 
 # -- Path setup --
 
+import importlib.metadata
 import os
 import sys
-import importlib.metadata
 
 # Allow sphinx-autodoc to access craterpy contents
 sys.path.insert(0, os.path.abspath("../.."))
