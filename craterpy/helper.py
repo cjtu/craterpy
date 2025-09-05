@@ -9,7 +9,7 @@ import joblib
 import numpy as np
 import pandas as pd
 from joblib import Parallel, delayed
-from pyproj import Transformer
+from pyproj import CRS, Transformer
 from pyproj.crs import ProjectedCRS
 from pyproj.crs.coordinate_operation import AzimuthalEquidistantConversion
 from rasterstats import zonal_stats
@@ -218,6 +218,13 @@ def inglobal(lat, lon):
 
     """
     return (-90 <= lat <= 90) and (0 <= lon360(lon) <= 360)
+
+
+def fix_xy_order_crs(x, y, crs):
+    """Swap lon (x) and lat (y) if crs axis order expects lat (y) first."""
+    if "lat" in str(CRS.from_user_input(crs).axis_info[0]).lower():
+        return y, x
+    return x, y
 
 
 # Shape geometry helpers
