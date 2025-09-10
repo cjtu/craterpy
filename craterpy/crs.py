@@ -1,31 +1,7 @@
 from pyproj import CRS
 from pyproj.exceptions import CRSError
 
-# CRS for units / coord transformations (convention is only Ocentric)
-BODIES = {
-    "mercury": 199,
-    "venus": 299,
-    "moon": 301,
-    "earth": 399,
-    "phobos": 401,
-    "mars": 499,
-    "ceres": 2000001,
-    "vesta": 2000004,
-    "europa": 502,
-    "ganymede": 503,
-    "callisto": 504,
-    "enceladus": 602,
-    "tethys": 603,
-    "dione": 604,
-    "rhea": 605,
-    "titan": 606,
-    "iapetus": 608,
-    "triton": 801,
-    "charon": 901,
-    "pluto": 999,
-}
-
-
+# Planetary CRS registry
 PLANETARY_CRS = {
     "mercury": {
         "planetocentric": CRS("IAU_2015:19900"),
@@ -45,6 +21,10 @@ PLANETARY_CRS = {
         "planetocentric": CRS("IAU_2015:49900"),
         "planetographic": CRS("IAU_2015:49901"),
     },
+    "ceres": {
+        "planetocentric": CRS("IAU_2015:200000100"),
+        "planetographic": CRS("IAU_2015:200000101"),
+    },
     "vesta": {
         # Planetographic, Positive West, Claudia Double Prime at 146 E
         "claudia_dp": CRS.from_proj4("+proj=longlat +R=255000 +lon_0=150 +no_defs"),
@@ -55,15 +35,58 @@ PLANETARY_CRS = {
         # Internal Standard (Planetocentric)
         "planetocentric": CRS("IAU_2015:200000400"),
     },
+    "europa": {
+        "planetocentric": CRS("IAU_2015:50200"),
+    },
+    "ganymede": {
+        "planetocentric": CRS("IAU_2015:50300"),
+        "planetographic": CRS("IAU_2015:50301"),
+    },
+    "callisto": {
+        "planetocentric": CRS("IAU_2015:50400"),
+        "planetographic": CRS("IAU_2015:50401"),
+    },
+    "enceladus": {
+        "planetocentric": CRS("IAU_2015:60200"),
+    },
+    "tethys": {
+        "planetocentric": CRS("IAU_2015:60300"),
+    },
+    "dione": {
+        "planetocentric": CRS("IAU_2015:60400"),
+    },
+    "rhea": {
+        "planetocentric": CRS("IAU_2015:60500"),
+    },
+    "iapetus": {
+        "planetocentric": CRS("IAU_2015:60800"),
+        "planetographic": CRS("IAU_2015:60801"),
+    },
+    "triton": {
+        "planetocentric": CRS("IAU_2015:80100"),
+    },
+    "charon": {
+        "planetocentric": CRS("IAU_2015:90100"),
+    },
+    "pluto": {
+        "planetocentric": CRS("IAU_2015:99900"),
+    },
 }
 
+# Set the default CRS fro the body, else assume planetographic
 DEFAULT_CRS = {
-    "mercury": "planetographic",
-    "venus": "planetocentric",
+    "charon": "planetocentric",
+    "dione": "planetocentric",
+    "enceladus": "planetocentric",
+    "europa": "planetocentric",
+    "mars": "planetocentric",
     "moon": "planetocentric",
-    "earth": "planetographic",
-    "mars": "planetographic",
+    "pluto": "planetocentric",
+    "rhea": "planetocentric",
+    "tethys": "planetocentric",
+    "triton": "planetocentric",
     "vesta": "claudia_dp",
+    "venus": "planetocentric",
 }
 
 ALL_BODIES = list(PLANETARY_CRS.keys())
@@ -79,7 +102,11 @@ def get_crs(body: str, system: str | CRS = "default") -> CRS:
         return CRS.from_user_input(system)
     except CRSError:
         try:
-            system = DEFAULT_CRS[body] if system == "default" else str(system)
+            system = (
+                DEFAULT_CRS.get(body, "planetographic")
+                if system == "default"
+                else str(system)
+            )
             return CRS(PLANETARY_CRS[body][system])
         except KeyError as err:
             raise ValueError(f"Unknown body '{body}' or system '{system}'.") from err
