@@ -1,6 +1,7 @@
 import json
 import warnings
 from copy import deepcopy
+from functools import partial
 from pathlib import Path
 
 import cartopy.crs as ccrs
@@ -104,10 +105,14 @@ class CraterDatabase:
         # Create main GeoDataFrame with geometry coords in input_crs then standardize to self._crs
         transformer = Transformer.from_crs(self._input_crs, self._crs, always_xy=True)
         self.input_to_geodetic = transformer.transform
-        self.geodetic_to_input = transformer.itransform
-        lons, lats = self.input_to_geodetic(
-            *ch.fix_xy_order_crs(lons, lats, self._input_crs)
-        )
+        # Cludge: Bug where transformation swaps lon, lat because of crs axis order. Needs better crs handling
+        #  transformation(lon,lat,always_xy=True) only forces output to lon,lat, but dep on crs, input can
+        #  be interpreted as lat, lon causing coord swap. Passing input order based on axis order didn't always work.
+        #  Cludge is simple check for if in_lon 359 -> out_lat 359 (invalid) and if so, swap input order.
+        if abs(self.input_to_geodetic(359, 0)[1]) > 90:
+            self.input_to_geodetic = lambda x, y: transformer.transform(y, x)
+        self.geodetic_to_input = partial(transformer.transform, direction="INVERSE")
+
         lons = ch.lon180(lons)
         # geom = gpd.points_from_xy(*ch.fix_xy_order_crs(lons, lats, self._crs))
         geom = gpd.points_from_xy(lons, lats)
@@ -124,7 +129,7 @@ class CraterDatabase:
         self.data["_radius_m"] = pd.to_numeric(self.data[rcol]) * mul / div
 
         # # Ensure lon is in -180 to 180
-        self.data["_lon"] = ch.lon360(self.lon)
+        # self.data["_lon"] = ch.lon360(self.lon)
 
     def __repr__(self):
         attrs = ", ".join([p for p in self._get_properties() if not p.startswith("_")])
@@ -160,6 +165,9 @@ class CraterDatabase:
     def __bool__(self):
         """Return True if the database contains any crater records."""
         return not self.data.empty
+
+    def _convert_to_geodetic(self, lons, lats):
+        """Return"""
 
     def _gen_point(self):
         """Return point geometry (lon, lat) for each row."""
@@ -289,7 +297,7 @@ class CraterDatabase:
         fraster=None,
         region="",
         ax=None,
-        size=6,
+        size=7.5,
         dpi=100,
         band=1,
         alpha=0.5,
@@ -330,17 +338,32 @@ class CraterDatabase:
         ax : matplotlib.Axes
             Original axes, now with data plotted.
         """
+        ellipsoid = ccrs.CRS(self._crs).ellipsoid
+        globe = ccrs.Globe(
+            semimajor_axis=ellipsoid.semi_major_metre,
+            semiminor_axis=ellipsoid.semi_minor_metre,
+            ellipse=None,
+        )
+        proj = ccrs.PlateCarree(globe=globe)
         if ax is None:
             minx, miny, maxx, maxy = self.data.total_bounds
             aspect = (maxx - minx) / (maxy - miny)
             figsize = (size, size / aspect)
-            _, ax = plt.subplots(figsize=figsize, dpi=dpi)
+            _, ax = plt.subplots(
+                figsize=figsize,
+                dpi=dpi,
+                subplot_kw={"projection": proj},
+            )
             ax.set_xlim(minx, maxx)
             ax.set_ylim(miny, maxy)
-        else:
-            ax = ax.axes if isinstance(ax, mpli.AxesImage) else ax
-            figsize = ax.figure.get_size_inches()
-            dpi = ax.figure.get_dpi()
+            gl = ax.gridlines(draw_labels=True)
+            gl.top_labels = False
+            label = " " + region if not region.startswith("_") else ""
+            ax.set_title(str(self) + label)
+        elif isinstance(ax, mpli.AxesImage):
+            ax = ax.axes  # result of imshow is AxesImage, need the matplotlib Axes
+        figsize = ax.get_figure().get_size_inches()
+        dpi = ax.get_figure().get_dpi()
         if fraster:
             with rio.open(fraster) as src:
                 height_npix = int(figsize[1] * dpi)
@@ -348,20 +371,16 @@ class CraterDatabase:
                 # By default does nearest-neighbor interp to out_shape (super fast reads for low dpi)
                 data = src.read(indexes=band, out_shape=(height_npix, width_npix))
                 extent = ch.bbox2extent(src.bounds)
-            ax.imshow(data, cmap="gray", extent=extent)
+                # raster_crs = ccrs.CRS(src.crs)
+                # TODO: assumes simple cylindrical, recognize and support other projections
+                ax.imshow(data, cmap="gray", extent=extent, transform=proj)
         if not region:
-            # Store crater circles in .data with leading "_" to not be mistaken
-            #  for user-defined ROIs
+            # Store crater rims with leading "_" to not be mistaken for user-defined ROIs
             region = "_plot_circles"
             if region not in self.data.columns:
-                self.data[region] = self._gen_annulus(0, 1, precise=False)
+                self.data[region] = self._gen_annulus(0, 1)
         rois = self.data.loc[:, region].boundary  # plot outline of ROI
         ax = rois.plot(ax=ax, alpha=alpha, color=color, autolim=False, **kwargs)
-        ax.set_xlabel("Longitude")
-        ax.set_ylabel("Latitude")
-        label = " " + region if not region.startswith("_") else ""
-        ax.set_title(str(self) + label)
-
         if savefig is not None:
             # Set up default savefig options that can be overridden
             save_options = {"dpi": dpi, "bbox_inches": "tight"}
