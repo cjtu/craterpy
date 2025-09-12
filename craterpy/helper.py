@@ -8,8 +8,8 @@ import antimeridian
 import joblib
 import numpy as np
 import pandas as pd
+import pyproj
 from joblib import Parallel, delayed
-from pyproj import CRS, Transformer
 from pyproj.crs import ProjectedCRS
 from pyproj.crs.coordinate_operation import AzimuthalEquidistantConversion
 from rasterstats import zonal_stats
@@ -18,9 +18,11 @@ from shapely.geometry import MultiPolygon, Point, Polygon
 from shapely.ops import transform
 from tqdm import tqdm
 
-# Suppress antimeridian warning
+# Suppress warnings
 warnings.filterwarnings("ignore", category=antimeridian.FixWindingWarning)
 warnings.filterwarnings("ignore", "Setting nodata.*", module=r".*rasterstats")
+warnings.filterwarnings("ignore", "Setting masked.*", module=r".*rasterstats")
+warnings.filterwarnings("ignore", ".*lose important proj.*", module=r".*pyproj")
 
 
 # Geospatial helpers
@@ -222,7 +224,7 @@ def inglobal(lat, lon):
 
 def fix_xy_order_crs(x, y, crs):
     """Swap lon (x) and lat (y) if crs axis order expects lat (y) first."""
-    if "lat" in str(CRS.from_user_input(crs).axis_info[0]).lower():
+    if "lat" in str(pyproj.CRS.from_user_input(crs).axis_info[0]).lower():
         return y, x
     return x, y
 
@@ -308,7 +310,7 @@ def create_single_annulus(
     buf = get_annular_buffer(Point(0, 0), rad, inner, outer, **kwargs)
 
     # Create transformer and unproject the buffer to the geodetic CRS
-    to_geodetic = Transformer.from_crs(
+    to_geodetic = pyproj.Transformer.from_crs(
         local_crs, geodetic_crs, always_xy=True
     ).transform
     annulus = transform(to_geodetic, buf)
@@ -388,7 +390,7 @@ def fix_antimeridian_wrap(
     shapely.geometry.Polygon
         Corrected polygon with proper antimeridian handling.
     """
-    to_projected = Transformer.from_crs(
+    to_projected = pyproj.Transformer.from_crs(
         geodetic_crs, local_crs, always_xy=True
     ).transform
 
