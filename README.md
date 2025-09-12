@@ -65,7 +65,7 @@ cdb = CraterDatabase(sample_data['vesta_craters.csv'], 'Vesta', units='m')
 cdb.plot(sample_data['vesta.tif'], alpha=0.5, color='tab:green')
 ```
 
-![Vesta map plot](https://github.com/cjtu/craterpy/raw/main/craterpy/data/_images/readme_vesta_cdb.png)
+![Vesta map plot](https://github.com/cjtu/craterpy/raw/main/docs/_images/readme_vesta_cdb.png)
 
 Clip and plot targeted regions around each crater from large raster datasets.
 
@@ -74,7 +74,7 @@ cdb.add_circles('crater_rois', 3)
 cdb.plot_rois(sample_data['vesta.tif'], 'crater_rois', range(1500, 1503))
 ```
 
-![Vesta plot rois](https://github.com/cjtu/craterpy/raw/main/craterpy/data/_images/readme_vesta_rois.png)
+![Vesta plot rois](https://github.com/cjtu/craterpy/raw/main/docs/_images/readme_vesta_rois.png)
 
 Extract zonal statistics for crater regions of interest.
 

@@ -109,8 +109,3 @@ ignore_errors = true
 [build-system]
 build-backend  = 'hatchling.build'
 requires       = ['hatchling']
-
-[tool.hatch.build.targets.sdist]
-exclude = [
-    "craterpy/data/_images/*",
-]

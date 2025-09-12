@@ -99,9 +99,6 @@ class CraterDatabase:
         lats = pd.to_numeric(in_data[ch.findcol(in_data, ["latitude", "lat"])])
         lons = pd.to_numeric(in_data[ch.findcol(in_data, ["longitude", "lon"])])
 
-        # geom = gpd.points_from_xy(*ch.fix_xy_order_crs(lons, lats, self._input_crs))
-        # self.data = gpd.GeoDataFrame(in_data, geometry=geom, crs=self._input_crs).to_crs(self._crs)
-
         # Create main GeoDataFrame with geometry coords in input_crs then standardize to self._crs
         transformer = Transformer.from_crs(self._input_crs, self._crs, always_xy=True)
         self.input_to_geodetic = transformer.transform
@@ -112,9 +109,13 @@ class CraterDatabase:
         if abs(self.input_to_geodetic(359, 0)[1]) > 90:
             self.input_to_geodetic = lambda x, y: transformer.transform(y, x)
         self.geodetic_to_input = partial(transformer.transform, direction="INVERSE")
-
+        lons, lats = self.input_to_geodetic(lons, lats)
         lons = ch.lon180(lons)
+        # geom = gpd.points_from_xy(*ch.fix_xy_order_crs(lons, lats, self._input_crs))
+        # self.data = gpd.GeoDataFrame(in_data, geometry=geom, crs=self._input_crs).to_crs(self._crs)
+
         # geom = gpd.points_from_xy(*ch.fix_xy_order_crs(lons, lats, self._crs))
+
         geom = gpd.points_from_xy(lons, lats)
 
         self.data = gpd.GeoDataFrame(in_data, geometry=geom, crs=self._crs)
@@ -250,7 +251,7 @@ class CraterDatabase:
         self.data[name] = self._gen_annulus(inner, outer, **kwargs)
         self._make_data_property(name)
 
-    def add_circles(self, name="", size=1, **kwargs):
+    def add_circles(self, name="", size=1.0, **kwargs):
         """Generate circluar geometries for each crater in database.
 
         Parameters
