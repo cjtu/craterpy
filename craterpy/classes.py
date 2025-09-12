@@ -1,8 +1,8 @@
 import json
 import warnings
 from copy import deepcopy
+from functools import partial
 from pathlib import Path
-from typing import Union
 
 import cartopy.crs as ccrs
 import geopandas as gpd
@@ -14,68 +14,15 @@ import rasterio as rio
 import shapely
 from cartopy.feature import ShapelyFeature
 from cartopy.mpl.gridliner import LATITUDE_FORMATTER, LONGITUDE_FORMATTER
-from pyproj import CRS
+from pyproj import CRS, Transformer
 from rasterstats import gen_zonal_stats
 from shapely.geometry import Point
 
 import craterpy.helper as ch
+from craterpy.crs import ALL_BODIES, PLANETARY_CRS, get_crs
 
 # Default stats for rasterstats
 STATS = ("mean", "std", "count")
-
-# CRS for units / coord transformations (convention is only Ocentric )
-CRS_DICT = {
-    # body: (Geographic2D [deg], Equirect [m] (clon=0), Equirect [m] (clon=180),  Npole Stereo [m], Spole Stereo [m])
-    "moon": (
-        "IAU_2015:30100",
-        "IAU_2015:30110",
-        "IAU_2015:30115",
-        "IAU_2015:30130",
-        "IAU_2015:30135",
-    ),
-    "mars": (
-        "IAU_2015:49900",
-        "IAU_2015:49910",
-        "IAU_2015:49915",
-        "IAU_2015:49930",
-        "IAU_2015:49935",
-    ),
-    "mercury": (
-        "IAU_2015:19900",
-        "IAU_2015:19910",
-        "IAU_2015:19915",
-        "IAU_2015:19930",
-        "IAU_2015:19935",
-    ),
-    "venus": (
-        "IAU_2015:29900",
-        "IAU_2015:29910",
-        "IAU_2015:29915",
-        "IAU_2015:29930",
-        "IAU_2015:29935",
-    ),
-    "europa": (
-        "IAU_2015:50200",
-        "IAU_2015:50210",
-        "IAU_2015:50215",
-        "IAU_2015:50230",
-        "IAU_2015:50235",
-    ),
-    "ceres": (
-        "IAU_2015:200000100",
-        "IAU_2015:200000110",
-        "IAU_2015:200000115",
-        "IAU_2015:200000130",
-        "IAU_2015:200000135",
-    ),
-    "vesta": (
-        "IAU_2015:200000400",
-        "IAU_2015:200000410",
-        "IAU_2015:200000415",
-        "IAU_2015:200000430",
-        "IAU_2015:200000435",
-    ),
-}
 
 
 class CraterDatabase:
@@ -100,19 +47,12 @@ class CraterDatabase:
     # geometry columns on the fly for computing stats
 
     # Private Attrs:
-    # _crs (str): Coordinate reference system for the body.
-    # _crs180 (str): CRS with longitude in -180 to 180 degrees.
-    # _crs360 (str): CRS with longitude in 0 to 360 degrees.
-    # _crsnorth (str): CRS for the northern hemisphere.
-    # _crssouth (str): CRS for the southern hemisphere.
-    # _latcol (str): Column name for latitude.
-    # _loncol (str): Column name for longitude.
-    # _radcol (str): Column name for radius.
-    # _vesta_coord (str, optional): Coordinate system for Vesta, if applicable.
+    # _crs (str): Internal coordinate reference system for the body, defaults to planetocentric.
     def __init__(
         self,
-        dataset: Union[str, pd.DataFrame],
-        body: str = "",
+        dataset: str | pd.DataFrame,
+        body: str,
+        input_crs: str | CRS = "default",
         units: str = "m",
     ):
         """
@@ -121,72 +61,76 @@ class CraterDatabase:
         Parameters
         ----------
         dataset : str or pandas.DataFrame
-            if str, path to the file containing crater data.
-            if DataFrame, DataFrame containing crater data.
+            Path to the crater file or DataFrame.
         body : str
-            Planetary body, e.g. 'Moon', 'Vesta' (default: 'Moon')
+            Planetary body (case-insensitive), e.g. 'Moon', 'mars', 'Vesta'
+        input_crs : str or pyproj.CRS
+            The Coordinate Reference System of the input latitude/longitude data.
+            Can be a user-friendly string alias (e.g., 'planetographic', 'claudia_dp')
+            or a valid pyproj.CRS object.
         units : str
-            Length units of radius/diameter, 'm' or 'km' (default: 'm')
+            Length units of radius/diameter column, 'm' or 'km' (default: 'm')
 
         Raises
         ------
             ValueError
                 If dataset is not a file or is not a pandas.DataFrame.
         """
-        if not body:
+        self.body = body.lower()
+        if self.body not in PLANETARY_CRS:
             raise ValueError(
-                f"Please specify a planetary body from, {list(CRS_DICT.keys())}"
+                f"Body '{self.body}' is not supported. Choose one of {ALL_BODIES}"
             )
-        lon_offset = 0
-        if "vesta" in body.lower():
-            body, lon_offset = self._vesta_check(body)
-            self._vesta_coord = body
-            body = "vesta"
-        self.body = body
-        (
-            self._crs,
-            self._crs180,
-            self._crs360,
-            self._crsnorth,
-            self._crssouth,
-        ) = self._load_crs(self.body)
+        self._crs = get_crs(self.body, "planetocentric")
+        self._input_crs = get_crs(body, input_crs)
 
         if isinstance(dataset, pd.DataFrame):
-            self.data = dataset.copy(True)
+            in_data = dataset
         elif Path(dataset).is_file():
             # TODO: handle craterstats .scc files here
-            self.data = gpd.read_file(dataset)
+            in_data = gpd.read_file(dataset)
         else:
             raise ValueError("Could not read crater dataset.")
-        self.orig_cols = self.data.columns
+        self.orig_cols = in_data.columns
 
-        # Store reference to lat, lon columns
-        self._latcol = ch.findcol(self.data, ["latitude", "lat"])
-        self._loncol = ch.findcol(self.data, ["longitude", "lon"])
-        self.data[self._latcol] = pd.to_numeric(self.data[self._latcol])
-        self.data[self._loncol] = pd.to_numeric(self.data[self._loncol])
+        # Find lat, lon coord columns and create the point geometry
+        # TODO: get centroid from geometry instead, if exists (need to handle antimeridian wrap)
+        in_data = in_data.drop(columns="geometry", errors="ignore")
+        lats = pd.to_numeric(in_data[ch.findcol(in_data, ["latitude", "lat"])])
+        lons = pd.to_numeric(in_data[ch.findcol(in_data, ["longitude", "lon"])])
+
+        # Create main GeoDataFrame with geometry coords in input_crs then standardize to self._crs
+        transformer = Transformer.from_crs(self._input_crs, self._crs, always_xy=True)
+        self.input_to_geodetic = transformer.transform
+        # Cludge: Bug where transformation swaps lon, lat because of crs axis order. Needs better crs handling
+        #  transformation(lon,lat,always_xy=True) only forces output to lon,lat, but dep on crs, input can
+        #  be interpreted as lat, lon causing coord swap. Passing input order based on axis order didn't always work.
+        #  Cludge is simple check for if in_lon 359 -> out_lat 359 (invalid) and if so, swap input order.
+        if abs(self.input_to_geodetic(359, 0)[1]) > 90:
+            self.input_to_geodetic = lambda x, y: transformer.transform(y, x)
+        self.geodetic_to_input = partial(transformer.transform, direction="INVERSE")
+        lons, lats = self.input_to_geodetic(lons, lats)
+        lons = ch.lon180(lons)
+        # geom = gpd.points_from_xy(*ch.fix_xy_order_crs(lons, lats, self._input_crs))
+        # self.data = gpd.GeoDataFrame(in_data, geometry=geom, crs=self._input_crs).to_crs(self._crs)
+
+        # geom = gpd.points_from_xy(*ch.fix_xy_order_crs(lons, lats, self._crs))
+
+        geom = gpd.points_from_xy(lons, lats)
+
+        self.data = gpd.GeoDataFrame(in_data, geometry=geom, crs=self._crs)
+        self.data["_center"] = self.data.geometry
+        self.data["_lat"] = self.data.geometry.y
+        self.data["_lon"] = self.data.geometry.x
+
         # Look for radius / diam column, store as _radius_m
         rcol = ch.find_rad_or_diam_col(self.data)
         div = 2 if rcol.lower().startswith("d") else 1  # diam -> rad conversion
-        self.data["_radius_m"] = pd.to_numeric(self.data[rcol]) / div
-        self._radcol = "_radius_m"
+        mul = 1000 if units == "km" else 1  # Convert km -> m
+        self.data["_radius_m"] = pd.to_numeric(self.data[rcol]) * mul / div
 
-        # Ensure lon is in -180 to 180
-        self.data[self._loncol] = self.lon + lon_offset
-        self.data[self._loncol] = ch.lon180(self.lon)
-
-        # Convert to meters
-        if units == "km":
-            self.data[self._radcol] *= 1000
-
-        # Generate point geometry for each row
-        self.data["_center"] = self._gen_point()
-
-        # Set geometry and covert to GeoDataFrame if not already
-        if not isinstance(self.data, gpd.GeoDataFrame):
-            self.data = gpd.GeoDataFrame(self.data, geometry="_center", crs=self._crs)
-        elif "geometry" not in self.data.columns:
-            self.data.set_geometry("_center", inplace=True)
+        # # Ensure lon is in -180 to 180
+        # self.data["_lon"] = ch.lon360(self.lon)
 
     def __repr__(self):
         attrs = ", ".join([p for p in self._get_properties() if not p.startswith("_")])
@@ -203,40 +147,17 @@ class CraterDatabase:
         Two CraterDatabase objects are considered equal if all of the below are true:
         - They are instances of CraterDatabase.
         - Their underlying data GeoDataFrames are equal.
-        - Their coordinate reference systems (_crs, _crs180, _crs360, _crsnorth, _crssouth)
-            are equal.
-        - The names of the latitude, longitude, and radius columns (_latcol, _loncol, _radcol)
-            are equal.
-        - The optional _vesta_coord attribute (if present) is equal.
+        - They have the same _crs
 
         Parameters
         ----------
         other : object
             The other database (or object) to compare against
-
-         Returns
-        -------
-        bool or NotImplemented
-            - `True` if `other` is a CraterDatabase with equivalent data and metadata.
-            - `False` if `other` is a CraterDatabase but differs in any of the required attributes.
-            - `NotImplemented` if `other` is not a CraterDatabase instance.
         """
         if not isinstance(other, CraterDatabase):
             return NotImplemented
 
-        return (
-            self.data.equals(other.data)
-            and self._crs == other._crs
-            and self._crs180 == other._crs180
-            and self._crs360 == other._crs360
-            and self._crsnorth == other._crsnorth
-            and self._crssouth == other._crssouth
-            and self._latcol == other._latcol
-            and self._loncol == other._loncol
-            and self._radcol == other._radcol
-            and getattr(self, "_vesta_coord", None)
-            == getattr(other, "_vesta_coord", None)
-        )
+        return self.data.equals(other.data) and self._crs == other._crs
 
     def __len__(self):
         """Return the number of crater records in the database."""
@@ -246,9 +167,8 @@ class CraterDatabase:
         """Return True if the database contains any crater records."""
         return not self.data.empty
 
-    def _load_crs(self, body):
-        """Return the pyproj CRSs for the body."""
-        return [CRS.from_user_input(crs) for crs in CRS_DICT[body.lower()]]
+    def _convert_to_geodetic(self, lons, lats):
+        """Return"""
 
     def _gen_point(self):
         """Return point geometry (lon, lat) for each row."""
@@ -264,43 +184,6 @@ class CraterDatabase:
         )
         return out
 
-    def _vesta_check(self, body):
-        """
-        Return the lon offset for craters from claudia_dp coord system.
-
-        Default: claudia_dp (Claudia Double Prime / PDS-Vesta-2012), in use
-        by the Dawn mission and accepted by the IAU. Each coordinate system
-        requires an offset, seen by the shift in the reference crater Claudia:
-        - vesta_claudia_dp (Claudia Double Prime): Claudia at (-1.6N, 146E)
-        - vesta_claudia_p (Claudia Prime): Claudia at (-1.6N, 136E)
-        - vesta_claudia (Dawn-Claudia): Claudia at (-1.6N, 356E)
-        - vesta_iau_2000 (IAU-2000): Claudia at (4.3N, 145E) - not supported
-
-        See the NASA PDS small bodies node notes on Vesta coordinate systems:
-        https://sbnarchive.psi.edu/pds3/dawn/fc/DWNVFC2_1A/DOCUMENT/VESTA_COORDINATES/VESTA_COORDINATES_131018.PDF
-        """
-        body = body.lower()
-        if body in ["vesta_claudia_dp", "vesta_claudia_double_prime"]:
-            return "vesta_claudia_dp", 0
-        if body in ["vesta_claudia_p", "vesta_claudia_prime"]:
-            return "vesta_claudia_p", 190
-        if body in ["vesta_claudia", "vesta_dawn_claudia"]:
-            return "vesta_claudia", 150
-        if body in ["vesta_iau_2000", "vesta_iau2000"]:
-            raise NotImplementedError(
-                "Vesta IAU 2000 coordinate system is not supported."
-            )
-
-        # Default to claudia_dp if no match
-        warnings.warn(
-            "Vesta has multiple coordinate systems. Defaulting to vesta_claudia_dp... "
-            "Specify one of (vesta_claudia_dp, vesta_claudia_p, vesta_claudia). to "
-            "avoid this warning. Type help(CraterDatabase()._vesta_check)"
-            "for more info.",
-            stacklevel=2,
-        )
-        return "vesta_claudia_dp", 0
-
     def _make_data_property(self, col):
         """Make a column of self.data accessible directly as an attribute."""
         c = col.replace(" ", "_")  # attr can't have spaces
@@ -314,22 +197,22 @@ class CraterDatabase:
     @property
     def lat(self):
         """Crater latitudes."""
-        return self.data[self._latcol]
+        return self.data["_lat"]
 
     @property
     def lon(self):
         """Crater longitudes."""
-        return self.data[self._loncol]
+        return self.data["_lon"]
 
     @property
     def rad(self):
         """Crater radii in meters."""
-        return self.data[self._radcol]
+        return self.data["_radius_m"]
 
     @property
     def center(self):
         """Crater center point geometry."""
-        return gpd.GeoSeries(self.data["_center"], crs=self._crs)
+        return self.data["geometry"]
 
     @property
     def _rbody(self):
@@ -368,7 +251,7 @@ class CraterDatabase:
         self.data[name] = self._gen_annulus(inner, outer, **kwargs)
         self._make_data_property(name)
 
-    def add_circles(self, name="", size=1, **kwargs):
+    def add_circles(self, name="", size=1.0, **kwargs):
         """Generate circluar geometries for each crater in database.
 
         Parameters
@@ -415,7 +298,7 @@ class CraterDatabase:
         fraster=None,
         region="",
         ax=None,
-        size=6,
+        size=7.5,
         dpi=100,
         band=1,
         alpha=0.5,
@@ -456,17 +339,32 @@ class CraterDatabase:
         ax : matplotlib.Axes
             Original axes, now with data plotted.
         """
+        ellipsoid = ccrs.CRS(self._crs).ellipsoid
+        globe = ccrs.Globe(
+            semimajor_axis=ellipsoid.semi_major_metre,
+            semiminor_axis=ellipsoid.semi_minor_metre,
+            ellipse=None,
+        )
+        proj = ccrs.PlateCarree(globe=globe)
         if ax is None:
             minx, miny, maxx, maxy = self.data.total_bounds
             aspect = (maxx - minx) / (maxy - miny)
             figsize = (size, size / aspect)
-            _, ax = plt.subplots(figsize=figsize, dpi=dpi)
+            _, ax = plt.subplots(
+                figsize=figsize,
+                dpi=dpi,
+                subplot_kw={"projection": proj},
+            )
             ax.set_xlim(minx, maxx)
             ax.set_ylim(miny, maxy)
-        else:
-            ax = ax.axes if isinstance(ax, mpli.AxesImage) else ax
-            figsize = ax.figure.get_size_inches()
-            dpi = ax.figure.get_dpi()
+            gl = ax.gridlines(draw_labels=True)
+            gl.top_labels = False
+            label = " " + region if not region.startswith("_") else ""
+            ax.set_title(str(self) + label)
+        elif isinstance(ax, mpli.AxesImage):
+            ax = ax.axes  # result of imshow is AxesImage, need the matplotlib Axes
+        figsize = ax.get_figure().get_size_inches()
+        dpi = ax.get_figure().get_dpi()
         if fraster:
             with rio.open(fraster) as src:
                 height_npix = int(figsize[1] * dpi)
@@ -474,20 +372,16 @@ class CraterDatabase:
                 # By default does nearest-neighbor interp to out_shape (super fast reads for low dpi)
                 data = src.read(indexes=band, out_shape=(height_npix, width_npix))
                 extent = ch.bbox2extent(src.bounds)
-            ax.imshow(data, cmap="gray", extent=extent)
+                # raster_crs = ccrs.CRS(src.crs)
+                # TODO: assumes simple cylindrical, recognize and support other projections
+                ax.imshow(data, cmap="gray", extent=extent, transform=proj)
         if not region:
-            # Store crater circles in .data with leading "_" to not be mistaken
-            #  for user-defined ROIs
+            # Store crater rims with leading "_" to not be mistaken for user-defined ROIs
             region = "_plot_circles"
             if region not in self.data.columns:
-                self.data[region] = self._gen_annulus(0, 1, precise=False)
+                self.data[region] = self._gen_annulus(0, 1)
         rois = self.data.loc[:, region].boundary  # plot outline of ROI
         ax = rois.plot(ax=ax, alpha=alpha, color=color, autolim=False, **kwargs)
-        ax.set_xlabel("Longitude")
-        ax.set_ylabel("Latitude")
-        label = " " + region if not region.startswith("_") else ""
-        ax.set_title(str(self) + label)
-
         if savefig is not None:
             # Set up default savefig options that can be overridden
             save_options = {"dpi": dpi, "bbox_inches": "tight"}
@@ -531,7 +425,7 @@ class CraterDatabase:
             raise ValueError(f"Geometry column '{region}' not found.")
 
         # Determine which columns to keep
-        must_keep = {self._latcol, self._loncol, self._radcol}
+        must_keep = set(self.orig_cols)
         if keep_cols is None:
             # Take all columns if keep cols otherwise only take cols without leading "_"
             keep_cols = [

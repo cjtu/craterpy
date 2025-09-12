@@ -2,19 +2,13 @@
 
 from importlib import metadata, resources
 
-from craterpy.classes import CRS_DICT, CraterDatabase
+from craterpy.classes import CraterDatabase
+from craterpy.crs import ALL_BODIES
 
-sample_data = {
-    k: str(resources.files(__name__).joinpath("data", k))
-    for k in (
-        "moon.tif",
-        "moon_craters.csv",
-        "vesta.tif",
-        "vesta_craters.csv",
-        "moon_dem.tif",
-    )
-}
-all_bodies = list(CRS_DICT.keys())
+data_dir = resources.files(__name__).joinpath("data")
+sample_data = {p.name: p for p in data_dir.rglob("*") if p.suffix in (".csv", ".tif")}
+all_bodies = ALL_BODIES
 __all__ = ["CraterDatabase", "sample_data"]
+
 __version__ = metadata.version(__package__)
 del metadata

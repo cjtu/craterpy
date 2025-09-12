@@ -2,13 +2,14 @@
 
 import contextlib
 import warnings
+from pathlib import Path
 
 import antimeridian
 import joblib
 import numpy as np
 import pandas as pd
+import pyproj
 from joblib import Parallel, delayed
-from pyproj import Transformer
 from pyproj.crs import ProjectedCRS
 from pyproj.crs.coordinate_operation import AzimuthalEquidistantConversion
 from rasterstats import zonal_stats
@@ -17,9 +18,11 @@ from shapely.geometry import MultiPolygon, Point, Polygon
 from shapely.ops import transform
 from tqdm import tqdm
 
-# Suppress antimeridian warning
+# Suppress warnings
 warnings.filterwarnings("ignore", category=antimeridian.FixWindingWarning)
 warnings.filterwarnings("ignore", "Setting nodata.*", module=r".*rasterstats")
+warnings.filterwarnings("ignore", "Setting masked.*", module=r".*rasterstats")
+warnings.filterwarnings("ignore", ".*lose important proj.*", module=r".*pyproj")
 
 
 # Geospatial helpers
@@ -50,7 +53,7 @@ def lon360(lon):
     Returns
     -------
     float or array-like
-        Corresponding longitude values in the [0, 360) range.
+        Corresponding longitude values in the [0, 360] range.
     """
     return (lon + 360) % 360
 
@@ -219,6 +222,13 @@ def inglobal(lat, lon):
     return (-90 <= lat <= 90) and (0 <= lon360(lon) <= 360)
 
 
+def fix_xy_order_crs(x, y, crs):
+    """Swap lon (x) and lat (y) if crs axis order expects lat (y) first."""
+    if "lat" in str(pyproj.CRS.from_user_input(crs).axis_info[0]).lower():
+        return y, x
+    return x, y
+
+
 # Shape geometry helpers
 def gen_annuli(centers: list, rads: list, inner: float, outer: float, crs, **kwargs):
     """
@@ -300,7 +310,7 @@ def create_single_annulus(
     buf = get_annular_buffer(Point(0, 0), rad, inner, outer, **kwargs)
 
     # Create transformer and unproject the buffer to the geodetic CRS
-    to_geodetic = Transformer.from_crs(
+    to_geodetic = pyproj.Transformer.from_crs(
         local_crs, geodetic_crs, always_xy=True
     ).transform
     annulus = transform(to_geodetic, buf)
@@ -380,7 +390,7 @@ def fix_antimeridian_wrap(
     shapely.geometry.Polygon
         Corrected polygon with proper antimeridian handling.
     """
-    to_projected = Transformer.from_crs(
+    to_projected = pyproj.Transformer.from_crs(
         geodetic_crs, local_crs, always_xy=True
     ).transform
 
@@ -465,44 +475,43 @@ def get_stats(
         DataFrame containing the original crater columns along with appended
         statistics columns for each raster and region combination.
     """
-    if isinstance(rasters, (tuple, list, np.ndarray)):
-        raise ValueError(
-            "Specify multiple rasters as dict (ex. {'name1':'raster1.tif', ...})"
-        )
+
+    def _name_raster(i, raster):
+        return Path(raster).name if isinstance(raster, str) else f"raster{i}"
+
+    if isinstance(rasters, dict):
+        rdict = rasters
+    elif isinstance(rasters, (tuple, list)):
+        # Set up dict for column naming. Choose filename if str, else "raster{i}" (e.g., if given file descriptors)
+        rdict = {
+            _name_raster(i, raster): Path(raster).as_posix()
+            for i, raster in enumerate(rasters)
+        }
+    else:
+        rdict = {"_": rasters}
     if isinstance(regions, str):
         regions = [regions]
-    if not isinstance(nodata, dict) and isinstance(rasters, dict):
-        nodata = dict.fromkeys(
-            rasters.keys(), nodata
-        )  # Else assume single raster, single nodata
+    if not isinstance(nodata, dict):
+        nodata = dict.fromkeys(rdict, nodata)
 
-    total_tasks = len(rasters) * len(regions)
-    if total_tasks > 1:
-        # Create a list of tasks, where each task has all the info for one worker call
-        tasks = []
-        for region_name in regions:
-            rasters = {"_": rasters} if not isinstance(rasters, dict) else rasters
-            for raster_name, raster_file in rasters.items():
-                nd = nodata.get(raster_name) if isinstance(nodata, dict) else nodata
-                tasks.append(
-                    delayed(compute_zonal_stats)(
-                        geometries=gdf[region_name],
-                        raster=raster_file,
-                        stats=stats,
-                        nodata=nd,  # Safely get nodata value
-                        suffix=f"{raster_name}_{region_name}".strip("_"),
-                    )
+    total_tasks = len(rdict) * len(regions)
+    # Create a list of tasks, where each task has all the info for one worker call
+    tasks = []
+    for region_name in regions:
+        for raster_name, raster_file in rdict.items():
+            tasks.append(
+                delayed(compute_zonal_stats)(
+                    geometries=gdf[region_name],
+                    raster=raster_file,
+                    stats=stats,
+                    nodata=nodata.get(raster_name),  # Safely get nodata value
+                    suffix=f"{raster_name}_{region_name}".strip("_"),
                 )
-        # Compute in parallel
-        with tqdm_joblib(tqdm(desc="Computing Zonal Stats", total=total_tasks)):
-            all_stats = Parallel(n_jobs=n_jobs)(tasks)
-        stats = pd.concat(all_stats, axis=1)
-    else:
-        # Only one raster and region
-        stats = compute_zonal_stats(
-            gdf[regions[0]], rasters, stats=stats, nodata=nodata
-        )
-    return stats
+            )
+    # Compute in parallel
+    with tqdm_joblib(tqdm(desc="Computing Zonal Stats", total=total_tasks)):
+        all_stats = Parallel(n_jobs=n_jobs)(tasks)
+        return pd.concat(all_stats, axis=1)
 
 
 # Misc
@@ -511,7 +520,6 @@ def tqdm_joblib(tqdm_object):
     """
     Context manager to patch joblib to report into tqdm progress bar given as argument.
     See: https://stackoverflow.com/a/58936697
-
     """
 
     class TqdmBatchCompletionCallback(joblib.parallel.BatchCompletionCallBack):
