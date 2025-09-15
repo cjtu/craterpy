@@ -42,9 +42,9 @@ class CraterDatabase:
         Crater centers.
     """
 
-    # Philosophy for database: Geopandas only allows 1 shape geometry per row
-    # So, use the _center of crater as default geometry. Switch to other
-    # geometry columns on the fly for computing stats
+    # CraterDatabases are stored as geopandas.GeoDataFrame with Point(lon,lat) crater center as geometry
+    # The default _crs for each planetary body is the planetocentric geodetic IAU_2015 (-180,180)
+    # Crater shape geometries are stored as GeoSeries and reprojected only when needed via .to_crs()
 
     # Private Attrs:
     # _crs (str): Internal coordinate reference system for the body, defaults to planetocentric.
@@ -111,15 +111,9 @@ class CraterDatabase:
         self.geodetic_to_input = partial(transformer.transform, direction="INVERSE")
         lons, lats = self.input_to_geodetic(lons, lats)
         lons = ch.lon180(lons)
-        # geom = gpd.points_from_xy(*ch.fix_xy_order_crs(lons, lats, self._input_crs))
-        # self.data = gpd.GeoDataFrame(in_data, geometry=geom, crs=self._input_crs).to_crs(self._crs)
-
-        # geom = gpd.points_from_xy(*ch.fix_xy_order_crs(lons, lats, self._crs))
-
         geom = gpd.points_from_xy(lons, lats)
 
         self.data = gpd.GeoDataFrame(in_data, geometry=geom, crs=self._crs)
-        self.data["_center"] = self.data.geometry
         self.data["_lat"] = self.data.geometry.y
         self.data["_lon"] = self.data.geometry.x
 
@@ -415,7 +409,7 @@ class CraterDatabase:
             Only if keep_cols is None (specific columns requested take precedence).
         """
         if region is None:
-            geom_col = "_center"
+            geom_col = "geometry"
         elif region in self.data.columns:
             geom_col = region
         else:
@@ -585,8 +579,6 @@ class CraterDatabase:
         i = 0
         axs = np.atleast_1d(axes).flatten()
         while i < n:
-            print(i, n)
-            # for i, (geom, roi, ax) in enumerate(zip(gdf.geometry, rois, axes.flatten(), strict=False)):
             img = next(rois)["mini_raster_array"]
             if img.count() == 0:
                 n -= 1
@@ -636,7 +628,7 @@ class CraterDatabase:
         """
         if cdb1.body != cdb2.body:
             raise ValueError("Cannot merge CraterDatabases from different bodies!")
-        merged = ch.merge(cdb1.data, cdb2.data, radcol=cdb1._radcol, rbody=cdb1._rbody)
+        merged = ch.merge(cdb1.data, cdb2.data, rbody=cdb1._rbody)
         return cls(merged, body=cdb1.body, units="m")
 
     @classmethod
