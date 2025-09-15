@@ -29,13 +29,13 @@ class TestCraterDatabase(unittest.TestCase):
     def setUp(self):
         self.moon_tif = craterpy.sample_data["moon.tif"]
         self.moon_dem = craterpy.sample_data["moon_dem.tif"]
-        self.moon_craters = craterpy.sample_data["moon_craters.csv"]
+        self.moon_craters = craterpy.sample_data["moon_craters_km.csv"]
         self.vesta_tif = craterpy.sample_data["vesta.tif"]
-        self.vesta_craters = craterpy.sample_data["vesta_craters.csv"]
+        self.vesta_craters = craterpy.sample_data["vesta_craters_km.csv"]
         self.moon_cdb = CraterDatabase(self.moon_craters, "moon", units="km")
         self.moon_cdb_rim = self.moon_cdb.copy()
         self.moon_cdb_rim.add_annuli("rim", 1, 1.1)
-        self.vesta_cdb = CraterDatabase(self.vesta_craters, "vesta", "claudia_dp")
+        self.vesta_cdb = CraterDatabase(self.vesta_craters, "vesta", "claudia_dp", "km")
 
     def test_add_circles_annuli(self):
         """Test adding annular geometries to CraterDataBase."""
