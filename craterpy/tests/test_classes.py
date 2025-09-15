@@ -35,7 +35,7 @@ class TestCraterDatabase(unittest.TestCase):
         self.moon_cdb = CraterDatabase(self.moon_craters, "moon", units="km")
         self.moon_cdb_rim = self.moon_cdb.copy()
         self.moon_cdb_rim.add_annuli("rim", 1, 1.1)
-        self.vesta_cdb = CraterDatabase(self.vesta_craters, "vesta", "claudia_dp", "km")
+        self.vesta_cdb = CraterDatabase(self.vesta_craters, "vesta", units="km")
 
     def test_add_circles_annuli(self):
         """Test adding annular geometries to CraterDataBase."""
@@ -56,7 +56,7 @@ class TestCraterDatabase(unittest.TestCase):
         """Test getting statistics on a region for a raster."""
         stats = self.moon_cdb_rim.get_stats(self.moon_tif, "rim")
         self.assertIn("count_rim", stats.columns)
-        self.assertIn("Lat", stats.columns)
+        self.assertIn("Latitude", stats.columns)
         self.assertFalse(any(stats["mean_rim"].isna()))  # No null values
 
     def test_get_stats_list_rasters(self):
@@ -80,7 +80,7 @@ class TestCraterDatabase(unittest.TestCase):
         self.assertIn("count_dem_rim", stats.columns)
         self.assertFalse(any(stats["median_moon_rim"].isna()))
 
-    def test_body_crs_all(self):
+    def test_body_all_bodies_default_crs(self):
         """Test that every defined CRS loads."""
         for body in ALL_BODIES:
             with warnings.catch_warnings():
@@ -91,18 +91,16 @@ class TestCraterDatabase(unittest.TestCase):
 
     def test_vesta_coord_correction(self):
         """Test Vesta's various coordinate systems."""
-        df = pd.DataFrame({"lat": [0, 10], "lon": [-90, 120], "radius": [1, 2]})
-        cdb = CraterDatabase(df, "vesta_claudia_double_prime")  # 0 offset
+        df = pd.DataFrame({"lat": [0, -1.6], "lon": [-90, 146], "radius": [1, 2]})
+        cdb = CraterDatabase(df, "vesta", "claudia_dp")  # 0 offset
         self.assertEqual(cdb.lon.iloc[0], -90)
-        self.assertEqual(cdb.lon.iloc[1], 120)
-        cdb = CraterDatabase(df, "vesta_claudia")  # +150
-        self.assertEqual(cdb.lon.iloc[0], 60)
-        self.assertEqual(cdb.lon.iloc[1], -90)
-        cdb = CraterDatabase(df, "vesta_claudia_prime")  # +190
-        self.assertEqual(cdb.lon.iloc[0], 100)
-        self.assertEqual(cdb.lon.iloc[1], -50)
-        with self.assertRaises(NotImplementedError):
-            cdb = CraterDatabase(df, "vesta_iau_2000")
+        self.assertEqual(cdb.lon.iloc[1], 146)
+        cdb = CraterDatabase(df, "vesta", "claudia_p")  # -10
+        self.assertAlmostEqual(cdb.lon.iloc[0], -100)
+        self.assertAlmostEqual(cdb.lon.iloc[1], 136)
+        cdb = CraterDatabase(df, "vesta", "dawn_claudia")  # +210
+        self.assertAlmostEqual(cdb.lon.iloc[0], 120)
+        self.assertAlmostEqual(cdb.lon.iloc[1], -4)
 
     def test_units(self):
         """Test importing with radii in m or km."""
@@ -174,13 +172,11 @@ class TestCraterDatabase(unittest.TestCase):
             cdb.to_geojson(fcenter.name)
             gdf = gpd.read_file(fcenter.name)  # inspect the written file
             self.assertEqual(len(cdb), len(gdf))
-            self.assertIn("_center_active_wkt", gdf.columns)
 
             newdb = CraterDatabase.read_shapefile(fcenter.name)
             newdb.add_circles("import_test")
             self.assertIn("import_test", newdb.data.columns)
-            self.assertIn("_center", newdb.data.columns)
-            self.assertNotIn("geometry", newdb.data.columns)
+            self.assertIn("geometry", newdb.data.columns)
             self.assertEqual(newdb.body, "moon")
 
     def test_to_geojson_with_custom_geometry(self):
@@ -197,8 +193,7 @@ class TestCraterDatabase(unittest.TestCase):
 
             newdb = CraterDatabase.read_shapefile(frim.name)
             self.assertIn("rim", newdb.data.columns)
-            self.assertIn("_center", newdb.data.columns)
-            self.assertNotIn("geometry", newdb.data.columns)
+            self.assertIn("geometry", newdb.data.columns)
 
     def test_to_geojson_with_keep_cols(self):
         """Test export with specific columns saved."""
@@ -215,10 +210,9 @@ class TestCraterDatabase(unittest.TestCase):
             self.assertIn("crater_active_wkt", gdf.columns)
 
             newdb = CraterDatabase.read_shapefile(fkeep.name)
-            self.assertIn("_center", newdb.data.columns)
+            self.assertIn("geometry", newdb.data.columns)
             self.assertIn("_test", newdb.data.columns)
-            self.assertIn("Lon", newdb.data.columns)
-            self.assertNotIn("geometry", newdb.data.columns)
+            self.assertIn("Longitude", newdb.data.columns)
 
     def test_to_geojson_file_export(self):
         """Test export to a GeoJSON file."""
@@ -262,9 +256,9 @@ class TestCraterDatabase(unittest.TestCase):
         cdb.add_circles("crater", 1)
 
         with NamedTemporaryFile(suffix=".geojson") as fcrs:
-            cdb.to_geojson(fcrs.name, region="crater", crs=cdb._crs180)
+            cdb.to_geojson(fcrs.name, region="crater", crs="IAU_2015:30110")  # Moon eqr
             gdf = gpd.read_file(fcrs.name)
-            self.assertEqual(gdf.crs, cdb.to_crs(cdb._crs180).data.crs)
+            self.assertEqual(gdf.crs, cdb.to_crs("IAU_2015:30110").data.crs)
 
     def test_to_geojson_error_handling(self):
         """Test error handling for invalid inputs."""
@@ -283,7 +277,7 @@ class TestCraterDatabase(unittest.TestCase):
         # Basic CRS conversion
         cdb = self.moon_cdb.copy()
         initial_crs = cdb.data.crs
-        moon_equirect_crs = CRS.from_user_input(cdb._crs180)
+        moon_equirect_crs = CRS.from_user_input("IAU_2015:30110")
 
         # Test with CRS object
         converted_cdb = CraterDatabase.to_crs(cdb, moon_equirect_crs)
@@ -305,7 +299,7 @@ class TestCraterDatabase(unittest.TestCase):
         self.assertEqual(same_crs, cdb)
 
         # Test with north pole projection
-        moon_north_crs = CRS.from_user_input(cdb._crsnorth)
+        moon_north_crs = CRS.from_user_input("IAU_2015:30130")
         pole_converted = CraterDatabase.to_crs(cdb, moon_north_crs)
         self.assertEqual(pole_converted.data.crs, moon_north_crs)
         self.assertEqual(len(pole_converted.data), len(cdb.data))
@@ -374,21 +368,6 @@ class TestCraterDatabase(unittest.TestCase):
         self.assertEqual(cdb.body, "moon")
         self.assertEqual(cdb.rad.iloc[0], 1000.0)  # Should be converted from km to m
 
-    def test_to_crs_vesta(self):
-        """Test Vesta-specific coordinate system handling."""
-        pass
-        # df = pd.DataFrame(
-        #     {
-        #         "lat": [10.0, -20.0],
-        #         "lon": [45.0, -60.0],
-        #         "radius": [1000.0, 2000.0],
-        #     }
-        # )
-        # cdb_dp = CraterDatabase(df, body="vesta", input_crs="claudia_dp")
-        # cdb_p = CraterDatabase(df, body="vesta", input_crs="claudia_p")
-        # cdb_dawn = CraterDatabase(df, body="vesta", input_crs="dawn_claudia")
-        # cdb_iau = CraterDatabase(df, body="vesta", input_crs="planetocentric")
-
     def test_plot(self):
         """Test CraterDatabase plotting functionality."""
         cdb = self.moon_cdb.copy()
@@ -396,8 +375,7 @@ class TestCraterDatabase(unittest.TestCase):
         # Test basic plotting
         ax = cdb.plot()
         self.assertIsInstance(ax, Axes)
-        self.assertEqual(ax.get_xlabel(), "Longitude")
-        self.assertEqual(ax.get_ylabel(), "Latitude")
+        self.assertEqual(len(ax.collections), 1)  # Has ROI overlay
 
         # Test plotting with ROI region
         cdb.add_circles("test_region")

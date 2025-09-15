@@ -342,7 +342,7 @@ class TestDataframeHelpers(unittest.TestCase):
         )
 
         # Test basic merge
-        merged = ch.merge(df1, df2)
+        merged = ch.merge(df1, df2, latcol="lat", loncol="lon", radcol="rad")
         self.assertEqual(len(merged), 5)  # 3 from df1 + 2 unique from df2
         self.assertTrue("a" in merged.columns and "b" in merged.columns)
 
@@ -351,5 +351,7 @@ class TestDataframeHelpers(unittest.TestCase):
         self.assertEqual(merged.iloc[0]["b"], 4)  # Get df2 value
 
         # Test rtol parameter
-        merged_strict = ch.merge(df1, df2, rtol=0.05)
+        merged_strict = ch.merge(
+            df1, df2, rtol=0.05, latcol="lat", loncol="lon", radcol="rad"
+        )
         self.assertEqual(len(merged_strict), 6)  # No matches with stricter rtol

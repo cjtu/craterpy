@@ -665,9 +665,9 @@ def merge(
     df2,
     rbody=1737.4e3,
     rtol=0.5,
-    latcol="lat",
-    loncol="lon",
-    radcol="rad",
+    latcol="_lat",
+    loncol="_lon",
+    radcol="_radius_m",
 ):
     """Spatial merge of craters in df1 and df2.
 

@@ -28,14 +28,15 @@ PLANETARY_CRS = {
         "planetographic": CRS("IAU_2015:200000101"),
     },
     "vesta": {
-        # Planetographic, Positive West, Claudia Double Prime at 146 E
-        "claudia_dp": CRS.from_proj4("+proj=longlat +R=255000 +lon_0=150 +no_defs"),
-        # Planetographic, Positive West, Claudia Prime at 136 E
-        "claudia_p": CRS.from_proj4("+proj=longlat +R=255000 +lon_0=160 +no_defs"),
-        # Planetographic, Positive West, Dawn-Claudia at 356 E
-        "dawn_claudia": CRS.from_proj4("+proj=longlat +R=255000 +lon_0=356 +no_defs"),
-        # Internal Standard (Planetocentric)
+        # Planetocentric, Claudia crater at 146 E
         "planetocentric": CRS("IAU_2015:200000400"),
+        # Claudia double prime (same as IAU_2015)
+        "claudia_dp": CRS("IAU_2015:200000400"),
+        # Claudia Prime, Claudia crater at 136 E
+        "claudia_p": CRS.from_proj4("+proj=longlat +R=255000 +lon_0=-10 +no_defs"),
+        # Dawn Claudia, Claudia crater at 356 E
+        "dawn_claudia": CRS.from_proj4("+proj=longlat +R=255000 +lon_0=210 +no_defs"),
+        # Not Implemented: IAU-2000, Claudia crater at 4.3N, 145 E
     },
     "europa": {
         "planetocentric": CRS("IAU_2015:50200"),
