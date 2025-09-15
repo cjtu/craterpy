@@ -19,7 +19,7 @@ from rasterstats import gen_zonal_stats
 from shapely.geometry import Point
 
 import craterpy.helper as ch
-from craterpy.crs import ALL_BODIES, PLANETARY_CRS, get_crs
+from craterpy.crs import get_crs
 
 # Default stats for rasterstats
 STATS = ("mean", "std", "count")
@@ -77,10 +77,6 @@ class CraterDatabase:
                 If dataset is not a file or is not a pandas.DataFrame.
         """
         self.body = body.lower()
-        if self.body not in PLANETARY_CRS:
-            raise ValueError(
-                f"Body '{self.body}' is not supported. Choose one of {ALL_BODIES}"
-            )
         self._crs = get_crs(self.body, "planetocentric")
         self._input_crs = get_crs(body, input_crs)
 
@@ -187,22 +183,18 @@ class CraterDatabase:
 
     @property
     def lat(self):
-        """Crater latitudes."""
         return self.data["_lat"]
 
     @property
     def lon(self):
-        """Crater longitudes."""
         return self.data["_lon"]
 
     @property
     def rad(self):
-        """Crater radii in meters."""
         return self.data["_radius_m"]
 
     @property
     def center(self):
-        """Crater center point geometry."""
         return self.data["geometry"]
 
     @property
@@ -480,7 +472,16 @@ class CraterDatabase:
         new_crater_db.to_crs(crs, inplace=True)
         return new_crater_db
 
-    def plot_rois(self, fraster, region, index=9, grid_kw=None, **kwargs):
+    def plot_rois(
+        self,
+        fraster,
+        region,
+        index=9,
+        grid_kw=None,
+        savefig=None,
+        savefig_kwargs=None,
+        **kwargs,
+    ):
         """
         Plot CraterDatabase regions of interest (ROIs) clipped from raster.
 
@@ -499,6 +500,8 @@ class CraterDatabase:
             otherwise plot all given indices. Default is 9.
         grid_kw : dict, optional
             Keyword args for gridlines (see matplotlib.axes.gridlines()).
+        savefig : str, optional
+            If provided, save the figure to this path.
         **kwargs : dict, optional
             Additional keyword arguments for customizing the plot. These can overwrite
             default settings for the raster image (`cmap`, `vmin`, `vmax`) or the ROI
@@ -602,6 +605,9 @@ class CraterDatabase:
                 gl.right_labels = False
                 gl.xformatter = LONGITUDE_FORMATTER
                 gl.yformatter = LATITUDE_FORMATTER
+        fig.suptitle(f"{self.body.capitalize()} {region} ROIs", y=0.92)
+        if savefig is not None:
+            plt.savefig(savefig)
         return axes
 
     @classmethod

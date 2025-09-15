@@ -28,17 +28,20 @@ release = get_version()
 # -- General configuration --
 
 extensions = [
-    "myst_parser",
+    "myst_nb",
     "sphinx.ext.autodoc",
     "sphinx.ext.viewcode",
     "sphinx.ext.napoleon",
 ]
 
+nb_execution_mode = "cache"
+nb_execution_timeout = 300
+
 myst_enable_extensions = [
     "colon_fence",
 ]
 
-source_suffix = [".rst", ".md"]
+source_suffix = [".rst", ".md", ".ipynb"]
 
 # Preserve :members: order.
 autodoc_member_order = "bysource"
@@ -62,8 +65,3 @@ exclude_patterns = []
 # a list of builtin themes.
 #
 html_theme = "sphinx_rtd_theme"
-
-# Add any paths that contain custom static files (such as style sheets) here,
-# relative to this directory. They are copied after the builtin static files,
-# so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ["_static"]

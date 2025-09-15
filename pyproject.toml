@@ -1,6 +1,6 @@
 [project]
 name = "craterpy"
-version = "0.9.4"
+version = "0.9.5"
 description = "Impact crater data science in Python."
 readme = "README.md"
 authors = [
@@ -51,12 +51,12 @@ dev = [
     "pytest-cov<7.0.0,>=6.0.0",
     "ruff>=0.12.11",
     "pre-commit>=4.3.0",
-]
-docs = [
+    "myst-nb>=1.3.0",
     "myst-parser<2.0.0,>=1.0.0",
     "sphinx<7.0.0,>=6.2.1",
     "sphinx-rtd-theme<3.0.0,>=2.0.0",
     "sphinx-autobuild<2025.0.0,>=2024.10.3",
+    "jupyter-cache>=1.0.1",
 ]
 
 [tool.ruff.lint]

@@ -33,13 +33,16 @@ class TestCraterDatabase(unittest.TestCase):
         with self.assertRaises(ValueError):
             get_crs("mars", "invalid_crs")
 
-    def test_unknown_projection(self):
+    def test_unknown_body_or_system(self):
         """Test raises error for unknown crs."""
         with self.assertRaises(ValueError):
             get_crs("pluto", "planetographic")
 
         with self.assertRaises(ValueError):
             get_crs("krypton")
+
+        with self.assertRaises(ValueError):
+            get_crs("moon", "asdf")
 
     def test_vesta_coords(self):
         """Test longitude conversion between the various vesta coord systems."""

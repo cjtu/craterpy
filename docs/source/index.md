@@ -8,6 +8,7 @@
 :caption: Usage
 
 getting_started
+planetary_body_examples
 api
 ```
 
