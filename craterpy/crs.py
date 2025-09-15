@@ -5,7 +5,9 @@ from pyproj.exceptions import CRSError
 PLANETARY_CRS = {
     "mercury": {
         "planetocentric": CRS("IAU_2015:19900"),
-        "planetographic": CRS("IAU_2015:19901"),
+        "planetographic": CRS.from_proj4(
+            CRS("IAU_2015:19900").to_proj4() + " +axis=wnu"
+        ),
     },
     "venus": {
         "planetocentric": CRS("IAU_2015:29900"),
@@ -48,19 +50,27 @@ PLANETARY_CRS = {
     },
     "enceladus": {
         "planetocentric": CRS("IAU_2015:60200"),
-        "planetographic": CRS(CRS("IAU_2015:60200").to_proj4() + " +axis=wnu"),
+        "planetographic": CRS.from_proj4(
+            CRS("IAU_2015:60200").to_proj4() + " +axis=wnu"
+        ),
     },
     "tethys": {
         "planetocentric": CRS("IAU_2015:60300"),
-        "planetographic": CRS(CRS("IAU_2015:60300").to_proj4() + " +axis=wnu"),
+        "planetographic": CRS.from_proj4(
+            CRS("IAU_2015:60300").to_proj4() + " +axis=wnu"
+        ),
     },
     "dione": {
         "planetocentric": CRS("IAU_2015:60400"),
-        "planetographic": CRS(CRS("IAU_2015:60400").to_proj4() + " +axis=wnu"),
+        "planetographic": CRS.from_proj4(
+            CRS("IAU_2015:60400").to_proj4() + " +axis=wnu"
+        ),
     },
     "rhea": {
         "planetocentric": CRS("IAU_2015:60500"),
-        "planetographic": CRS(CRS("IAU_2015:60500").to_proj4() + " +axis=wnu"),
+        "planetographic": CRS.from_proj4(
+            CRS("IAU_2015:60500").to_proj4() + " +axis=wnu"
+        ),
     },
     "iapetus": {
         "planetocentric": CRS("IAU_2015:60800"),
@@ -80,6 +90,7 @@ DEFAULT_CRS = {
     "dione": "planetographic",
     "rhea": "planetographic",
     "iapetus": "planetographic",
+    "mercury": "planetographic",
 }
 
 ALL_BODIES = list(PLANETARY_CRS.keys())

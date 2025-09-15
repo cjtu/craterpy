@@ -129,9 +129,6 @@ class CraterDatabase:
         mul = 1000 if units == "km" else 1  # Convert km -> m
         self.data["_radius_m"] = pd.to_numeric(self.data[rcol]) * mul / div
 
-        # # Ensure lon is in -180 to 180
-        # self.data["_lon"] = ch.lon360(self.lon)
-
     def __repr__(self):
         attrs = ", ".join([p for p in self._get_properties() if not p.startswith("_")])
         return f"CraterDatabase of length {len(self.data)} with attributes {attrs}."
@@ -531,7 +528,7 @@ class CraterDatabase:
         if isinstance(index, pd.Index):
             gdf = gdf.loc[index]
 
-        # TODO: find a way to display these
+        # TODO: Display in AzEq projection instead to show antimeridian crossing and polar rois
         # Filter out polar or antimeridian crossing rois
         polar = (gdf.bounds.miny < -89) | (gdf.bounds.maxy > 89)
         oob = gdf.bounds.maxx - gdf.bounds.minx >= 300
@@ -585,27 +582,34 @@ class CraterDatabase:
             subplot_kw={"projection": pc},
             gridspec_kw={"wspace": 0.4, "hspace": 0.2},
         )
-        for geom, roi, ax in zip(gdf.geometry, rois, axes.flatten(), strict=False):
-            img = roi["mini_raster_array"]
+        i = 0
+        axs = np.atleast_1d(axes).flatten()
+        while i < n:
+            print(i, n)
+            # for i, (geom, roi, ax) in enumerate(zip(gdf.geometry, rois, axes.flatten(), strict=False)):
+            img = next(rois)["mini_raster_array"]
+            if img.count() == 0:
+                n -= 1
+                continue
+            geom = gdf.geometry.iloc[i]
             extent = ch.bbox2extent(geom.bounds)
-            ax.imshow(img, extent=extent, aspect="auto", **im_kw)
-            ax.add_feature(ShapelyFeature(geom, crs=pc, **shp_kw))
-
-        # Delete the unused axes
-        n = len(index)
-        for i in range(n, 3 * rows):
-            fig.delaxes(axes.flatten()[i])
-
-        for ax in np.atleast_1d(axes).flatten():
-            # Parse gridline kws, overwrite defaults if given
-            grid_kw = {} if grid_kw is None else grid_kw
-            gl_kw = {"draw_labels": True, "dms": False, "ls": "--", "alpha": 0.5}
-            gl_kw = {**gl_kw, **grid_kw}
-            gl = ax.gridlines(**gl_kw)
-            gl.top_labels = False
-            gl.right_labels = False
-            gl.xformatter = LONGITUDE_FORMATTER
-            gl.yformatter = LATITUDE_FORMATTER
+            axs[i].imshow(img, extent=extent, aspect="auto", **im_kw)
+            axs[i].add_feature(ShapelyFeature(geom, crs=pc, **shp_kw))
+            i += 1
+        # Format valid axes, delete unused axes
+        for i, ax in enumerate(axs):
+            if i >= n:
+                fig.delaxes(ax)
+            else:
+                # Parse gridline kws, overwrite defaults if given
+                grid_kw = {} if grid_kw is None else grid_kw
+                gl_kw = {"draw_labels": True, "dms": False, "ls": "--", "alpha": 0.5}
+                gl_kw = {**gl_kw, **grid_kw}
+                gl = ax.gridlines(**gl_kw)
+                gl.top_labels = False
+                gl.right_labels = False
+                gl.xformatter = LONGITUDE_FORMATTER
+                gl.yformatter = LATITUDE_FORMATTER
         return axes
 
     @classmethod
