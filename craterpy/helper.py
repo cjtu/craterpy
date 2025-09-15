@@ -16,7 +16,7 @@ from rasterstats import zonal_stats
 from scipy.spatial import cKDTree
 from shapely.geometry import MultiPolygon, Point, Polygon
 from shapely.ops import transform
-from tqdm import tqdm
+from tqdm.autonotebook import tqdm
 
 # Suppress warnings
 warnings.filterwarnings("ignore", category=antimeridian.FixWindingWarning)
@@ -220,13 +220,6 @@ def inglobal(lat, lon):
 
     """
     return (-90 <= lat <= 90) and (0 <= lon360(lon) <= 360)
-
-
-def fix_xy_order_crs(x, y, crs):
-    """Swap lon (x) and lat (y) if crs axis order expects lat (y) first."""
-    if "lat" in str(pyproj.CRS.from_user_input(crs).axis_info[0]).lower():
-        return y, x
-    return x, y
 
 
 # Shape geometry helpers

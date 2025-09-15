@@ -114,4 +114,10 @@ def get_crs(body: str, system: str | CRS = "default") -> CRS:
             )
             return CRS(PLANETARY_CRS[body][system])
         except KeyError as err:
-            raise ValueError(f"Unknown body '{body}' or system '{system}'.") from err
+            if body not in PLANETARY_CRS:
+                raise ValueError(
+                    f"Body '{body}' is not supported. Choose one of {ALL_BODIES} or open a feature request."
+                ) from err
+            raise ValueError(
+                f"Unknown Planetary body and system combo: '{body}', '{system}'."
+            ) from err
