@@ -1,24 +1,23 @@
 # Craterpy API Documentation
 
-## The CraterDatabase
+## CraterDatabase
 
 ```{eval-rst}
 .. autoclass:: craterpy.classes.CraterDatabase
     :members:
 ```
-<!-- TODO: update plotting and helper docs
-## Plotting module
+
+## CRS handling
 
 ```{eval-rst}
-.. automodule:: craterpy.plotting
+.. automodule:: craterpy.crs
     :members:
-    :undoc-members:
 ```
 
-## Helper functions
+## Helper
 
 ```{eval-rst}
 .. automodule:: craterpy.helper
     :members:
     :undoc-members:
-``` -->
+```
