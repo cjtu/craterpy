@@ -52,17 +52,17 @@ Note: Craterpy is not a crater detection algorithm (e.g. [PyCDA](https://github.
 
 ## Quickstart
 
-Install with `pip install craterpy` then follow the full worked example in the docs [Getting Started](https://craterpy.readthedocs.io/latest/getting_started.html).
+Install with `pip install craterpy` then see example usage at [Getting Started](https://craterpy.readthedocs.io/latest/getting_started.html).
 
 ## Demo
 
 Quickly import tabluar crater data from a CSV and visualize it on a geotiff in 2 lines of code:
 
 ```python
-from craterpy import CraterDatabase, sample_data
+from craterpy import CraterDatabase, sample_data as sd
 
-cdb = CraterDatabase(sample_data['vesta_craters.csv'], 'Vesta', units='m')
-cdb.plot(sample_data['vesta.tif'], alpha=0.5, color='tab:green')
+cdb = CraterDatabase(sd['vesta_craters_km.csv'], 'Vesta', units='km')
+cdb.plot(sd['vesta.tif'], alpha=0.5, color='tab:green', savefig='readme_vesta_cdb.png')
 ```
 
 ![Vesta map plot](https://github.com/cjtu/craterpy/raw/main/docs/_images/readme_vesta_cdb.png)
@@ -70,8 +70,8 @@ cdb.plot(sample_data['vesta.tif'], alpha=0.5, color='tab:green')
 Clip and plot targeted regions around each crater from large raster datasets.
 
 ```python
-cdb.add_circles('crater_rois', 3)
-cdb.plot_rois(sample_data['vesta.tif'], 'crater_rois', range(1500, 1503))
+cdb.add_circles('crater_roi', 1.5)
+cdb.plot_rois(sd['vesta.tif'], 'crater_roi', range(3, 12))
 ```
 
 ![Vesta plot rois](https://github.com/cjtu/craterpy/raw/main/docs/_images/readme_vesta_rois.png)
@@ -79,22 +79,28 @@ cdb.plot_rois(sample_data['vesta.tif'], 'crater_rois', range(1500, 1503))
 Extract zonal statistics for crater regions of interest.
 
 ```python
-# Import lunar crater and define the floor and rim
-cdb = CraterDatabase(sample_data['moon_craters.csv'], 'Moon', units='km')
-cdb.add_annuli("floor", 0.4, 0.8)  # Crater floor (exclude central peak and rim)
-cdb.add_annuli("rim", 0.9, 1.1)  # Thin annulus at crater rim
+import pandas as pd
+from craterpy import CraterDatabase, sample_data as sd
+df = df = pd.read_csv(sd["moon_craters_km.csv"])
+cdb = CraterDatabase(df[df["Diameter (km)"] < 60], "Moon", units="km")
 
-# Compute summary statistics for every ROI see docs for supported stats
-stats = cdb.get_stats(sample_data['moon_dem.tif'], regions=['floor', 'rim'], stats=['median'])
+# Define regions for crater floor, rim (sizes in crater radii)
+cdb.add_annuli("floor", 0.4, 0.6)  # crater floor, excluding possible central peak
+cdb.add_annuli("rim", 0.99, 1.01)  # thin annulus at rim
 
-# Compute crater depth as rim elevation - floor elevation
-stats['depth (m)'] = (stats.median_rim - stats.median_floor)
-print(stats.head(3).round(2))
+# Pull statistics from a Lunar Digital Elevation Model (DEM) GeoTiff
+stats = cdb.get_stats(sd["moon_dem.tif"], regions=['floor', 'rim'], stats=['mean'])
 
-# Name     Rad      Lat     Lon     median_floor  median_rim  depth (m)
-# Olbers D  50.015  10.23  -78.03      -1452.50    -1322.88     129.62
-# Schuster   50.04   4.44  146.42        445.58     1976.97    1531.39
-# Gilbert  50.125  -3.20   76.16      -2213.66     -731.64    1482.02
+# Use mean elevations to compute depth (rim to floor)
+stats['crater_depth (m)'] = (stats.mean_rim - stats.mean_floor)
+print(stats.head().to_string(float_format='%.1f', index=False))
+
+#  Diameter (km)  Latitude  Longitude  mean_floor  mean_rim  crater_depth (m)
+#           60.0      19.4     -146.5      6070.0   10792.9            4722.9
+#           60.0      44.2      145.3      -976.4    3114.0            4090.4
+#           60.0     -43.6       -7.5     -3617.5     186.8            3804.4
+#           60.0      -9.6      134.7      1843.4    6127.9            4284.4
+#           59.9     -25.3        2.4     -2634.2    -945.0            1689.1
 ```
 
 ## Documentation

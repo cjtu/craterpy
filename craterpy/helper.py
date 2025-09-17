@@ -174,8 +174,6 @@ def greatcircdist(lat1, lon1, lat2, lon2, radius):
 
     Examples
     --------
-    .. code-block:: doctest
-
         >>> greatcircdist(36.12, -86.67, 33.94, -118.40, 6372.8)
         2887.259950607111
 
@@ -209,8 +207,6 @@ def inglobal(lat, lon):
 
     Examples
     --------
-    .. code-block:: doctest
-
         >>> inglobal(0, 0)
         True
         >>> inglobal(91, 0)
@@ -557,8 +553,6 @@ def findcol(df, names, exact=False):
 
     Examples
     --------
-    .. code-block:: doctest
-
         >>> df = pd.DataFrame({'Lat': [10, -20., 80.0],
                             'Lon': [14, -40.1, 317.2],
                             'Diam': [2, 12., 23.7]})
@@ -640,8 +634,6 @@ def latlon_to_cartesian(lat, lon, radius):
 
     Examples
     --------
-    .. code-block:: doctest
-
         >>> latlon_to_cartesian(0, 0, 1)
         (1.0, 0.0, 0.0)
 

@@ -319,8 +319,7 @@ class CraterDatabase:
 
         Returns
         -------
-        ax : matplotlib.Axes
-            Original axes, now with data plotted.
+        ax : matplotlib.Axes, cartopy.mpl.geoaxes.GeoAxes
         """
         ellipsoid = ccrs.CRS(self._crs).ellipsoid
         globe = ccrs.Globe(
