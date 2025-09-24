@@ -91,16 +91,22 @@ class TestCraterDatabase(unittest.TestCase):
 
     def test_vesta_coord_correction(self):
         """Test Vesta's various coordinate systems."""
-        df = pd.DataFrame({"lat": [0, -1.6], "lon": [-90, 146], "radius": [1, 2]})
-        cdb = CraterDatabase(df, "vesta", "claudia_dp")  # 0 offset
-        self.assertEqual(cdb.lon.iloc[0], -90)
+        df = pd.DataFrame({"lat": [0, -1.6], "lon": [0, 146], "radius": [1, 2]})
+        cdb = CraterDatabase(df, "vesta", "claudia_dp")
+        self.assertEqual(cdb.lon.iloc[0], 0)
         self.assertEqual(cdb.lon.iloc[1], 146)
-        cdb = CraterDatabase(df, "vesta", "claudia_p")  # -10
-        self.assertAlmostEqual(cdb.lon.iloc[0], -100)
-        self.assertAlmostEqual(cdb.lon.iloc[1], 136)
-        cdb = CraterDatabase(df, "vesta", "dawn_claudia")  # +210
-        self.assertAlmostEqual(cdb.lon.iloc[0], 120)
-        self.assertAlmostEqual(cdb.lon.iloc[1], -4)
+
+        # Claudia Prime, Claudia crater at 136 E
+        df = pd.DataFrame({"lat": [0, -1.6], "lon": [0, 136], "radius": [1, 2]})
+        cdb = CraterDatabase(df, "vesta", "claudia_p")
+        self.assertAlmostEqual(cdb.lon.iloc[0], 10)
+        self.assertAlmostEqual(cdb.lon.iloc[1], 146)
+
+        # Dawn Claudia Prime, Claudia crater at 356 E
+        df = pd.DataFrame({"lat": [0, -1.6], "lon": [0, 356], "radius": [1, 2]})
+        cdb = CraterDatabase(df, "vesta", "dawn_claudia")
+        self.assertAlmostEqual(cdb.lon.iloc[0], 150)
+        self.assertAlmostEqual(cdb.lon.iloc[1], 146)
 
     def test_units(self):
         """Test importing with radii in m or km."""

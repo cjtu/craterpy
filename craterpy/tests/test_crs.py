@@ -52,11 +52,11 @@ class TestCraterDatabase(unittest.TestCase):
 
         # Test Claudia Prime (10° W offset)
         crs_cp = get_crs("vesta", "claudia_p")
-        self.assertIn("+lon_0=-10", crs_cp.to_proj4())
+        self.assertIn("+lon_0=10", crs_cp.to_proj4())
 
         # Test Dawn Claudia (210° E offset)
         crs_dc = get_crs("vesta", "dawn_claudia")
-        self.assertIn("+lon_0=210", crs_dc.to_proj4())
+        self.assertIn("+lon_0=-210", crs_dc.to_proj4())
 
         # Test invalid vesta system raises ValueError
         with self.assertRaises(ValueError):

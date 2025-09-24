@@ -1,6 +1,6 @@
 [project]
 name = "craterpy"
-version = "0.9.5"
+version = "0.9.6"
 description = "Impact crater data science in Python."
 readme = "README.md"
 authors = [
