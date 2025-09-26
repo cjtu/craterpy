@@ -4,12 +4,17 @@ message: "If you use this software, please cite it as below."
 authors:
 - family-names: "Tai Udovicic"
   given-names: "Christian J."
-  affiliation: University of Hawaii at Manoa
+  affiliation: "Hawaiʻi Institute of Geophysics and Planetology, School of Ocean and Earth Science and Technology, University of Hawaiʻi at Manoa, Honolulu, HI, United States of America"
   orcid: "https://orcid.org/0000-0001-9972-1534"
 - family-names: "Essunfeld"
   given-names: "Ari"
+  affiliation: "Los Alamos National Laboratory, Los Alamos, NM, United States of America"
   orcid: "https://orcid.org/0000-0001-8689-0734"
-title: "Craterpy"
+- family-names: "Costello"
+  given-names: "Emily S."
+  affiliation: "Hawaiʻi Institute of Geophysics and Planetology, School of Ocean and Earth Science and Technology, University of Hawaiʻi at Manoa, Honolulu, HI, United States of America"
+  orcid: "https://orcid.org/0000-0001-7939-9867"
+title: "Craterpy: Impact crater data science in Python"
 doi: 10.5281/zenodo.830057
 url: "https://github.com/cjtu/craterpy"
 license: MIT
