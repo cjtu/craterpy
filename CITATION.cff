@@ -1,20 +1,38 @@
 cff-version: 1.2.0
-type: software
-message: "If you use this software, please cite it as below."
 authors:
-- family-names: "Tai Udovicic"
-  given-names: "Christian J."
-  affiliation: "Hawaiʻi Institute of Geophysics and Planetology, School of Ocean and Earth Science and Technology, University of Hawaiʻi at Manoa, Honolulu, HI, United States of America"
+- family-names: Tai Udovicic
+  given-names: Christian J.
   orcid: "https://orcid.org/0000-0001-9972-1534"
-- family-names: "Essunfeld"
-  given-names: "Ari"
-  affiliation: "Los Alamos National Laboratory, Los Alamos, NM, United States of America"
+- family-names: Essunfeld
+  given-names: Ari
   orcid: "https://orcid.org/0000-0001-8689-0734"
-- family-names: "Costello"
-  given-names: "Emily S."
-  affiliation: "Hawaiʻi Institute of Geophysics and Planetology, School of Ocean and Earth Science and Technology, University of Hawaiʻi at Manoa, Honolulu, HI, United States of America"
+- family-names: Costello
+  given-names: Emily S.
   orcid: "https://orcid.org/0000-0001-7939-9867"
+doi: 10.5281/zenodo.17211085
+message: If you use this software, please cite our article in the
+  Journal of Open Source Software.
+preferred-citation:
+  authors:
+  - family-names: Tai Udovicic
+    given-names: Christian J.
+    orcid: "https://orcid.org/0000-0001-9972-1534"
+  - family-names: Essunfeld
+    given-names: Ari
+    orcid: "https://orcid.org/0000-0001-8689-0734"
+  - family-names: Costello
+    given-names: Emily S.
+    orcid: "https://orcid.org/0000-0001-7939-9867"
+  date-published: 2025-09-29
+  doi: 10.21105/joss.08663
+  issn: 2475-9066
+  issue: 113
+  journal: Journal of Open Source Software
+  publisher:
+    name: Open Journals
+  start: 8663
+  title: "Craterpy: Impact crater data science in Python"
+  type: article
+  url: "https://joss.theoj.org/papers/10.21105/joss.08663"
+  volume: 10
 title: "Craterpy: Impact crater data science in Python"
-doi: 10.5281/zenodo.830057
-url: "https://github.com/cjtu/craterpy"
-license: MIT

@@ -4,31 +4,29 @@
 
 <div align="center">
   <!-- PYPI version -->
-  <a href="https://badge.fury.io/py/craterpy">
-    <img src="https://badge.fury.io/py/craterpy.svg"
-      alt="PYPI version" />
+  <a href="https://pypi.org/project/craterpy">
+    <img alt="PyPI badge" src="https://img.shields.io/pypi/v/craterpy">
   </a>
-  <!-- Code quality and testing (CI) -->
-  <a href="https://github.com/cjtu/craterpy/actions">
-    <img src="https://github.com/cjtu/craterpy/workflows/Code%20Quality%20Checks/badge.svg"
-      alt="Code Quality Checks" />
+  <!-- Tests (GitHub Actions CI) -->
+  <a href="https://github.com/cjtu/craterpy/actions/workflows/test.yml">
+    <img src="https://github.com/cjtu/craterpy/actions/workflows/test.yml/badge.svg"
+      alt="Tests badge" />
   </a>
   <!-- Test Coverage (codecov) -->
   <a href="https://codecov.io/gh/cjtu/craterpy">
     <img src="https://codecov.io/gh/cjtu/craterpy/branch/main/graph/badge.svg?token=9K567x0YUJ"
-      alt="Code Coverage" />
+      alt="Codecov badge" />
+  </a>
+  <a href="https://github.com/astral-sh/ruff">
+    <img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json"
+      alt="Ruff badge" />
   </a>
 </div>
 <div align="center">
-  <!-- Zenodo citation -->
-  <a href="https://zenodo.org/badge/latestdoi/88457986">
-    <img src="https://zenodo.org/badge/88457986.svg"
-      alt="Cite on Zenodo" />
-  </a>
   <!-- ReadTheDocs -->
   <a href="http://craterpy.readthedocs.io/latest/?badge=latest">
     <img src="http://readthedocs.org/projects/craterpy/badge/?version=latest"
-      alt="Cite on Zenodo" />
+      alt="Docs badge" />
   </a>
   <!-- Code of Conduct -->
   <a href="CODE_OF_CONDUCT.md">
@@ -36,14 +34,21 @@
       alt="Contributor Covenant" />
       </a>
 </div>
+<div align="center">
+  <!-- JOSS badge -->
+  <a style="border-width:0" href="https://doi.org/10.21105/joss.08663">
+    <img src="https://joss.theoj.org/papers/10.21105/joss.08663/status.svg" alt="DOI badge" >
+  </a>
+</div>
 
 # Overview
 
 Craterpy makes it easier to work with impact crater data in Python. Highlights:
 
-- convert a table of crater data to a GeoDataFrame or GIS-ready shapefile
-- extract zonal statistics associated with each crater in circlular or annular regions (rasterstats)
+- convert a table of crater coordinates and sizes to a GeoDataFrame or GIS-ready shapefile
+- extract zonal statistics associated with each crater in circlular or annular regions (with [rasterstats](https://pythonhosted.org/rasterstats/))
 - eliminate some pain points of planetary GIS analysis (antimeridian wrapping, projection conversions, etc.)
+- supports all roughly spherical cratered bodies ([examples](https://craterpy.readthedocs.io/latest/planetary_body_examples.html))
 
 Note: Craterpy is not a crater detection algorithm (e.g. [PyCDA](https://github.com/AlliedToasters/PyCDA)), nor is it a crater count age dating tool (see [craterstats](https://github.com/ggmichael/craterstats)).
 
@@ -103,6 +108,26 @@ print(stats.head().to_string(float_format='%.1f', index=False))
 #           59.9     -25.3        2.4     -2634.2    -945.0            1689.1
 ```
 
+## Cite This Repository
+
+If you use this project in your research, please cite the [JOSS paper](https://doi.org/10.21105/joss.08663) as below:
+
+> Tai Udovicic et al., (2025). Craterpy: Impact crater data science in Python. Journal of Open Source Software, 10(113), 8663, https://doi.org/10.21105/joss.08663
+
+```bibtex
+@article{craterpy2025, 
+doi = {10.21105/joss.08663},
+author = {Tai Udovicic, Christian J. and Essunfeld, Ari and Costello, Emily S.},
+title = {Craterpy: Impact crater data science in Python},
+journal = {Journal of Open Source Software},
+url = {https://doi.org/10.21105/joss.08663},
+year = {2025},
+publisher = {The Open Journal},
+volume = {10},
+number = {113},
+pages = {8663}}
+```
+
 ## Documentation
 
 Full API documentation and usage examples are available at [ReadTheDocs](https://craterpy.readthedocs.io/).
@@ -115,7 +140,7 @@ We recommend pip installing craterpy into a virtual environment, e.g. with `cond
 ```bash
 pip install craterpy
 ```
-- **Note**: Craterpy is currently only tested on Ubuntu and OS X but may work on some versions of Windows. 
+- **Note**: Craterpy is tested on latest long-term support versions of Windows, OS X and Ubuntu, and Python version 3.10 and up.
 
 ## Contributing
 
@@ -124,7 +149,3 @@ There are two major ways you can help improve craterpy:
 - Report bugs or request new features on the [issues](https://github.com/cjtu/craterpy/issues) board.
 
 - Contributing directly. See [CONTRIBUTING.rst](https://github.com/cjtu/craterpy/blob/main/CONTRIBUTING.rst) for full details. First time open source contributors are welcome!
-
-## Citing craterpy
-
-Craterpy is [MIT Licenced](https://github.com/cjtu/craterpy/blob/master/LICENSE.txt) and is free to use with attribution. Citation information can be found [here](https://zenodo.org/badge/latestdoi/88457986).
