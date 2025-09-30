@@ -39,10 +39,11 @@ keywords = [
 ]
 
 [project.urls]
-"Bug Tracker" = "https://github.com/cjtu/craterpy/issues"
-homepage = "https://github.com/cjtu/craterpy"
-repository = "https://github.com/cjtu/craterpy"
-documentation = "https://readthedocs.org/projects/craterpy/"
+"JOSS Paper" = "https://doi.org/10.21105/joss.08663"
+"Issue Tracker" = "https://github.com/cjtu/craterpy/issues"
+Homepage = "https://github.com/cjtu/craterpy"
+Repository = "https://github.com/cjtu/craterpy"
+Documentation = "https://readthedocs.org/projects/craterpy/"
 
 [dependency-groups]
 dev = [
