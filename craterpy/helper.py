@@ -10,8 +10,8 @@ import numpy as np
 import pandas as pd
 import pyproj
 from joblib import Parallel, delayed
-from pyproj.crs import ProjectedCRS
-from pyproj.crs.coordinate_operation import AzimuthalEquidistantConversion
+from planetarypy.crs import local_crs
+from planetarypy.geo import split_at_antimeridian
 from rasterstats import zonal_stats
 from scipy.spatial import cKDTree
 from shapely.geometry import MultiPolygon, Point, Polygon
@@ -287,30 +287,35 @@ def create_single_annulus(
     shapely.geometry.Polygon
         Annulus polygon in geodetic coordinates.
     """
-    # Create a local azimuthal equidistant projection for the crater
-    local_crs = ProjectedCRS(
-        name=f"AzimuthalEquidistant({center.y:.2f}N, {center.x:.2f}E)",
-        conversion=AzimuthalEquidistantConversion(center.y, center.x),
-        geodetic_crs=geodetic_crs,
-    )
+    # Build a local azimuthal equidistant projection centered on the crater,
+    # delegating CRS construction to planetarypy (single IAU source of truth).
+    local = local_crs(center.x, center.y, _naif_from_crs(geodetic_crs))
 
     # Generate the buffer in the local, flat projection
-    # Assumes self._get_annular_buffer is available or moved here
     buf = get_annular_buffer(Point(0, 0), rad, inner, outer, **kwargs)
 
     # Create transformer and unproject the buffer to the geodetic CRS
     to_geodetic = pyproj.Transformer.from_crs(
-        local_crs, geodetic_crs, always_xy=True
+        local, geodetic_crs, always_xy=True
     ).transform
     annulus = transform(to_geodetic, buf)
 
-    # Fix antimeridian wrapping if necessary
+    # Split/fix geometry that wraps the antimeridian or covers a pole. The span
+    # gate keeps the common non-crossing case (including annuli with an inner
+    # hole) on the untouched path; split_at_antimeridian rebuilds the exterior
+    # only, so it must not run on geometry that doesn't actually wrap.
     if annulus.bounds[2] - annulus.bounds[0] >= 300:
-        annulus = fix_antimeridian_wrap(
-            annulus, rad, outer, geodetic_crs, local_crs, **kwargs
-        )
+        parts = split_at_antimeridian(list(annulus.exterior.coords)[:-1])
+        if parts:
+            annulus = parts[0] if len(parts) == 1 else MultiPolygon(parts)
 
     return annulus
+
+
+def _naif_from_crs(crs) -> int:
+    """Return the NAIF id encoded in an IAU geodetic CRS (code = naif * 100)."""
+    authority = pyproj.CRS(crs).to_authority()
+    return int(authority[1]) // 100
 
 
 def get_annular_buffer(point: Point, rad: float, inner: float, outer: float, **kwargs):
@@ -348,53 +353,6 @@ def get_annular_buffer(point: Point, rad: float, inner: float, outer: float, **k
         return outer_poly
     inner_poly = point.buffer(inner_scaled, quad_segs=nvert // 4)
     return outer_poly.difference(inner_poly)
-
-
-def fix_antimeridian_wrap(
-    annulus, rad: float, outer: float, geodetic_crs, local_crs, **kwargs
-) -> Polygon | MultiPolygon:
-    """
-    Corrects polygons that wrap incorrectly across the antimeridian.
-
-    Checks if the generated annulus covers the North or South pole and applies
-    antimeridian fixing logic to ensure valid geometry.
-
-    Parameters
-    ----------
-    annulus : shapely.geometry.Polygon
-        Annulus polygon in geodetic coordinates.
-    rad : float
-        Crater radius in projection units.
-    outer : float
-        Outer radius scaling factor (relative to crater radius).
-    geodetic_crs : pyproj.CRS
-        Geodetic coordinate reference system.
-    local_crs : pyproj.CRS
-        Local projected coordinate reference system.
-    **kwargs
-        Additional keyword arguments for buffer creation (e.g. nvert).
-
-    Returns
-    -------
-    shapely.geometry.Polygon
-        Corrected polygon with proper antimeridian handling.
-    """
-    to_projected = pyproj.Transformer.from_crs(
-        geodetic_crs, local_crs, always_xy=True
-    ).transform
-
-    # Create a solid buffer (from radius 0 to outer) for pole checking
-    solid_buffer = get_annular_buffer(Point(0, 0), rad, 0, outer, **kwargs)
-
-    # Check if North or South pole is contained within the buffer
-    covers_north_pole = solid_buffer.contains(transform(to_projected, Point(0, 90)))
-    covers_south_pole = solid_buffer.contains(transform(to_projected, Point(0, -90)))
-
-    return antimeridian.fix_polygon(
-        annulus,
-        force_north_pole=covers_north_pole,
-        force_south_pole=covers_south_pole,
-    )
 
 
 def compute_zonal_stats(geometries, raster, suffix: str = "", **kwargs) -> pd.DataFrame:
