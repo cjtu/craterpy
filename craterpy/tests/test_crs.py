@@ -5,7 +5,7 @@ import unittest
 import pyproj
 from pyproj import CRS
 
-from craterpy.crs import ALL_BODIES, PLANETARY_CRS, get_crs
+from craterpy.crs import ALL_BODIES, get_crs
 
 
 class TestCraterDatabase(unittest.TestCase):
@@ -16,6 +16,15 @@ class TestCraterDatabase(unittest.TestCase):
         for body in ALL_BODIES:
             crs = get_crs(body, "default")
             self.assertIsInstance(crs, pyproj.CRS)
+
+    def test_standard_body_delegates_to_planetarypy(self):
+        """Standard ocentric/ographic CRS come from planetarypy's IAU authority."""
+        # Mars planetocentric -> IAU_2015 ocentric code (naif*100 + 0)
+        self.assertEqual(
+            get_crs("mars", "planetocentric").to_authority(), ("IAU_2015", "49900")
+        )
+        # Moon default is planetocentric
+        self.assertEqual(get_crs("moon").to_authority(), ("IAU_2015", "30100"))
 
     def test_crs_nondefault(self):
         """Test other defined CRSes."""
@@ -48,7 +57,7 @@ class TestCraterDatabase(unittest.TestCase):
         """Test longitude conversion between the various vesta coord systems."""
         # Test Claudia Double Prime (IAU_2015 standard, 0° offset)
         crs_cdp = get_crs("vesta", "claudia_dp")
-        self.assertEqual(crs_cdp, PLANETARY_CRS["vesta"]["claudia_dp"])
+        self.assertEqual(crs_cdp.to_authority(), ("IAU_2015", "200000400"))
 
         # Test Claudia Prime (10° W offset)
         crs_cp = get_crs("vesta", "claudia_p")

@@ -20,6 +20,7 @@ dependencies = [
     "antimeridian<1.0.0,>=0.4.0",
     "tqdm>=4.67.1",
     "joblib>=1.5.2",
+    # "planetarypy>=x.y.z",  # pin once released (see PR)
 ]
 classifiers = [
     "Development Status :: 4 - Beta",

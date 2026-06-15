@@ -4,6 +4,7 @@
 *.pyc
 *.coverage*
 *coverage.xml
+*.local.md
 *.egg*
 __pycache__
 _build/
