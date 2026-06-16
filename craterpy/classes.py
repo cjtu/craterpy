@@ -54,6 +54,11 @@ class CraterDatabase:
         body: str,
         input_crs: str | CRS = "default",
         units: str = "m",
+        *,
+        lat_col: str | None = None,
+        lon_col: str | None = None,
+        rad_col: str | None = None,
+        diam_col: str | None = None,
     ):
         """
         Initialize a CraterDatabase.
@@ -70,12 +75,21 @@ class CraterDatabase:
             or a valid pyproj.CRS object.
         units : str
             Length units of radius/diameter column, 'm' or 'km' (default: 'm')
+        lat_col, lon_col : str, optional
+            Names of the latitude/longitude columns. If omitted, they are
+            auto-detected from common names.
+        rad_col, diam_col : str, optional
+            Name of the radius or diameter column (pass only one). If omitted, a
+            radius/diameter column is auto-detected from common names.
 
         Raises
         ------
             ValueError
-                If dataset is not a file or is not a pandas.DataFrame.
+                If dataset is not a file or is not a pandas.DataFrame, if both
+                rad_col and diam_col are given, or if a named column is missing.
         """
+        if rad_col is not None and diam_col is not None:
+            raise ValueError("Specify only one of rad_col or diam_col.")
         self.body = body.lower()
         self._crs = get_crs(self.body, "planetocentric")
         self._input_crs = get_crs(body, input_crs)
@@ -89,11 +103,19 @@ class CraterDatabase:
             raise ValueError("Could not read crater dataset.")
         self.orig_cols = in_data.columns
 
+        for col in (lat_col, lon_col, rad_col, diam_col):
+            if col is not None and col not in in_data.columns:
+                raise ValueError(f"Column '{col}' not found in dataset.")
+
         # Find lat, lon coord columns and create the point geometry
         # TODO: get centroid from geometry instead, if exists (need to handle antimeridian wrap)
         in_data = in_data.drop(columns="geometry", errors="ignore")
-        lats = pd.to_numeric(in_data[ch.findcol(in_data, ["latitude", "lat"])])
-        lons = pd.to_numeric(in_data[ch.findcol(in_data, ["longitude", "lon"])])
+        lats = pd.to_numeric(
+            in_data[lat_col or ch.findcol(in_data, ["latitude", "lat"])]
+        )
+        lons = pd.to_numeric(
+            in_data[lon_col or ch.findcol(in_data, ["longitude", "lon"])]
+        )
 
         # Create main GeoDataFrame with geometry coords in input_crs then standardize to self._crs
         transformer = Transformer.from_crs(self._input_crs, self._crs, always_xy=True)
@@ -113,9 +135,15 @@ class CraterDatabase:
         self.data["_lat"] = self.data.geometry.y
         self.data["_lon"] = self.data.geometry.x
 
-        # Look for radius / diam column, store as _radius_m
-        rcol = ch.find_rad_or_diam_col(self.data)
-        div = 2 if rcol.lower().startswith("d") else 1  # diam -> rad conversion
+        # Look for radius / diam column, store as _radius_m. An explicit rad_col
+        # or diam_col fixes the column (and whether to halve), else auto-detect.
+        if rad_col is not None:
+            rcol, div = rad_col, 1
+        elif diam_col is not None:
+            rcol, div = diam_col, 2
+        else:
+            rcol = ch.find_rad_or_diam_col(self.data)
+            div = 2 if rcol.lower().startswith("d") else 1  # diam -> rad conversion
         mul = 1000 if units == "km" else 1  # Convert km -> m
         self.data["_radius_m"] = pd.to_numeric(self.data[rcol]) * mul / div
 
