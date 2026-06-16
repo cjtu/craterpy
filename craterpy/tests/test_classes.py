@@ -80,6 +80,28 @@ class TestCraterDatabase(unittest.TestCase):
         self.assertIn("count_dem_rim", stats.columns)
         self.assertFalse(any(stats["median_moon_rim"].isna()))
 
+    def test_get_arrays(self):
+        """Test getting the raw masked pixel arrays underlying a region."""
+        arrays = self.moon_cdb_rim.get_arrays(self.moon_tif, "rim")
+        self.assertIn("rim", arrays.columns)
+        self.assertIn("Latitude", arrays.columns)
+        first = arrays["rim"].iloc[0]
+        self.assertIsInstance(first, np.ma.MaskedArray)
+        # Underlying values let the user compute their own stats
+        self.assertAlmostEqual(
+            first.mean(),
+            self.moon_cdb_rim.get_stats(self.moon_tif, "rim")["mean_rim"].iloc[0],
+        )
+
+    def test_get_arrays_multi_rasters_regions(self):
+        """Test get_arrays for multiple rasters/regions yields a column each."""
+        arrays = self.moon_cdb_rim.get_arrays(
+            {"moon": self.moon_tif, "dem": self.moon_dem}, ["rim"], nodata=0
+        )
+        self.assertIn("moon_rim", arrays.columns)
+        self.assertIn("dem_rim", arrays.columns)
+        self.assertIsInstance(arrays["moon_rim"].iloc[0], np.ma.MaskedArray)
+
     def test_body_all_bodies_default_crs(self):
         """Test that every defined CRS loads."""
         for body in ALL_BODIES:

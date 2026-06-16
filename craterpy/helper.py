@@ -387,6 +387,29 @@ def compute_zonal_stats(geometries, raster, suffix: str = "", **kwargs) -> pd.Da
     return df.add_suffix(suffix)
 
 
+def _prep_rasters_regions(rasters, regions, nodata):
+    """Normalize rasters/regions/nodata into a {name: raster} dict, region list, nodata dict."""
+
+    def _name_raster(i, raster):
+        return Path(raster).name if isinstance(raster, str) else f"raster{i}"
+
+    if isinstance(rasters, dict):
+        rdict = rasters
+    elif isinstance(rasters, (tuple, list)):
+        # Set up dict for column naming. Choose filename if str, else "raster{i}" (e.g., if given file descriptors)
+        rdict = {
+            _name_raster(i, raster): Path(raster).as_posix()
+            for i, raster in enumerate(rasters)
+        }
+    else:
+        rdict = {"_": rasters}
+    if isinstance(regions, str):
+        regions = [regions]
+    if not isinstance(nodata, dict):
+        nodata = dict.fromkeys(rdict, nodata)
+    return rdict, regions, nodata
+
+
 def get_stats(
     gdf,
     rasters,
@@ -422,24 +445,7 @@ def get_stats(
         DataFrame containing the original crater columns along with appended
         statistics columns for each raster and region combination.
     """
-
-    def _name_raster(i, raster):
-        return Path(raster).name if isinstance(raster, str) else f"raster{i}"
-
-    if isinstance(rasters, dict):
-        rdict = rasters
-    elif isinstance(rasters, (tuple, list)):
-        # Set up dict for column naming. Choose filename if str, else "raster{i}" (e.g., if given file descriptors)
-        rdict = {
-            _name_raster(i, raster): Path(raster).as_posix()
-            for i, raster in enumerate(rasters)
-        }
-    else:
-        rdict = {"_": rasters}
-    if isinstance(regions, str):
-        regions = [regions]
-    if not isinstance(nodata, dict):
-        nodata = dict.fromkeys(rdict, nodata)
+    rdict, regions, nodata = _prep_rasters_regions(rasters, regions, nodata)
 
     total_tasks = len(rdict) * len(regions)
     # Create a list of tasks, where each task has all the info for one worker call
@@ -459,6 +465,80 @@ def get_stats(
     with tqdm_joblib(tqdm(desc="Computing Zonal Stats", total=total_tasks)):
         all_stats = Parallel(n_jobs=n_jobs)(tasks)
         return pd.concat(all_stats, axis=1)
+
+
+def compute_arrays(geometries, raster, suffix: str = "", **kwargs) -> pd.Series:
+    """
+    Return the masked pixel array clipped to each geometry from the raster.
+
+    See rasterstats.zonal_stats (raster_out=True).
+
+    Parameters
+    ----------
+    geometries : geopandas.GeoSeries
+        GeoSeries of geometry objects (e.g., shapely.Polygons).
+    raster : str or rasterio.DatasetReader
+        Raster file path or open raster dataset.
+    suffix : str, optional
+        Name to give the returned Series (default: "").
+    **kwargs
+        Additional keyword arguments to pass to rasterstats.zonal_stats (e.g., nodata).
+
+    Returns
+    -------
+    pandas.Series
+        Series of numpy.ma.MaskedArray, one clipped raster window per geometry.
+    """
+    zstats = zonal_stats(
+        geometries, raster, all_touched=True, raster_out=True, **kwargs
+    )
+    arrays = [z["mini_raster_array"] for z in zstats]
+    return pd.Series(arrays, index=geometries.index, name=suffix or None)
+
+
+def get_arrays(gdf, rasters, regions, nodata=None, n_jobs=-2):
+    """
+    Return the masked pixel arrays underlying zonal stats for all rasters and regions.
+
+    Each cell holds the numpy.ma.MaskedArray clipped to one geometry, so callers can
+    compute anything beyond the built-in zonal statistics.
+
+    Parameters
+    ----------
+    gdf : geopandas.GeoDataFrame
+        GeoDataFrame containing polygon regions as columns.
+    rasters : str, rasterio.DatasetReader, or dict of {str: str or rasterio.DatasetReader}
+        Single raster path or open raster dataset, or a mapping of names to rasters.
+    regions : str or list of str
+        Name or list of names of geometry columns in gdf to use as regions.
+    nodata : number, None, or dict of {str: number}, optional
+        Nodata value to use for masking, or mapping of raster names to their nodata values.
+    n_jobs : int, optional
+        Number of parallel worker processes to use.
+
+    Returns
+    -------
+    pandas.DataFrame
+        DataFrame with one column per raster-region combination; each cell is the
+        masked pixel array clipped to that geometry.
+    """
+    rdict, regions, nodata = _prep_rasters_regions(rasters, regions, nodata)
+
+    total_tasks = len(rdict) * len(regions)
+    tasks = []
+    for region_name in regions:
+        for raster_name, raster_file in rdict.items():
+            tasks.append(
+                delayed(compute_arrays)(
+                    geometries=gdf[region_name],
+                    raster=raster_file,
+                    nodata=nodata.get(raster_name),
+                    suffix=f"{raster_name}_{region_name}".strip("_"),
+                )
+            )
+    with tqdm_joblib(tqdm(desc="Extracting Arrays", total=total_tasks)):
+        all_arrays = Parallel(n_jobs=n_jobs)(tasks)
+        return pd.concat(all_arrays, axis=1)
 
 
 # Misc
