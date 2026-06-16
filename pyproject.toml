@@ -7,7 +7,7 @@ authors = [
     {name = "Christian J. Tai Udovicic", email = "cj.taiudovicic@gmail.com"},
 ]
 license = {text = "MIT"}
-requires-python = "<4.0,>=3.10"
+requires-python = "<4.0,>=3.11"
 dependencies = [
     "numpy<3.0.0,>=2.2.4",
     "matplotlib<4.0.0,>=3.10.1",
@@ -20,7 +20,7 @@ dependencies = [
     "antimeridian<1.0.0,>=0.4.0",
     "tqdm>=4.67.1",
     "joblib>=1.5.2",
-    # "planetarypy>=x.y.z",  # pin once released (see PR)
+    "planetarypy>=0.76",
 ]
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -29,7 +29,7 @@ classifiers = [
     "Natural Language :: English",
     "Operating System :: OS Independent",
     "Topic :: Scientific/Engineering :: Astronomy",
-    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
 ]
 keywords = [
     "python",
