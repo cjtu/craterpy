@@ -276,6 +276,34 @@ class CraterDatabase:
         results = ch.get_stats(self.data, rasters, regions, stats, nodata, n_jobs)
         return pd.concat([self.data[self.orig_cols], results], axis=1)
 
+    def get_arrays(self, rasters, regions, nodata=None, n_jobs=-2):
+        """
+        Return the masked pixel arrays underlying zonal stats for each region.
+
+        Like :meth:`get_stats`, but returns the raw clipped raster values rather than
+        computed statistics, so you can do your own analysis on the underlying data.
+
+        Parameters
+        ----------
+        rasters : str, rasterio.DatasetReader, or dict of {str: str or rasterio.DatasetReader}
+            Single raster path or open raster dataset, or a mapping of names to rasters.
+        regions : str or list of str
+            Name or list of names of geometry columns in the crater database to use as regions.
+        nodata : number, None, or dict of {str: number}, optional
+            Nodata value to use for masking, or mapping of raster names to their nodata values.
+        n_jobs : int, optional
+            Number of parallel worker processes to use.
+
+        Returns
+        -------
+        pandas.DataFrame
+            DataFrame with the original crater columns plus one column per
+            raster-region combination; each cell is the numpy.ma.MaskedArray of
+            pixel values clipped to that geometry.
+        """
+        results = ch.get_arrays(self.data, rasters, regions, nodata, n_jobs)
+        return pd.concat([self.data[self.orig_cols], results], axis=1)
+
     def plot(
         self,
         fraster=None,
