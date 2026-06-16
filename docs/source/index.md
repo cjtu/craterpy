@@ -9,6 +9,7 @@
 
 getting_started
 planetary_body_examples
+accessing_roi_arrays
 api
 ```
 
