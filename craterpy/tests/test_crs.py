@@ -42,6 +42,21 @@ class TestCraterDatabase(unittest.TestCase):
         with self.assertRaises(ValueError):
             get_crs("mars", "invalid_crs")
 
+    def test_input_crs_passthrough_forms(self):
+        """The CRS forms accepted as CraterDatabase input_crs pass through get_crs."""
+        expected = CRS.from_user_input("IAU_2015:200000100")  # Ceres ocentric
+
+        # 1. Authority code string
+        self.assertEqual(get_crs("ceres", "IAU_2015:200000100"), expected)
+
+        # 2. pyproj.CRS object
+        self.assertEqual(get_crs("ceres", expected), expected)
+
+        # 3. proj4 string (the Ceres sphere, R=487300 m)
+        crs = get_crs("ceres", "+proj=longlat +R=487300 +no_defs")
+        self.assertIsInstance(crs, pyproj.CRS)
+        self.assertEqual(crs.ellipsoid.semi_major_metre, 487300)
+
     def test_unknown_body_or_system(self):
         """Test raises error for unknown crs."""
         with self.assertRaises(ValueError):
