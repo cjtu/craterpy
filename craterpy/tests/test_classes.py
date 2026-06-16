@@ -158,6 +158,37 @@ class TestCraterDatabase(unittest.TestCase):
             cdb = CraterDatabase(test_df, "moon")
             self.assertEqual(cdb.rad.iloc[0], 10.0)
 
+    def test_custom_columns(self):
+        """Test selecting lat/lon/rad/diam columns explicitly by name."""
+        df = pd.DataFrame(
+            {
+                "y": [0.0],
+                "x": [10.0],
+                "diam_robbins": [10.0],
+                "diam_other": [99.0],  # ambiguous extra column, must be ignored
+            }
+        )
+        cdb = CraterDatabase(
+            df, "moon", lat_col="y", lon_col="x", diam_col="diam_robbins"
+        )
+        self.assertEqual(cdb.lat.iloc[0], 0.0)
+        self.assertEqual(cdb.lon.iloc[0], 10.0)
+        self.assertEqual(cdb.rad.iloc[0], 5.0)  # diam halved
+
+        # rad_col is used as-is (not halved)
+        cdb = CraterDatabase(
+            df, "moon", lat_col="y", lon_col="x", rad_col="diam_robbins"
+        )
+        self.assertEqual(cdb.rad.iloc[0], 10.0)
+
+    def test_custom_columns_errors(self):
+        """Test validation of the column-selection kwargs."""
+        df = pd.DataFrame({"lat": [0.0], "lon": [0.0], "radius": [1.0]})
+        with self.assertRaises(ValueError):
+            CraterDatabase(df, "moon", rad_col="radius", diam_col="radius")
+        with self.assertRaises(ValueError):
+            CraterDatabase(df, "moon", lat_col="nope")
+
     def test_bool_and_eq(self):
         """Test __bool__ and __eq__ methods."""
         # Test empty database
