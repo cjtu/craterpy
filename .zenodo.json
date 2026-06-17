@@ -1,0 +1,29 @@
+{
+  "upload_type": "software",
+  "access_right": "open",
+  "license": "MIT",
+  "title": "Craterpy: Impact crater data science in Python",
+  "creators": [
+    {
+      "name": "Tai Udovicic, Christian J.",
+      "orcid": "0000-0001-9972-1534"
+    },
+    {
+      "name": "Essunfeld, Ari",
+      "orcid": "0000-0001-8689-0734"
+    },
+    {
+      "name": "Costello, Emily S.",
+      "orcid": "0000-0001-7939-9867"
+    }
+  ],
+  "notes": "If you use this software in your research, please cite the JOSS paper: Tai Udovicic, C. J., Essunfeld, A., & Costello, E. S. (2025). Craterpy: Impact crater data science in Python. Journal of Open Source Software, 10(113), 8663. https://doi.org/10.21105/joss.08663 This work was supported by the NASA Discovery Data Analysis Program, grant 80NSSC24K0065.",
+  "related_identifiers": [
+    {
+      "identifier": "10.21105/joss.08663",
+      "relation": "isDocumentedBy",
+      "resource_type": "publication-article",
+      "scheme": "doi"
+    }
+  ]
+}
