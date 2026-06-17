@@ -10,6 +10,7 @@ import matplotlib.image as mpli
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import pyproj
 import rasterio as rio
 import shapely
 from cartopy.feature import ShapelyFeature
@@ -23,6 +24,27 @@ from craterpy.crs import get_crs
 
 # Default stats for rasterstats
 STATS = ("mean", "std", "count")
+
+
+def _img_transform(raster_crs, pc, bounds):
+    """Return the cartopy transform for displaying a raster on a geographic axis.
+
+    For a geographic (or unknown) raster CRS, the raster shares the axes
+    PlateCarree projection ``pc``. For a projected CRS, return a cartopy
+    Projection so cartopy warps the image into the geographic axes on draw.
+
+    ``bounds`` is the raster extent (xmin, xmax, ymin, ymax) in the raster CRS.
+    A custom (e.g. IAU) projected CRS has no ``area_of_use``, so cartopy can't
+    infer the projection domain; we set it explicitly from the raster bounds.
+    """
+    if raster_crs is None or pyproj.CRS.from_user_input(raster_crs).is_geographic:
+        return pc
+    proj = ccrs.Projection(pyproj.CRS.from_user_input(raster_crs))
+    if proj.bounds is None:
+        x0, x1, y0, y1 = bounds
+        proj.bounds = (x0, x1, y0, y1)
+        proj.threshold = min(x1 - x0, y1 - y0) / 100
+    return proj
 
 
 class CraterDatabase:
@@ -410,9 +432,9 @@ class CraterDatabase:
                 # By default does nearest-neighbor interp to out_shape (super fast reads for low dpi)
                 data = src.read(indexes=band, out_shape=(height_npix, width_npix))
                 extent = ch.bbox2extent(src.bounds)
-                # raster_crs = ccrs.CRS(src.crs)
-                # TODO: assumes simple cylindrical, recognize and support other projections
-                ax.imshow(data, cmap="gray", extent=extent, transform=proj)
+                # Geometries/axes stay geodetic; cartopy warps a projected raster on draw
+                transform = _img_transform(src.crs, proj, extent)
+                ax.imshow(data, cmap="gray", extent=extent, transform=transform)
         if not region:
             # Store crater rims with leading "_" to not be mistaken for user-defined ROIs
             region = "_plot_circles"
@@ -616,9 +638,16 @@ class CraterDatabase:
         )
         pc = ccrs.PlateCarree(globe=globe)
 
+        # rasterstats samples in the raster CRS; reproject geometries for clipping
+        # (axes/outlines stay geodetic so degree gridlines remain valid). For a
+        # projected raster, cartopy warps each mini raster into the geodetic axes.
+        with rio.open(fraster) as src:
+            transform = _img_transform(src.crs, pc, ch.bbox2extent(src.bounds))
+        gdf_r = ch.reproject_to_raster(gdf.geometry, fraster)
+
         # Make roi array generator
         rois = gen_zonal_stats(
-            gdf.geometry,
+            gdf_r,
             fraster,
             stats="count",
             raster_out=True,
@@ -641,10 +670,15 @@ class CraterDatabase:
             if img.count() == 0:
                 n -= 1
                 continue
-            geom = gdf.geometry.iloc[i]
-            extent = ch.bbox2extent(geom.bounds)
-            axs[i].imshow(img, extent=extent, aspect="auto", **im_kw)
+            geom = gdf.geometry.iloc[i]  # geodetic, for outline + degree gridlines
+            extent = ch.bbox2extent(gdf_r.iloc[i].bounds)  # raster CRS, matches img
+            axs[i].imshow(
+                img, extent=extent, aspect="auto", transform=transform, **im_kw
+            )
             axs[i].add_feature(ShapelyFeature(geom, crs=pc, **shp_kw))
+            # Frame on the geodetic crater bounds (warped images don't autoscale)
+            gminx, gminy, gmaxx, gmaxy = geom.bounds
+            axs[i].set_extent((gminx, gmaxx, gminy, gmaxy), crs=pc)
             i += 1
         # Format valid axes, delete unused axes
         for i, ax in enumerate(axs):

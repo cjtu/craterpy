@@ -6,7 +6,9 @@ from craterpy.classes import CraterDatabase
 from craterpy.crs import ALL_BODIES
 
 data_dir = resources.files(__name__).joinpath("data")
-sample_data = {p.name: p for p in data_dir.rglob("*") if p.suffix in (".csv", ".tif")}
+sample_data = {
+    p.name: p for p in data_dir.rglob("*") if p.suffix in (".csv", ".tif", ".vrt")
+}
 all_bodies = ALL_BODIES
 __all__ = ["CraterDatabase", "sample_data"]
 

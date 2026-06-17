@@ -2,6 +2,23 @@
 
 Files were drawn from the [USGS Astropedia](https://astrogeology.usgs.gov/search) site in Sep 2025.
 
+`moon_eqc.vrt` is a lightweight warped VRT giving a projected (meters) view of
+`moon.tif` in `IAU_2015:30110` (Moon Equirectangular, clon=0), used to test support
+for projected rasters. It references `moon.tif` relatively, so keep them together.
+Regenerate with:
+
+```python
+import rasterio as rio
+from rasterio.enums import Resampling
+from rasterio.shutil import copy as rio_copy
+from rasterio.vrt import WarpedVRT
+
+with rio.open("moon.tif") as src, WarpedVRT(
+    src, crs="IAU_2015:30110", resampling=Resampling.bilinear
+) as vrt:
+    rio_copy(vrt, "moon_eqc.vrt", driver="VRT")
+```
+
 To produce low resolution context images, the sample JPEG imagery of various planetary bodies were converted to `.tif` files using [GDAL](https://gdal.org/).
 
 ```sh

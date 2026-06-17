@@ -28,6 +28,8 @@ class TestCraterDatabase(unittest.TestCase):
 
     def setUp(self):
         self.moon_tif = craterpy.sample_data["moon.tif"]
+        # projected (meters) view of moon.tif (IAU_2015:30110)
+        self.moon_vrt = craterpy.sample_data["moon_eqc.vrt"]
         self.moon_dem = craterpy.sample_data["moon_dem.tif"]
         self.moon_craters = craterpy.sample_data["moon_craters_km.csv"]
         self.vesta_tif = craterpy.sample_data["vesta.tif"]
@@ -525,3 +527,39 @@ class TestCraterDatabase(unittest.TestCase):
         self.assertTrue(
             all(isinstance(ax, Axes) for ax in axes.flatten() if ax is not None)
         )
+
+    def test_projected_raster(self):
+        """Sampling from or plotting on projected (meters) raster.
+
+        Geometries are stored geodetic (lat/lon), e.g. IAU_2015:30100 (Moon geodetic), while
+        ``moon_eqc.vrt`` is a VRT of moon.tif in IAU_2015:30110 (Moon Equirectangular, meters).
+        """
+        # Subset to a few large mid-latitude craters to keep the test fast
+        craters = pd.read_csv(self.moon_craters).head(12)
+        cdb = CraterDatabase(craters, "moon", units="km")
+        cdb.add_circles("crater", 1.0)
+
+        with rio.open(self.moon_vrt) as src:
+            self.assertFalse(src.crs.is_geographic)
+
+        # Stats/arrays must match the geographic raster: equivalent pixels are
+        # sampled (small differences only from warp resampling).
+        geo = cdb.get_stats(self.moon_tif, "crater", n_jobs=1)
+        proj = cdb.get_stats(self.moon_vrt, "crater", n_jobs=1)
+        self.assertTrue((proj["count_crater"] > 0).all())
+        np.testing.assert_allclose(proj["mean_crater"], geo["mean_crater"], atol=10)
+
+        arrays = cdb.get_arrays(self.moon_vrt, "crater", n_jobs=1)
+        self.assertTrue(all(a.count() > 0 for a in arrays["crater"]))
+
+        # plot(): warps raster into the geodetic axes with the ROI overlay
+        ax = cdb.plot(self.moon_vrt, region="crater", size=4, dpi=50)
+        self.assertEqual(len(ax.images), 1)
+        self.assertEqual(len(ax.collections), 1)
+
+        # plot_rois(): mini rasters are non-empty (correctly clipped)
+        axes = cdb.plot_rois(self.moon_vrt, "crater", index=3)
+        self.assertTrue(
+            all(isinstance(ax, Axes) for ax in axes.flatten() if ax is not None)
+        )
+        self.assertTrue(any(len(ax.images) > 0 for ax in axes.flatten()))

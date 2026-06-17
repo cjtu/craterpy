@@ -9,6 +9,7 @@ import joblib
 import numpy as np
 import pandas as pd
 import pyproj
+import rasterio as rio
 from joblib import Parallel, delayed
 from planetarypy.crs import local_crs
 from planetarypy.geo import split_at_antimeridian
@@ -355,6 +356,37 @@ def get_annular_buffer(point: Point, rad: float, inner: float, outer: float, **k
     return outer_poly.difference(inner_poly)
 
 
+def reproject_to_raster(geometries, raster):
+    """Return geometries reprojected to the raster's CRS.
+
+    rasterstats samples a raster using the geometry coordinates as-is and does not
+    reproject, so geometries must share the raster's CRS. This is a no-op when the
+    CRS already match or when either CRS is unknown.
+
+    Parameters
+    ----------
+    geometries : geopandas.GeoSeries
+        GeoSeries with a defined ``.crs``.
+    raster : str or rasterio.DatasetReader
+        Raster file path or open raster dataset.
+
+    Returns
+    -------
+    geopandas.GeoSeries
+        Geometries in the raster CRS (or unchanged if reprojection isn't needed).
+    """
+    if hasattr(raster, "crs"):
+        rcrs = raster.crs
+    else:
+        with rio.open(raster) as src:
+            rcrs = src.crs
+    if rcrs is None or geometries.crs is None:
+        return geometries
+    if pyproj.CRS.from_user_input(rcrs) == pyproj.CRS.from_user_input(geometries.crs):
+        return geometries
+    return geometries.to_crs(rcrs)
+
+
 def compute_zonal_stats(geometries, raster, suffix: str = "", **kwargs) -> pd.DataFrame:
     """
     Compute zonal stats (e.g., mean, std, count) for each geometry in the raster.
@@ -377,6 +409,8 @@ def compute_zonal_stats(geometries, raster, suffix: str = "", **kwargs) -> pd.Da
     pandas.DataFrame
         DataFrame containing computed statistics for each geometry.
     """
+    # rasterstats doesn't reproject; match the raster CRS first (e.g. projected rasters)
+    geometries = reproject_to_raster(geometries, raster)
     # Perform the core calculation
     zstats = zonal_stats(geometries, raster, all_touched=True, **kwargs)
     df = pd.DataFrame(zstats, index=geometries.index)
@@ -489,6 +523,8 @@ def compute_arrays(geometries, raster, suffix: str = "", **kwargs) -> pd.Series:
     pandas.Series
         Series of numpy.ma.MaskedArray, one clipped raster window per geometry.
     """
+    # rasterstats doesn't reproject; match the raster CRS first (e.g. projected rasters)
+    geometries = reproject_to_raster(geometries, raster)
     zstats = zonal_stats(
         geometries, raster, all_touched=True, raster_out=True, **kwargs
     )
