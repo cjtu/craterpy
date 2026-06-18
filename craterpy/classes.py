@@ -643,7 +643,7 @@ class CraterDatabase:
         # projected raster, cartopy warps each mini raster into the geodetic axes.
         with rio.open(fraster) as src:
             transform = _img_transform(src.crs, pc, ch.bbox2extent(src.bounds))
-        gdf_r = ch.reproject_to_raster(gdf.geometry, fraster)
+            gdf_r = ch.reproject_to_raster(gdf.geometry, src)
 
         # Make roi array generator
         rois = gen_zonal_stats(
@@ -663,23 +663,23 @@ class CraterDatabase:
             subplot_kw={"projection": pc},
             gridspec_kw={"wspace": 0.4, "hspace": 0.2},
         )
-        i = 0
         axs = np.atleast_1d(axes).flatten()
-        while i < n:
-            img = next(rois)["mini_raster_array"]
+        # Loop through and generate plots and track number of valid rois plotted
+        ax_i = 0
+        for geom, geom_r, roi in zip(gdf.geometry, gdf_r, rois, strict=True):
+            img = roi["mini_raster_array"]
             if img.count() == 0:
                 n -= 1
                 continue
-            geom = gdf.geometry.iloc[i]  # geodetic, for outline + degree gridlines
-            extent = ch.bbox2extent(gdf_r.iloc[i].bounds)  # raster CRS, matches img
-            axs[i].imshow(
+            extent = ch.bbox2extent(geom_r.bounds)  # raster CRS, matches img
+            axs[ax_i].imshow(
                 img, extent=extent, aspect="auto", transform=transform, **im_kw
             )
-            axs[i].add_feature(ShapelyFeature(geom, crs=pc, **shp_kw))
+            axs[ax_i].add_feature(ShapelyFeature(geom, crs=pc, **shp_kw))
             # Frame on the geodetic crater bounds (warped images don't autoscale)
             gminx, gminy, gmaxx, gmaxy = geom.bounds
-            axs[i].set_extent((gminx, gmaxx, gminy, gmaxy), crs=pc)
-            i += 1
+            axs[ax_i].set_extent((gminx, gmaxx, gminy, gmaxy), crs=pc)
+            ax_i += 1
         # Format valid axes, delete unused axes
         for i, ax in enumerate(axs):
             if i >= n:

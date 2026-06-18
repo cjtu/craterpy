@@ -205,6 +205,36 @@ class TestShapeGeometryHelpers(unittest.TestCase):
         self.assertEqual(south.bounds[2], 180.0)
         self.assertEqual(south.bounds[1], -90.0)
 
+    def test_reproject_to_raster(self):
+        """Geometries are reprojected to the raster CRS only when needed."""
+        import geopandas as gpd
+        import pyproj
+        import rasterio as rio
+
+        import craterpy
+
+        geom = gpd.GeoSeries([Point(0, 0), Point(10, 20)], crs="IAU_2015:30100")
+
+        # No-op when the geometry CRS is unknown
+        nocrs = gpd.GeoSeries([Point(0, 0)])
+        out = ch.reproject_to_raster(nocrs, craterpy.sample_data["moon_eqc.vrt"])
+        self.assertIs(out, nocrs)
+
+        # No-op when geometries already match the (geographic) raster CRS
+        out = ch.reproject_to_raster(geom, craterpy.sample_data["moon.tif"])
+        self.assertIs(out, geom)
+
+        # Reproject to a projected raster; an already-open dataset is accepted
+        with rio.open(craterpy.sample_data["moon_eqc.vrt"]) as src:
+            rcrs = src.crs
+            out = ch.reproject_to_raster(geom, src)
+        self.assertEqual(
+            pyproj.CRS.from_user_input(out.crs), pyproj.CRS.from_user_input(rcrs)
+        )
+        self.assertFalse(out.crs.is_geographic)
+        # Degrees became meters, so coordinates are now large
+        self.assertGreater(abs(out.iloc[1].x), 1e5)
+
 
 class TestDataframeHelpers(unittest.TestCase):
     """Test pandas.DataFrame helper functions"""
