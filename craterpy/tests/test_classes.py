@@ -528,6 +528,54 @@ class TestCraterDatabase(unittest.TestCase):
             all(isinstance(ax, Axes) for ax in axes.flatten() if ax is not None)
         )
 
+        # Test saving plot_rois to file
+        with NamedTemporaryFile(suffix=".png", delete=False) as tmp:
+            tmp_path = tmp.name
+        try:
+            cdb.plot_rois(self.moon_tif, "test_region", index=1, savefig=tmp_path)
+            self.assertTrue(os.path.getsize(tmp_path) > 0)
+        finally:
+            if os.path.exists(tmp_path):
+                os.remove(tmp_path)
+
+    def test_plot_rois_skips_empty(self):
+        """ROIs whose mini raster falls outside the data extent are skipped."""
+        from rasterio.transform import from_bounds
+
+        # Raster covering only a small equatorial patch near (lon, lat) = (0, 0)
+        with NamedTemporaryFile(suffix=".tif", delete=False) as tmp:
+            path = tmp.name
+        try:
+            with rio.open(
+                path,
+                "w",
+                driver="GTiff",
+                height=50,
+                width=50,
+                count=1,
+                dtype="uint8",
+                nodata=0,
+                crs="IAU_2015:30100",
+                transform=from_bounds(-10, -10, 10, 10, 50, 50),
+            ) as dst:
+                dst.write(np.ones((50, 50), dtype="uint8"), 1)
+
+            # Two craters inside the raster, one well outside (but not polar/oob):
+            # the outside one's window is all nodata, so its mini raster is empty.
+            df = pd.DataFrame(
+                {"lat": [3, -4, 0], "lon": [-3, 4, 120], "radius": [100, 100, 100]}
+            )
+            cdb = CraterDatabase(df, body="moon", units="km")
+            cdb.add_circles("test_region")
+
+            axes = cdb.plot_rois(path, "test_region", index=3)
+            # Only the two in-extent craters get an image; the outside one is skipped
+            drawn = [ax for ax in np.atleast_1d(axes).flatten() if ax.images]
+            self.assertEqual(len(drawn), 2)
+        finally:
+            if os.path.exists(path):
+                os.remove(path)
+
     def test_projected_raster(self):
         """Sampling from or plotting on projected (meters) raster.
 
