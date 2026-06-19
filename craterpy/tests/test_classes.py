@@ -54,6 +54,21 @@ class TestCraterDatabase(unittest.TestCase):
         # Test that ejecta was registered as a propety and contains a shapely geom
         self.assertIsInstance(cdb.ejecta[0], shapely.geometry.Polygon)
 
+    def test_roi_attrs_are_per_instance(self):
+        """ROIs added to one database must not leak into another (issue #71)."""
+        a = self.moon_cdb.copy()
+        b = self.moon_cdb.copy()
+        a.add_annuli("new", 1, 3)
+
+        # "new" belongs to a only
+        self.assertIn("new", a.__repr__())
+        self.assertIsInstance(a.new[0], shapely.geometry.Polygon)
+
+        # b must not report or expose "new"
+        self.assertNotIn("new", b.__repr__())
+        with self.assertRaises(AttributeError):
+            _ = b.new
+
     def test_get_stats(self):
         """Test getting statistics on a region for a raster."""
         stats = self.moon_cdb_rim.get_stats(self.moon_tif, "rim")
