@@ -124,6 +124,7 @@ class CraterDatabase:
         else:
             raise ValueError("Could not read crater dataset.")
         self.orig_cols = in_data.columns
+        self._roi_names = {}  # attr name -> data column name (per-instance ROIs)
 
         for col in (lat_col, lon_col, rad_col, diam_col):
             if col is not None and col not in in_data.columns:
@@ -172,6 +173,17 @@ class CraterDatabase:
     def __repr__(self):
         attrs = ", ".join([p for p in self._get_properties() if not p.startswith("_")])
         return f"CraterDatabase of length {len(self.data)} with attributes {attrs}."
+
+    def __getattr__(self, name):
+        """Expose per-instance ROI columns as attributes (e.g. cdb.ejecta)."""
+        # __getattr__ only runs when normal lookup fails. Use __dict__ to avoid
+        # recursing through __getattr__ before _roi_names is set in __init__.
+        rois = self.__dict__.get("_roi_names", {})
+        if name in rois:
+            return self.data[rois[name]]
+        raise AttributeError(
+            f"{type(self).__name__!r} object has no attribute {name!r}"
+        )
 
     def __str__(self):
         body = self.body.capitalize()
@@ -222,14 +234,15 @@ class CraterDatabase:
         return out
 
     def _make_data_property(self, col):
-        """Make a column of self.data accessible directly as an attribute."""
+        """Register a column of self.data for direct attribute access on this instance."""
         c = col.replace(" ", "_")  # attr can't have spaces
-        setattr(self.__class__, c, property(fget=lambda self: self.data[col]))
+        self._roi_names[c] = col
 
     def _get_properties(self):
-        """Return list of property names."""
+        """Return list of attribute names (class properties + this instance's ROIs)."""
         class_items = self.__class__.__dict__.items()
-        return [k for k, v in class_items if isinstance(v, property)]
+        props = [k for k, v in class_items if isinstance(v, property)]
+        return props + list(self._roi_names)
 
     @property
     def lat(self):
